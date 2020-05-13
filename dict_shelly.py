@@ -153,21 +153,20 @@ min_p = settings[3]["min_params"]
 max_p = settings[3]["max_params"]
 
 
-params = []
+command = {}
 for (key,value) in settings[3]["params_list"]:
     # in base ai valori di min_params e max_params si deciderà quanti parametri mettere
     # e che valori assegnargli
     # ci vorrà un controllo sul tipo di dato da mandare (int, string)
-    params.append(key + ":" + str(value))
+    command[key] = value
     # non mi piace per ora come li formatta
     # le stringe dovrebbero avere le virgolette
 
-command = {"get": "shellies/shellybulb"+ str(device_id) + "/" + settings[3]["name"],                                # id_pair
-           "params": params,
-           }
+command["get"] ="shellies/shellybulb"+ str(device_id) + "/" + settings[3]["name"]
 
 pp = pprint.PrettyPrinter(indent=4)
 
 json_string = json.dumps(command)
 
 pp.pprint(json_string)
+pp.pprint(command)
