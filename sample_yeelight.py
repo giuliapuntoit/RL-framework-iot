@@ -46,7 +46,7 @@ def send_search_broadcast():
   msg = msg + "HOST: 239.255.255.250:1982\r\n"
   msg = msg + "MAN: \"ssdp:discover\"\r\n"
   msg = msg + "ST: wifi_bulb"
-  scan_socket.sendto(msg, multicase_address)
+  scan_socket.sendto(msg.encode(), multicase_address)
 
 def bulbs_detection_loop():
   '''
@@ -97,7 +97,7 @@ def get_param_value(data, param):
   match line of 'param = value'
   '''
   param_re = re.compile(param+":\s*([ -~]*)") #match all printable characters
-  match = param_re.search(data)
+  match = param_re.search(data.decode())
   value=""
   if match != None:
     value = match.group(1)
@@ -109,13 +109,13 @@ def handle_search_response(data):
   If new bulb is found, insert it into dictionary of managed bulbs.
   '''
   location_re = re.compile("Location.*yeelight[^0-9]*([0-9]{1,3}(\.[0-9]{1,3}){3}):([0-9]*)")
-  match = location_re.search(data)
+  match = location_re.search(data.decode())
   if match == None:
-    debug( "invalid data received: " + data )
+    debug( "invalid data received: " + data.decode() )
     return
 
   host_ip = match.group(1)
-  if detected_bulbs.has_key(host_ip):
+  if host_ip in detected_bulbs:
     bulb_id = detected_bulbs[host_ip][0]
   else:
     bulb_id = len(detected_bulbs)+1
@@ -129,7 +129,7 @@ def handle_search_response(data):
   bulb_idx2ip[bulb_id] = host_ip
 
 def display_bulb(idx):
-  if not bulb_idx2ip.has_key(idx):
+  if idx not in bulb_idx2ip:
     print("error: invalid bulb idx")
     return
   bulb_ip = bulb_idx2ip[idx]
@@ -153,7 +153,7 @@ def operate_on_bulb(idx, method, params):
   Input data 'params' must be a compiled into one string.
   E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
   '''
-  if not bulb_idx2ip.has_key(idx):
+  if idx not in bulb_idx2ip:
     print("error: invalid bulb idx")
     return
 
@@ -165,7 +165,7 @@ def operate_on_bulb(idx, method, params):
     tcp_socket.connect((bulb_ip, int(port)))
     msg="{\"id\":" + str(next_cmd_id()) + ",\"method\":\""
     msg += method + "\",\"params\":[" + params + "]}\r\n"
-    tcp_socket.send(msg)
+    tcp_socket.send(msg.encode())
     tcp_socket.close()
   except Exception as e:
     print("Unexpected error:", e)
