@@ -93,14 +93,22 @@ def bulbs_detection_loop():
 
 
 def get_param_value(data, param):
-    '''
-  match line of 'param = value'
-  '''
+  # match line of 'param = value'
     param_re = re.compile(param + ":\s*([ -~]*)")  # match all printable characters
     match = param_re.search(data.decode())
     value = ""
     if match != None:
         value = match.group(1)
+        return value
+
+def get_support_value(data):
+  # match line of 'support = value'
+    support_re = re.compile("support" + ":\s*([ -~]*)")  # match all printable characters
+    match = support_re.search(data.decode())
+    value = ""
+    if match != None:
+        value = match.group(1)
+        # print(value)
         return value
 
 
@@ -125,8 +133,10 @@ def handle_search_response(data):
     power = get_param_value(data, "power")
     bright = get_param_value(data, "bright")
     rgb = get_param_value(data, "rgb")
+    supported_methods = get_support_value(data).split(sep=None)
+    print(supported_methods)
     # use two dictionaries to store index->ip and ip->bulb map
-    detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port]
+    detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port, supported_methods]
     bulb_idx2ip[bulb_id] = host_ip
 
 
@@ -134,6 +144,26 @@ def handle_response(data):
     # Print response
     print(data.decode())
 
+    id_re = re.compile("id" + ":" + str(current_command_id))
+    match = id_re.search(data.decode())
+    value = ""
+    if match != None:
+        value = match.group(1)
+        print("Answer to command ", value)
+
+        result_re = re.compile("result" + ":\s*([ -~]*)") # match all printable characters
+        match_result = result_re.search(data.decode())
+        if match_result != None:
+            res_value = match_result.group(1)
+            print("Result is ", res_value)
+            return res_value
+        else:
+            error_re = re.compile("error" + ":\s*([ -~]*)") # match all printable characters
+            match_error = error_re.search(data.decode())
+            if match_error != None:
+                err_value = match_error.group(1)
+                print("Error is ", err_value)
+                return err_value
 
 def display_bulb(idx):
     if idx not in bulb_idx2ip:
@@ -175,6 +205,8 @@ def operate_on_bulb(idx, method, params):
         msg = "{\"id\":" + str(next_cmd_id()) + ",\"method\":\""
         msg += method + "\",\"params\":[" + params + "]}\r\n"
         tcp_socket.send(msg.encode())
+        data = tcp_socket.recv(2048)
+        handle_response(data)
         tcp_socket.close()
     except Exception as e:
         print("Unexpected error:", e)
@@ -193,51 +225,47 @@ sleep(5)
 display_bulbs()
 
 print(bulb_idx2ip)
-idLamp = 1
+max_wait = 0
+while len(bulb_idx2ip) == 0 and max_wait < 10:
+    sleep(1)
+    max_wait += 1
+if len(bulb_idx2ip) == 0:
+    print("Bulb list is empty.")
+else:
+    display_bulbs()
+    idLamp = list(bulb_idx2ip.keys())[0]
 
-# Setting power off if open
-print("Setting power off")
-operate_on_bulb(idLamp, "set_power", str("\"off\", \"smooth\", 500"))
-sleep(2)
+    print("Toggling lamp")
+    operate_on_bulb(idLamp, "toggle", "")
 
-# Toggle
-print("Toggling lamp")
-operate_on_bulb(idLamp, "toggle", "")
+    # Setting power off if open
+    #print("Setting power off")
+    #operate_on_bulb(idLamp, "set_power", str("\"off\", \"smooth\", 500"))
+    sleep(2)
 
-sleep(2)
+    # Toggle
+    print("Toggling lamp")
+    operate_on_bulb(idLamp, "toggle", "")
 
-data = ""
+    sleep(2)
 
-while data == "":
-    try:
-        data, addr = listen_socket.recvfrom(2048)
-    except socket.error as e:
-        err = e.args[0]
-        if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
-            print("Socket error occurred")
-            break
-        else:
-            print(e)
-            sys.exit(1)
-    handle_response(data)
+    # Set brightness
+    print("Changing brightness")
+    brightness = random.randint(1, 100)
+    operate_on_bulb(idLamp, "set_bright", str(1000))
 
-# Set brightness
-print("Changing brightness")
-brightness = random.randint(1, 100)
-operate_on_bulb(idLamp, "set_bright", str(1000))
+    sleep(2)
 
-sleep(2)
+    # Set rgb
+    print("Changing color rgb")
+    rgb = random.randint(1, 16777215)
+    operate_on_bulb(idLamp, "set_rgb", str(str(rgb) + ", \"smooth\", 500"))
 
-# Set rgb
-print("Changing color rgb")
-rgb = random.randint(1, 16777215)
-operate_on_bulb(idLamp, "set_rgb", str(str(rgb) + ", \"smooth\", 500"))
+    sleep(2)
 
-sleep(2)
-
-# Toggle
-print("Toggling lamp")
-operate_on_bulb(idLamp, "toggle", "")
+    # Toggle
+    print("Toggling lamp")
+    operate_on_bulb(idLamp, "toggle", "")
 
 # goal achieved, tell detection thread to quit and wait
 RUNNING = False
