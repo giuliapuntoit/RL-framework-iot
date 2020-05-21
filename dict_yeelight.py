@@ -311,14 +311,14 @@ methods.extend(({"name": "get_prop",
 id = 0
 
 params = []
-for (key,value) in methods[6]["params_list"]:
+for (key,value) in methods[2]["params_list"]:
     # in base ai valori di min_params e max_params si deciderà quanti parametri mettere
     # e che valori assegnargli
     # ci vorrà un controllo sul tipo di dato da mandare (int, string)
     params.append(value)
 
 command = {"id": id,                                # id_pair
-           "method": methods[6]["name"],            # method_pair
+           "method": methods[2]["name"],            # method_pair
            "params": params,                        # params_pair
            }
 
