@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+import json
 import random
 import socket
 import sys
@@ -20,6 +20,9 @@ RUNNING = True
 current_command_id = 0
 MCAST_GRP = '239.255.255.250'
 
+# Variables for RL
+tot_reward = 0
+
 # Socket setup
 scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 fcntl.fcntl(scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
@@ -39,7 +42,7 @@ def next_cmd_id():
 
 
 def send_search_broadcast():
-  # multicast search request to all hosts in LAN, do not wait for response
+    # multicast search request to all hosts in LAN, do not wait for response
     print("send_search_broadcast running")
     multicase_address = (MCAST_GRP, 1982)
     msg = "M-SEARCH * HTTP/1.1\r\n"
@@ -50,7 +53,7 @@ def send_search_broadcast():
 
 
 def bulbs_detection_loop():
-  # a standalone thread broadcasting search request and listening on all responses
+    # a standalone thread broadcasting search request and listening on all responses
     print("bulbs_detection_loop running")
     search_interval = 30000
     read_interval = 100
@@ -93,7 +96,7 @@ def bulbs_detection_loop():
 
 
 def get_param_value(data, param):
-  # match line of 'param = value'
+    # match line of 'param = value'
     param_re = re.compile(param + ":\s*([ -~]*)")  # match all printable characters
     match = param_re.search(data.decode())
     value = ""
@@ -101,8 +104,9 @@ def get_param_value(data, param):
         value = match.group(1)
         return value
 
+
 def get_support_value(data):
-  # match line of 'support = value'
+    # match line of 'support = value'
     support_re = re.compile("support" + ":\s*([ -~]*)")  # match all printable characters
     match = support_re.search(data.decode())
     value = ""
@@ -141,29 +145,24 @@ def handle_search_response(data):
 
 
 def handle_response(data):
+    global tot_reward
     # Print response
-    print(data.decode())
+    json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
+    print(json_received)
+    if json_received['id'] == current_command_id:
+            if json_received['result'] is not None:
+                print("Result is", json_received['result'])
+                tot_reward += 1
+            elif json_received['error'] is not None:
+                print("Error is", json_received['error'])
+                tot_reward -= 10
+            else:
+                print("No result or error found in answer.")
+                tot_reward -= 100 # non è colpa di nessuno?
+    else:
+        print("Bad format response.")
+        tot_reward -= 50 # non è colpa di nessuno?
 
-    id_re = re.compile("id" + ":" + str(current_command_id))
-    match = id_re.search(data.decode())
-    value = ""
-    if match != None:
-        value = match.group(1)
-        print("Answer to command ", value)
-
-        result_re = re.compile("result" + ":\s*([ -~]*)") # match all printable characters
-        match_result = result_re.search(data.decode())
-        if match_result != None:
-            res_value = match_result.group(1)
-            print("Result is ", res_value)
-            return res_value
-        else:
-            error_re = re.compile("error" + ":\s*([ -~]*)") # match all printable characters
-            match_error = error_re.search(data.decode())
-            if match_error != None:
-                err_value = match_error.group(1)
-                print("Error is ", err_value)
-                return err_value
 
 def display_bulb(idx):
     if idx not in bulb_idx2ip:
@@ -219,7 +218,7 @@ def operate_on_bulb(idx, method, params):
 detection_thread = Thread(target=bulbs_detection_loop)
 detection_thread.start()
 # give detection thread some time to collect bulb info
-sleep(5)
+sleep(10)
 
 # show discovered lamps
 display_bulbs()
@@ -235,24 +234,15 @@ else:
     display_bulbs()
     idLamp = list(bulb_idx2ip.keys())[0]
 
-    print("Toggling lamp")
-    operate_on_bulb(idLamp, "toggle", "")
-
-    # Setting power off if open
-    #print("Setting power off")
-    #operate_on_bulb(idLamp, "set_power", str("\"off\", \"smooth\", 500"))
-    sleep(2)
-
-    # Toggle
-    print("Toggling lamp")
-    operate_on_bulb(idLamp, "toggle", "")
-
+    # Setting power on
+    print("Setting power on")
+    operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 500"))
     sleep(2)
 
     # Set brightness
     print("Changing brightness")
     brightness = random.randint(1, 100)
-    operate_on_bulb(idLamp, "set_bright", str(1000))
+    operate_on_bulb(idLamp, "set_bright", str(brightness))
 
     sleep(2)
 
@@ -271,3 +261,5 @@ else:
 RUNNING = False
 detection_thread.join()
 # done
+
+print("Total reward received", tot_reward)
