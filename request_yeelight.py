@@ -187,7 +187,7 @@ def display_bulbs():
 
 def operate_on_bulb(idx, method, params):
     '''
-  Operate on bulb; no gurantee of success.
+  Operate on bulb; no guarantee of success.
   Input data 'params' must be a compiled into one string.
   E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
   '''
@@ -233,6 +233,19 @@ if len(bulb_idx2ip) == 0:
 else:
     display_bulbs()
     idLamp = list(bulb_idx2ip.keys())[0]
+
+
+    # TODO: prendere i comandi dal dictionary nel seguente modo:
+    # Chiami dict_yeelight (probabilmente il comando specifico verra' preso in base ad una matrice)
+    # Il dict torna un json (?) e quando lo ricevo parso il json prendendomi il method e i parametri
+    # Possibilmente anche la lunghezza/numero di parametri
+    # Ci sara' un po' di exploration/exploitation per decidere se usare conformazioni di parametri nuovi
+    # o parametri gia' usati (o random? o default?)
+    # Mi servira' una specie di switcher che se nei parametri c'e' una stringa o un numero devo assegnare
+    # il valore giusto ai parametri: i valori devono essere completamente random?
+
+    # Choose method
+
 
     # Setting power on
     print("Setting power on")
