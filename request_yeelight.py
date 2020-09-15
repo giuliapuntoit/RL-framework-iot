@@ -14,6 +14,8 @@ from time import sleep
 from collections import OrderedDict
 
 # Global variables
+from serve_yeelight import ServeYeelight
+
 detected_bulbs = {}
 bulb_idx2ip = {}
 RUNNING = True
@@ -150,18 +152,18 @@ def handle_response(data):
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
     print(json_received)
     if json_received['id'] == current_command_id:
-            if json_received['result'] is not None:
-                print("Result is", json_received['result'])
-                tot_reward += 1
-            elif json_received['error'] is not None:
-                print("Error is", json_received['error'])
-                tot_reward -= 10
-            else:
-                print("No result or error found in answer.")
-                tot_reward -= 100 # non è colpa di nessuno?
+        if json_received['result'] is not None:
+            print("Result is", json_received['result'])
+            tot_reward += 1
+        elif json_received['error'] is not None:
+            print("Error is", json_received['error'])
+            tot_reward -= 10
+        else:
+            print("No result or error found in answer.")
+            tot_reward -= 100  # non è colpa di nessuno?
     else:
         print("Bad format response.")
-        tot_reward -= 50 # non è colpa di nessuno?
+        tot_reward -= 50  # non è colpa di nessuno?
 
 
 def display_bulb(idx):
@@ -211,6 +213,31 @@ def operate_on_bulb(idx, method, params):
         print("Unexpected error:", e)
 
 
+def operate_on_bulb_json(json_string):
+    '''
+  Operate on bulb; no guarantee of success.
+  Input data 'params' must be a compiled into one string.
+  E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
+  '''
+    if json_string["id"] not in bulb_idx2ip:
+        print("error: invalid bulb idx")
+        return
+
+    bulb_ip = bulb_idx2ip[json_string["id"]]
+    port = detected_bulbs[bulb_ip][5]
+    try:
+        tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("connect ", bulb_ip, port, "...")
+        tcp_socket.connect((bulb_ip, int(port)))
+        msg = str(json_string) + "\r\n"
+        tcp_socket.send(msg.encode())
+        data = tcp_socket.recv(2048)
+        handle_response(data)
+        tcp_socket.close()
+    except Exception as e:
+        print("Unexpected error:", e)
+
+
 # MAIN
 
 # first discover the lamp and Connect to the lamp
@@ -234,18 +261,23 @@ else:
     display_bulbs()
     idLamp = list(bulb_idx2ip.keys())[0]
 
-
-    # TODO: prendere i comandi dal dictionary nel seguente modo:
     # Chiami dict_yeelight (probabilmente il comando specifico verra' preso in base ad una matrice)
-    # Il dict torna un json (?) e quando lo ricevo parso il json prendendomi il method e i parametri
-    # Possibilmente anche la lunghezza/numero di parametri
-    # Ci sara' un po' di exploration/exploitation per decidere se usare conformazioni di parametri nuovi
+    # Il dict torna un json tramite serve_yeelight
+    # TODO Ci sara' un po' di exploration/exploitation per decidere se usare conformazioni di parametri nuovi
     # o parametri gia' usati (o random? o default?)
-    # Mi servira' una specie di switcher che se nei parametri c'e' una stringa o un numero devo assegnare
-    # il valore giusto ai parametri: i valori devono essere completamente random?
 
     # Choose method
+    print("Doing a random method")
+    json_command = ServeYeelight(idLamp=idLamp).run()
+    operate_on_bulb_json(json_command)
 
+    # Provo a crashare la lampadina eseguendo il compando operate_on_bulb_json con json_command in loop? Potrei provare
+    # Se questo methodo operan_on_bulb_json funziona qui dovrei mettere il codice per l'algoritmo di reinforcement learning
+
+    sleep(2)
+
+    print("Waiting 5 seconds before using default actions")
+    sleep(15)
 
     # Setting power on
     print("Setting power on")

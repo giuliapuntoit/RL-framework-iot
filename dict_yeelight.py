@@ -17,7 +17,7 @@ class DictYeelight(object):
         self.method_requested = method_requested
         print("Using dictionary yeelight.")
 
-    def run(self, ):
+    def run(self):
 
         properties = [('power', ""),  # values on off
                       ('bright', 0),  # range 1 100
@@ -311,14 +311,9 @@ class DictYeelight(object):
                         ))
 
         # max_params = -1 means N -> non mi piace molto come scelta
+
         # i nomi dei parametri non coincidono con i nomi delle proprietà
         # anzi ce ne sono anche di piu (vedi duration)
-
-        # check con documentazione sui min e max values dei method
-
-        # i comandi da mandare nel json sono ordinali vero?
-
-        id = 0
 
         method_selected = 2
 
@@ -334,9 +329,7 @@ class DictYeelight(object):
         #         method_selected = int(sys.argv[1])
 
         print("Method selected is number: " + str(method_selected))
-
         # print("Total methods is " + str(len(methods)))
-
         return methods[method_selected]
 
 
@@ -346,6 +339,5 @@ if __name__ == '__main__':
     # Useful information
     print("Method is " + str(method_selected))
 
-# Forse dovrei fare uno script intermedio che chiama dict_yeelight,
+# serve_yeelight e' uno script intermedio che chiama dict_yeelight,
 # elabora la risposta e poi la ritorna a request_yeelight
-# tipo 'serve_yeelight'
