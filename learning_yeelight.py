@@ -247,10 +247,10 @@ def operate_on_bulb_json(json_string):
         print("Unexpected error:", e)
 
 
-
 class SarsaSimplified(object):
 
-    def __init__(self, epsilon=0.3, total_episodes=50, max_steps=1000, alpha=0.005, gamma=0.95, disable_graphs=False, seconds_to_wait=4):
+    def __init__(self, epsilon=0.3, total_episodes=50, max_steps=1000, alpha=0.005, gamma=0.95, disable_graphs=False,
+                 seconds_to_wait=4):
         self.epsilon = epsilon
         self.total_episodes = total_episodes
         self.max_steps = max_steps
@@ -282,7 +282,7 @@ class SarsaSimplified(object):
     def run(self):
 
         # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo (?)
-        states = ["off", "on", "set_rgb", "set_brightness", "invalid"] # 0 1 2 3
+        states = ["off", "on", "set_rgb", "set_brightness", "invalid"]  # 0 1 2 3
 
         # SARSA algorithm
 
@@ -325,11 +325,8 @@ class SarsaSimplified(object):
                 print("Doing an action")
                 json_command = ServeYeelight(idLamp=idLamp, method_chosen_index=action1).run()
                 operate_on_bulb_json(json_command)
+                sleep(self.seconds_to_wait)
 
-                # dovrei tenere traccia dello stato in una current variabile apposta
-
-                # se questo metodo è usato
-                # però dovrei controllare anche se è andato a buon fine. Come?
                 # Il reward dovrebbe essere dato in base a handle_response
                 # forse anche l'aggiornamento dello stato dovrebbe essere in handle_response
                 if json_command["method"] == "set_power" and json_command["params"][0] == "on":
@@ -409,22 +406,22 @@ class SarsaSimplified(object):
         if not self.disable_graphs:
             print("Restarting... returning to state: off")
         t = 0
-        finalPolicy = []
-        finalReward = 0
+        final_policy = []
+        final_reward = 0
         optimal = [0, 1, 2, 3]
         while t < 10:
             state = current_state
-            # print("[DEBUG] state:", state)
             max_action = np.argmax(Q[state, :])
-            finalPolicy.append(max_action)
+            final_policy.append(max_action)
             if not self.disable_graphs:
                 print("Action to perform is", max_action)
-            # come trovo i vari statiiii
+
             previous_state = current_state
 
             print("Doing an action")
             json_command = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
             operate_on_bulb_json(json_command)
+            sleep(self.seconds_to_wait)
 
             state1 = previous_state
 
@@ -449,20 +446,19 @@ class SarsaSimplified(object):
 
             current_state = state2
 
-            finalReward += tmp_reward
+            final_reward += tmp_reward
             if not self.disable_graphs:
-                # trova lo stato
                 print("New state", current_state)
             if previous_state == 2 and current_state == 3:
                 break
             t += 1
 
-        print("Length final policy is", len(finalPolicy))
-        print("Final policy is", finalPolicy)
-        if len(finalPolicy) == 4 and np.array_equal(finalPolicy, optimal):
-            return True, finalReward
+        print("Length final policy is", len(final_policy))
+        print("Final policy is", final_policy)
+        if len(final_policy) == 4 and np.array_equal(final_policy, optimal):
+            return True, final_reward
         else:
-            return False, finalReward
+            return False, final_reward
 
 
 if __name__ == '__main__':
@@ -489,6 +485,9 @@ if __name__ == '__main__':
         display_bulbs()
         idLamp = list(bulb_idx2ip.keys())[0]
 
+        print("Waiting 15 seconds before using default actions")
+        sleep(15)
+        
         # Do Sarsa
 
         optimalPolicy, obtainedReward = SarsaSimplified(total_episodes=20).run()

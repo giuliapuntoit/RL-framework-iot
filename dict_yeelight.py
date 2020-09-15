@@ -340,4 +340,4 @@ if __name__ == '__main__':
     print("Method is " + str(method_selected))
 
 # serve_yeelight e' uno script intermedio che chiama dict_yeelight,
-# elabora la risposta e poi la ritorna a request_yeelight
+# elabora la risposta e poi la ritorna a request_yeelight/learning_yeelight

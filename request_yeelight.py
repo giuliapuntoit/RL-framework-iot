@@ -262,10 +262,11 @@ else:
     display_bulbs()
     idLamp = list(bulb_idx2ip.keys())[0]
 
+    print("Waiting 15 seconds before using default actions")
+    sleep(15)
+
     # Chiami dict_yeelight (probabilmente il comando specifico verra' preso in base ad una matrice)
     # Il dict torna un json tramite serve_yeelight
-    # TODO Ci sara' un po' di exploration/exploitation per decidere se usare conformazioni di parametri nuovi
-    # o parametri gia' usati (o random? o default?)
 
     # Choose method
     print("Doing a random method")
@@ -273,13 +274,9 @@ else:
     operate_on_bulb_json(json_command)
 
     # Provo a crashare la lampadina eseguendo il compando operate_on_bulb_json con json_command in loop? Potrei provare
-    # Se questo metodo operate_on_bulb_json funziona qui dovrei mettere il codice per l'algoritmo di reinforcement learning
-    # Potrei veramente fare un rl stupido che impara ad accenderla, e spegnerla, INTANTO
 
     sleep(2)
 
-    print("Waiting 5 seconds before using default actions")
-    sleep(15)
 
     # Setting power on
     print("Setting power on")
@@ -303,6 +300,8 @@ else:
     # Toggle
     print("Toggling lamp")
     operate_on_bulb(idLamp, "toggle", "")
+
+    sleep(2)
 
 # goal achieved, tell detection thread to quit and wait
 RUNNING = False
