@@ -147,6 +147,7 @@ def handle_search_response(data):
 
 
 def handle_response(data):
+    # This reward should be higher if you are following the desired path. How to enforce it?
     global tot_reward
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
@@ -272,7 +273,8 @@ else:
     operate_on_bulb_json(json_command)
 
     # Provo a crashare la lampadina eseguendo il compando operate_on_bulb_json con json_command in loop? Potrei provare
-    # Se questo methodo operan_on_bulb_json funziona qui dovrei mettere il codice per l'algoritmo di reinforcement learning
+    # Se questo metodo operate_on_bulb_json funziona qui dovrei mettere il codice per l'algoritmo di reinforcement learning
+    # Potrei veramente fare un rl stupido che impara ad accenderla, e spegnerla, INTANTO
 
     sleep(2)
 

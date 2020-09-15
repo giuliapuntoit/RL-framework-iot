@@ -7,15 +7,18 @@ import json
 # randomizing method selected
 
 class ServeYeelight(object):
-    def __init__(self, idLamp=0):
+    def __init__(self, idLamp=0, method_chosen_index=-1):
+        self.method_chosen_index = method_chosen_index
         self.id = idLamp
         print("Using serve yeelight.")
 
     def run(self):
 
-        # length of methods is 35
-        n = random.randint(0, 35)
-        method_selected = DictYeelight(method_requested=n).run()
+        if self.method_chosen_index == -1:
+            # length of methods is 35
+            self.method_chosen_index = random.randint(0, 35-1)
+
+        method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
 
         # print("Method selected is number " + str(n))
         print(str(method_selected))
