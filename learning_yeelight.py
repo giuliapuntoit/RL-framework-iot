@@ -156,6 +156,7 @@ def handle_search_response(data):
 def handle_response(data):
     # This reward should be higher if you are following the desired path. How to enforce it?
     global tot_reward
+    tot_reward = 0
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
     print("Json received is ")
@@ -163,16 +164,16 @@ def handle_response(data):
     if 'id' in json_received and json_received['id'] == current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
-            tot_reward += 1
+            tot_reward = 10
         elif 'error' in json_received and json_received['error'] is not None:
             print("Error is", json_received['error'])
-            tot_reward -= 10
+            tot_reward = -100
         else:
             print("No result or error found in answer.")
-            tot_reward -= 100  # non è colpa di nessuno?
+            tot_reward = -100  # non è colpa di nessuno?
     else:
         print("Bad format response.")
-        tot_reward -= 50  # non è colpa di nessuno?
+        tot_reward = -100  # non è colpa di nessuno?
 
 def display_bulb(idx):
     if idx not in bulb_idx2ip:
@@ -248,7 +249,7 @@ def operate_on_bulb_json(id_lamp, json_string):
 
 class SarsaSimplified(object):
 
-    def __init__(self, epsilon=0.3, total_episodes=50, max_steps=1000, alpha=0.005, gamma=0.95, disable_graphs=False,
+    def __init__(self, epsilon=0.5, total_episodes=50, max_steps=100, alpha=0.005, gamma=0.95, disable_graphs=False,
                  seconds_to_wait=4):
         self.epsilon = epsilon
         self.total_episodes = total_episodes
@@ -348,9 +349,9 @@ class SarsaSimplified(object):
                     tmp_reward += 1000
                     done = True
                 if state1 == 0 and state2 == 1:
-                    tmp_reward += 2
+                    tmp_reward += 200
                 if state1 == 1 and state2 == 2:
-                    tmp_reward += 4
+                    tmp_reward += 400
 
                 # Choosing the next action
                 action2 = self.choose_action(state2, Q)
@@ -369,10 +370,17 @@ class SarsaSimplified(object):
                 # If at the end of learning process
                 if done:
                     break
+                with open("log.txt", "a") as write_file:
+                    write_file.write("Timestep " + str(t-1) + " finished.")
+                    write_file.write("Temporary reward: " + str(tmp_reward))
+                    write_file.write("Current state: " + str(state1))
             cumulative_reward += reward_per_episode
             y_timesteps.append(t - 1)
             y_cum_reward.append(cumulative_reward)
             y_reward.append(reward_per_episode)
+            with open("log.txt", "a") as write_file:
+                write_file.write("Episode " + str(episode) + " finished.")
+
 
         # Visualizing the Q-matrix
         if not self.disable_graphs:

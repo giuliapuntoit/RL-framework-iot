@@ -1,1 +1,1 @@
-{"id": 1, "method": "bg_set_hsv", "params": [3367, 62, "smooth", 5920]}
+{"id": 1, "method": "set_bright", "params": [2166, "sudden", 9291]}
