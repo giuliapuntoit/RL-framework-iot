@@ -151,12 +151,13 @@ def handle_response(data):
     global tot_reward
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
+    print("Json received is ")
     print(json_received)
-    if json_received['id'] == current_command_id:
-        if json_received['result'] is not None:
+    if 'id' in json_received and json_received['id'] == current_command_id:
+        if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
             tot_reward += 1
-        elif json_received['error'] is not None:
+        elif 'error' in json_received and json_received['error'] is not None:
             print("Error is", json_received['error'])
             tot_reward -= 10
         else:
@@ -214,17 +215,17 @@ def operate_on_bulb(idx, method, params):
         print("Unexpected error:", e)
 
 
-def operate_on_bulb_json(json_string):
+def operate_on_bulb_json(id_lamp, json_string):
     '''
   Operate on bulb; no guarantee of success.
   Input data 'params' must be a compiled into one string.
   E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
   '''
-    if json_string["id"] not in bulb_idx2ip:
+    if id_lamp not in bulb_idx2ip:
         print("error: invalid bulb idx")
         return
 
-    bulb_ip = bulb_idx2ip[json_string["id"]]
+    bulb_ip = bulb_idx2ip[id_lamp]
     port = detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -262,8 +263,13 @@ else:
     display_bulbs()
     idLamp = list(bulb_idx2ip.keys())[0]
 
-    print("Waiting 15 seconds before using default actions")
-    sleep(15)
+    print("Waiting 5 seconds before using default actions")
+    sleep(5)
+
+    # Setting power on
+    print("Setting power on")
+    operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 500"))
+    sleep(2)
 
     # Chiami dict_yeelight (probabilmente il comando specifico verra' preso in base ad una matrice)
     # Il dict torna un json tramite serve_yeelight
@@ -271,16 +277,12 @@ else:
     # Choose method
     print("Doing a random method")
     json_command = ServeYeelight(idLamp=idLamp).run()
-    operate_on_bulb_json(json_command)
+    print(json_command)
+    print("Operating on bulb...")
+    operate_on_bulb_json(idLamp, json_command)
 
     # Provo a crashare la lampadina eseguendo il compando operate_on_bulb_json con json_command in loop? Potrei provare
 
-    sleep(2)
-
-
-    # Setting power on
-    print("Setting power on")
-    operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 500"))
     sleep(2)
 
     # Set brightness

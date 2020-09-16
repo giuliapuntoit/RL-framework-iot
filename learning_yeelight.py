@@ -46,7 +46,7 @@ sleep(2)
 
 def next_cmd_id():
     global current_command_id
-    current_command_id += 1
+    current_command_id = 1
     return current_command_id
 
 
@@ -156,15 +156,15 @@ def handle_search_response(data):
 def handle_response(data):
     # This reward should be higher if you are following the desired path. How to enforce it?
     global tot_reward
-    tot_reward = 0
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
+    print("Json received is ")
     print(json_received)
-    if json_received['id'] == current_command_id:
-        if json_received['result'] is not None:
+    if 'id' in json_received and json_received['id'] == current_command_id:
+        if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
             tot_reward += 1
-        elif json_received['error'] is not None:
+        elif 'error' in json_received and json_received['error'] is not None:
             print("Error is", json_received['error'])
             tot_reward -= 10
         else:
@@ -173,7 +173,6 @@ def handle_response(data):
     else:
         print("Bad format response.")
         tot_reward -= 50  # non è colpa di nessuno?
-
 
 def display_bulb(idx):
     if idx not in bulb_idx2ip:
@@ -222,17 +221,17 @@ def operate_on_bulb(idx, method, params):
         print("Unexpected error:", e)
 
 
-def operate_on_bulb_json(json_string):
+def operate_on_bulb_json(id_lamp, json_string):
     '''
   Operate on bulb; no guarantee of success.
   Input data 'params' must be a compiled into one string.
   E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
   '''
-    if json_string["id"] not in bulb_idx2ip:
+    if id_lamp not in bulb_idx2ip:
         print("error: invalid bulb idx")
         return
 
-    bulb_ip = bulb_idx2ip[json_string["id"]]
+    bulb_ip = bulb_idx2ip[id_lamp]
     port = detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -323,13 +322,15 @@ class SarsaSimplified(object):
                 # Getting the next state
 
                 print("Doing an action")
-                json_command = ServeYeelight(idLamp=idLamp, method_chosen_index=action1).run()
-                operate_on_bulb_json(json_command)
+                json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=action1).run()
+                json_command = json.loads(json_string)
+                operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
 
                 # Il reward dovrebbe essere dato in base a handle_response
                 # forse anche l'aggiornamento dello stato dovrebbe essere in handle_response
-                if json_command["method"] == "set_power" and json_command["params"][0] == "on":
+
+                if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][0] == "on":
                     state2 = states.index("on")
                 elif json_command["method"] == "set_rgb":
                     state2 = states.index("set_rgb")
@@ -419,8 +420,9 @@ class SarsaSimplified(object):
             previous_state = current_state
 
             print("Doing an action")
-            json_command = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
-            operate_on_bulb_json(json_command)
+            json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
+            json_command = json.loads(json_string)
+            operate_on_bulb_json(idLamp, json_string)
             sleep(self.seconds_to_wait)
 
             state1 = previous_state
@@ -485,12 +487,13 @@ if __name__ == '__main__':
         display_bulbs()
         idLamp = list(bulb_idx2ip.keys())[0]
 
-        print("Waiting 15 seconds before using default actions")
-        sleep(15)
-        
+        print("Waiting 5 seconds before using default actions")
+        sleep(5)
+
+        RUNNING = False
         # Do Sarsa
 
-        optimalPolicy, obtainedReward = SarsaSimplified(total_episodes=20).run()
+        optimalPolicy, obtainedReward = SarsaSimplified(max_steps=100, total_episodes=20).run()
         if optimalPolicy:
             print("Optimal policy was found with reward", obtainedReward)
         else:

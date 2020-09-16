@@ -33,7 +33,7 @@ class DictYeelight(object):
                       ('name', ""),  # values set in set_name command
                       ('bg_power', ""),  # values on off
                       ('bg_flowing', 0),  # values 0 1
-                      ('bg_flow_params',),  # ?
+                      ('bg_flow_params', ""),  # ?
                       ('bg_ct', 0),  # range 1700 6500 (k?)
                       ('bg_lmode', 0),  # values 1 2 3
                       ('bg_bright', 0),  # range 0 100 (percentage)
@@ -54,7 +54,7 @@ class DictYeelight(object):
         methods.extend(({"name": "get_prop",
                          "min_params": 1,
                          "max_params": -1,
-                         "params_list": [properties],
+                         "params_list": properties,
                          },
                         {"name": "set_ct_abx",
                          "min_params": 3,

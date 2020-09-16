@@ -32,44 +32,53 @@ class ServeYeelight(object):
         params = []
         cnt = 0
         # For now we ignore optional parameters
-        for (key, value) in method_params_list:
-            if cnt >= method_min_params:
-                break
-            n = random.randint(0, 20)
-            if key == "power":
-                if n % 2 == 0:
-                    value = "on"
+        if method_max_params == -1:
+            n = random.randint(1, len(method_params_list)-1)
+            sample_params_list = random.sample(method_params_list, n)
+            # print(sample_params_list)
+            for (key, value) in sample_params_list:
+                params.append(key)
+        else:
+            for (key, value) in method_params_list:
+                # print("Key " + str(key))
+                # print("Value " + str(value))
+                if cnt >= method_min_params:
+                    break
+                n = random.randint(0, 20)
+                if key == "power":
+                    if n % 2 == 0:
+                        value = "on"
+                    else:
+                        value = "off"
+                elif key == "effect":
+                    if n % 2 == 0:
+                        value = "sudden"
+                    else:
+                        value = "smooth"
+                elif key == "prop":
+                    if n % 3 == 0:
+                        value = "bright"
+                    elif n % 3 == 1:
+                        value = "ct"
+                    else:
+                        value = "color"
+                elif key == "class":
+                    if n % 5 == 0:
+                        value = "color"
+                    elif n % 5 == 1:
+                        value = "hsv"
+                    elif n % 5 == 2:
+                        value = "ct"
+                    elif n % 5 == 3:
+                        value = "cf"
+                    else:
+                        value = "auto_delay_off"
+                elif value == 0:
+                    value = random.randint(0, 10000)
                 else:
-                    value = "off"
-            elif key == "effect":
-                if n % 2 == 0:
-                    value = "sudden"
-                else:
-                    value = "smooth"
-            elif key == "prop":
-                if n % 3 == 0:
-                    value = "bright"
-                elif n % 3 == 1:
-                    value = "ct"
-                else:
-                    value = "color"
-            elif key == "class":
-                if n % 5 == 0:
-                    value = "color"
-                elif n % 5 == 1:
-                    value = "hsv"
-                elif n % 5 == 2:
-                    value = "ct"
-                elif n % 5 == 3:
-                    value = "cf"
-                else:
-                    value = "auto_delay_off"
-            elif value == 0:
-                value = random.randint(0, 10000)
-            else:
-                value = "Random string"
-            params.append(value)
-            cnt += 1
+                    value = "Random string"
+                params.append(value)
+                cnt += 1
 
         command = {"id": self.id,  # id_pair
                    "method": method_name,  # method_pair
@@ -77,8 +86,8 @@ class ServeYeelight(object):
                    }
 
         # Check json command inside file
-        # with open("data_file.json", "w") as write_file:
-        #    json.dump(command, write_file)
+        with open("data_file.json", "w") as write_file:
+           json.dump(command, write_file)
 
         return json.dumps(command)
 
