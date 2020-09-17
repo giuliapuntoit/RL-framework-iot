@@ -48,7 +48,7 @@ def send_search_broadcast():
     print("send_search_broadcast running")
     multicase_address = (MCAST_GRP, 1982)
     msg = "M-SEARCH * HTTP/1.1\r\n"
-    msg = msg + "HOST: 239.255.255.250:1982\r\n"
+    msg = msg + "HOST: 239.255.255.152:1982\r\n"
     msg = msg + "MAN: \"ssdp:discover\"\r\n"
     msg = msg + "ST: wifi_bulb"
     scan_socket.sendto(msg.encode(), multicase_address)

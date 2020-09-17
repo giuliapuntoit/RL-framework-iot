@@ -8,6 +8,7 @@ import json
 import random
 import socket
 import sys
+from datetime import datetime
 import time
 import fcntl
 import re
@@ -147,7 +148,7 @@ def handle_search_response(data):
     bright = get_param_value(data, "bright")
     rgb = get_param_value(data, "rgb")
     supported_methods = get_support_value(data).split(sep=None)
-    print(supported_methods)
+    # print(supported_methods)
     # use two dictionaries to store index->ip and ip->bulb map
     detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port, supported_methods]
     bulb_idx2ip[bulb_id] = host_ip
@@ -164,16 +165,17 @@ def handle_response(data):
     if 'id' in json_received and json_received['id'] == current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
-            tot_reward = 10
+            tot_reward = 0
         elif 'error' in json_received and json_received['error'] is not None:
             print("Error is", json_received['error'])
             tot_reward = -100
         else:
             print("No result or error found in answer.")
-            tot_reward = -100  # non è colpa di nessuno?
+            tot_reward = -1000  # non è colpa di nessuno?
     else:
         print("Bad format response.")
-        tot_reward = -100  # non è colpa di nessuno?
+        tot_reward = -1000  # non è colpa di nessuno?
+
 
 def display_bulb(idx):
     if idx not in bulb_idx2ip:
@@ -249,7 +251,7 @@ def operate_on_bulb_json(id_lamp, json_string):
 
 class SarsaSimplified(object):
 
-    def __init__(self, epsilon=0.5, total_episodes=50, max_steps=100, alpha=0.005, gamma=0.95, disable_graphs=False,
+    def __init__(self, epsilon=0.4, total_episodes=10, max_steps=100, alpha=0.005, gamma=0.95, disable_graphs=False,
                  seconds_to_wait=4):
         self.epsilon = epsilon
         self.total_episodes = total_episodes
@@ -264,7 +266,8 @@ class SarsaSimplified(object):
         # Here I should choose the method
         if np.random.uniform(0, 1) < self.epsilon:
             # Select the action randomly
-            action = random.randint(0, 35 - 1)
+            # action = random.randint(0, 35 - 1)
+            action = random.randint(0, 3)
         else:
             # Select maximum, if multiple values select randomly
             # choose random action between the max ones
@@ -282,15 +285,19 @@ class SarsaSimplified(object):
     def run(self):
 
         # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo (?)
-        states = ["off", "on", "set_rgb", "set_brightness", "invalid"]  # 0 1 2 3
+        states = ["off_start", "on", "rgb", "brightness", "off_end", "invalid"]  # 0 1 2 3 4 5
+
+        log_filename = datetime.now().strftime('./log/logfile_%H_%M_%S_%d_%m_%Y.log')
 
         # SARSA algorithm
 
         # Initializing the Q-matrix
         if not self.disable_graphs:
             print("N states: ", len(states))
-            print("N actions: ", 35)  # 35 methods, bruttissimo questo parametro statico
-        Q = np.zeros((len(states), 35))
+            # print("N actions: ", 35)  # 35 methods, bruttissimo questo parametro statico
+            print("N actions: ", 4)
+        # Q = np.zeros((len(states), 35))
+        Q = np.zeros((len(states), 4))
 
         start_time = time.time()
 
@@ -313,7 +320,7 @@ class SarsaSimplified(object):
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             sleep(self.seconds_to_wait)
 
-            state1 = states.index("off")
+            state1 = states.index("off_start")
             current_state = state1
             action1 = self.choose_action(state1, Q)
             done = False
@@ -323,35 +330,48 @@ class SarsaSimplified(object):
                 # Getting the next state
 
                 print("Doing an action")
-                json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=action1).run()
+                json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=action1 + 2).run()
                 json_command = json.loads(json_string)
+                print("Json command is " + str(json_string))
                 operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
 
                 # Il reward dovrebbe essere dato in base a handle_response
                 # forse anche l'aggiornamento dello stato dovrebbe essere in handle_response
 
-                if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][0] == "on":
+                # check current state using get_prop method 0
+                if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][0] == "on" and state1 == 0:
                     state2 = states.index("on")
-                elif json_command["method"] == "set_rgb":
-                    state2 = states.index("set_rgb")
-                elif json_command["method"] == "set_rgb":
-                    state2 = states.index("set_rgb")
-                elif json_command["method"] == "set_power" and json_command["params"][0] == "off":
-                    state2 = states.index("off")
+                elif json_command["method"] == "set_power" and json_command["params"] and json_command["params"][0] == "on" and state1 == 1:
+                    state2 = states.index("on")
+                elif json_command["method"] == "set_rgb" and state1 == 1:
+                    state2 = states.index("rgb")
+                elif json_command["method"] == "set_rgb" and state1 == 2:
+                    state2 = states.index("rgb")
+                elif json_command["method"] == "set_bright" and state1 == 2:
+                    state2 = states.index("brightness")
+                elif json_command["method"] == "set_bright" and state1 == 3:
+                    state2 = states.index("brightness")
+                elif json_command["method"] == "set_power" and json_command["params"][0] == "off" and state1 == 3:  # whatever state
+                    state2 = states.index("off_end")
+                elif json_command["method"] == "set_power" and json_command["params"][0] == "off":  # whatever state
+                    state2 = states.index("off_start")
                 else:
-                    state2 = states.index("invalid")
+                    # state2 = states.index("invalid") # fingiamo che se sbagli comando rimango sempre nello stesso stato
+                    state2 = state1
 
                 print("From state", state1, "to state", state2)
                 tmp_reward = -1 + tot_reward
 
+                if state1 == 0 and state2 == 1:
+                    tmp_reward += 100
+                if state1 == 1 and state2 == 2:
+                    tmp_reward += 200
                 if state1 == 2 and state2 == 3:
+                    tmp_reward += 400
+                if state1 == 3 and state2 == 4:
                     tmp_reward += 1000
                     done = True
-                if state1 == 0 and state2 == 1:
-                    tmp_reward += 200
-                if state1 == 1 and state2 == 2:
-                    tmp_reward += 400
 
                 # Choosing the next action
                 action2 = self.choose_action(state2, Q)
@@ -367,20 +387,19 @@ class SarsaSimplified(object):
                 t += 1
                 reward_per_episode += tmp_reward
 
+                with open(log_filename, "a") as write_file:
+                    write_file.write("\nTimestep " + str(t - 1) + " finished.")
+                    write_file.write(" Temporary reward: " + str(tmp_reward))
+                    write_file.write(" Current state: " + str(state1))
                 # If at the end of learning process
                 if done:
                     break
-                with open("log.txt", "a") as write_file:
-                    write_file.write("Timestep " + str(t-1) + " finished.")
-                    write_file.write("Temporary reward: " + str(tmp_reward))
-                    write_file.write("Current state: " + str(state1))
             cumulative_reward += reward_per_episode
             y_timesteps.append(t - 1)
             y_cum_reward.append(cumulative_reward)
             y_reward.append(reward_per_episode)
-            with open("log.txt", "a") as write_file:
-                write_file.write("Episode " + str(episode) + " finished.")
-
+            with open(log_filename, "a") as write_file:
+                write_file.write("\nEpisode " + str(episode) + " finished.\n")
 
         # Visualizing the Q-matrix
         if not self.disable_graphs:
@@ -417,7 +436,7 @@ class SarsaSimplified(object):
         t = 0
         final_policy = []
         final_reward = 0
-        optimal = [0, 1, 2, 3]
+        optimal = [0, 1, 2, 3, 4]
         while t < 10:
             state = current_state
             max_action = np.argmax(Q[state, :])
@@ -427,32 +446,45 @@ class SarsaSimplified(object):
 
             previous_state = current_state
 
-            print("Doing an action")
             json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
             json_command = json.loads(json_string)
+            print("Json command is " + str(json_string))
             operate_on_bulb_json(idLamp, json_string)
             sleep(self.seconds_to_wait)
 
             state1 = previous_state
 
-            if json_command["method"] == "set_power" and json_command["params"][0] == "on":
+            if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][0] == "on" and state1 == 0:
                 state2 = states.index("on")
-            elif json_command["method"] == "set_rgb":
-                state2 = states.index("set_rgb")
-            elif json_command["method"] == "set_rgb":
-                state2 = states.index("set_rgb")
+            elif json_command["method"] == "set_power" and json_command["params"] and json_command["params"][0] == "on" and state1 == 1:
+                state2 = states.index("on")
+            elif json_command["method"] == "set_rgb" and state1 == 1:
+                state2 = states.index("rgb")
+            elif json_command["method"] == "set_rgb" and state1 == 2:
+                state2 = states.index("rgb")
+            elif json_command["method"] == "set_bright" and state1 == 2:
+                state2 = states.index("brightness")
+            elif json_command["method"] == "set_bright" and state1 == 3:
+                state2 = states.index("brightness")
+            elif json_command["method"] == "set_power" and json_command["params"][0] == "off" and state1 == 3:  # whatever state
+                state2 = states.index("off_end")
+            elif json_command["method"] == "set_power" and json_command["params"][0] == "off":  # whatever state
+                state2 = states.index("off_start")
             else:
-                state2 = states.index("invalid")
+                # state2 = states.index("invalid") # fingiamo che se sbagli comando rimango sempre nello stesso stato
+                state2 = state1
 
             tmp_reward = -1 + tot_reward
 
+            if state1 == 0 and state2 == 1:
+                tmp_reward += 100
+            if state1 == 1 and state2 == 2:
+                tmp_reward += 200
             if state1 == 2 and state2 == 3:
+                tmp_reward += 400
+            if state1 == 3 and state2 == 4:
                 tmp_reward += 1000
                 done = True
-            if state1 == 0 and state2 == 1:
-                tmp_reward += 2
-            if state1 == 1 and state2 == 2:
-                tmp_reward += 4
 
             current_state = state2
 
@@ -465,7 +497,7 @@ class SarsaSimplified(object):
 
         print("Length final policy is", len(final_policy))
         print("Final policy is", final_policy)
-        if len(final_policy) == 4 and np.array_equal(final_policy, optimal):
+        if len(final_policy) == 5 and np.array_equal(final_policy, optimal):
             return True, final_reward
         else:
             return False, final_reward
@@ -495,13 +527,13 @@ if __name__ == '__main__':
         display_bulbs()
         idLamp = list(bulb_idx2ip.keys())[0]
 
-        print("Waiting 5 seconds before using default actions")
+        print("Waiting 5 seconds before using SARSA")
         sleep(5)
 
         RUNNING = False
         # Do Sarsa
 
-        optimalPolicy, obtainedReward = SarsaSimplified(max_steps=100, total_episodes=20).run()
+        optimalPolicy, obtainedReward = SarsaSimplified(max_steps=100, total_episodes=200).run()
         if optimalPolicy:
             print("Optimal policy was found with reward", obtainedReward)
         else:
@@ -513,3 +545,5 @@ if __name__ == '__main__':
     # done
 
     print("Total reward received", tot_reward)
+
+# Set manually timeout for connecting!

@@ -4,4 +4,4 @@
 __pycache__/
 venv/
 .venv
-log.txt
+log/

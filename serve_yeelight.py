@@ -10,20 +10,20 @@ class ServeYeelight(object):
     def __init__(self, idLamp=0, method_chosen_index=-1):
         self.method_chosen_index = method_chosen_index
         self.id = idLamp
-        print("Using serve yeelight.")
+        # print("Using serve yeelight.")
 
     def run(self):
 
         if self.method_chosen_index == -1:
             # length of methods is 35
-            self.method_chosen_index = random.randint(0, 35-1)
+            self.method_chosen_index = random.randint(0, 35 - 1)
 
         method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
 
         # print("Method selected is number " + str(n))
         print(str(method_selected))
 
-        print("Parsing method selected")
+        # print("Parsing method selected")
         method_name = method_selected["name"]
         method_min_params = int(method_selected["min_params"])
         method_max_params = int(method_selected["max_params"])
@@ -33,7 +33,7 @@ class ServeYeelight(object):
         cnt = 0
         # For now we ignore optional parameters
         if method_max_params == -1:
-            n = random.randint(1, len(method_params_list)-1)
+            n = random.randint(1, len(method_params_list) - 1)
             sample_params_list = random.sample(method_params_list, n)
             # print(sample_params_list)
             for (key, value) in sample_params_list:
@@ -51,10 +51,10 @@ class ServeYeelight(object):
                     else:
                         value = "off"
                 elif key == "effect":
-                    if n % 2 == 0:
-                        value = "sudden"
-                    else:
+                    if (2 * n + 1) % 2 == 0:
                         value = "smooth"
+                    else:
+                        value = "sudden"  # per ora entra sempre qua, sto semplificando il problema
                 elif key == "prop":
                     if n % 3 == 0:
                         value = "bright"
@@ -74,7 +74,10 @@ class ServeYeelight(object):
                     else:
                         value = "auto_delay_off"
                 elif value == 0:
-                    value = random.randint(0, 10000)
+                    if key == "rgb_value":
+                        value = random.randint(0, 16777215)
+                    if key == "brightness":
+                        value = random.randint(0,100)
                 else:
                     value = "Random string"
                 params.append(value)
@@ -87,7 +90,7 @@ class ServeYeelight(object):
 
         # Check json command inside file
         with open("data_file.json", "w") as write_file:
-           json.dump(command, write_file)
+            json.dump(command, write_file)
 
         return json.dumps(command)
 
