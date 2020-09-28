@@ -334,10 +334,10 @@ class DictYeelight(object):
 
 
 if __name__ == '__main__':
-    method_selected = DictYeelight().run()
+    method_returned = DictYeelight().run()
 
     # Useful information
-    # print("Method is " + str(method_selected))
+    # print("Method is " + str(method_returned))
 
 # serve_yeelight e' uno script intermedio che chiama dict_yeelight,
 # elabora la risposta e poi la ritorna a request_yeelight/learning_yeelight
