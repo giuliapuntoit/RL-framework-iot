@@ -306,10 +306,26 @@ class SarsaSimplified(object):
         # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo (?)
         states = ["off_start", "on", "rgb", "brightness", "off_end", "invalid"]  # 0 1 2 3 4 5
 
-        pathlib.Path('./log/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
-        log_filename = datetime.now().strftime('./log/logfile_%H_%M_%S_%d_%m_%Y.log')
+        current_date = datetime.now()
 
-        # SARSA algorithm
+        log_dir = 'log'
+        pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
+        log_filename = current_date.strftime(log_dir + '/' + 'log' + '_%H_%M_%S_%d_%m_%Y' + '.log')
+
+        output_Q_params_dir = 'output_Q_parameters'
+        pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
+        output_Q_filename = current_date.strftime(
+            output_Q_params_dir + '/' + 'output_Q_' + '_%H_%M_%S_%d_%m_%Y' + '.csv')
+        output_parameters_filename = current_date.strftime(
+            output_Q_params_dir + '/' + 'output_parameters_' + '_%H_%M_%S_%d_%m_%Y' + '.csv')
+
+        output_dir = 'output_csv'
+        pathlib.Path(output_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
+        algorithm = 'sarsa'  # for now this is a static and useless info
+        output_filename = current_date.strftime(
+            output_dir + '/' + 'output_' + algorithm + '_%H_%M_%S_%d_%m_%Y' + '.csv')
+
+        # SARSA algorithm SINCE algorithm is sarsa
 
         # Initializing the Q-matrix
         if not self.disable_graphs:
@@ -362,6 +378,7 @@ class SarsaSimplified(object):
                 # forse anche l'aggiornamento dello stato dovrebbe essere in handle_response
                 # fare una state machine non sarebbe male? o una tabella?
 
+                # TODO metodo qua che si chiamerà compute_new_state()
                 # check current state using get_prop method 0
                 if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
                     0] == "on" and state1 == 0:
@@ -464,6 +481,7 @@ class SarsaSimplified(object):
         final_policy = []
         final_reward = 0
         optimal = [5, 2, 4, 5]
+        # TODO Questo codice nel while può e DEVE essere strutturato meglio
         while t < 10:
             state = current_state
             max_action = np.argmax(Q[state, :])
@@ -581,4 +599,3 @@ if __name__ == '__main__':
 # Set number of ri-transmissions, with a configurable parameter
 # TODO matrix Q potrei salvare su file poi con poche cifre decimali
 # TODO i test potrebbero testare che i parametri, stati, azioni ecc passati in input siano poi quelli scritti in output
-

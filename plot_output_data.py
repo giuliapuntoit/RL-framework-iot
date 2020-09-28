@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import csv
-import pathlib
 
 x = []
 y_reward = []
@@ -8,7 +7,9 @@ y_cum_reward = []
 y_timesteps = []
 
 directory = 'output_csv'
-filename = 'output_sarsa_data.csv'
+algorithm = 'sarsa'
+date = 'data'  # Date must be in format %H_%M_%S_%d_%m_%Y
+filename = 'output_' + algorithm + '_' + date + '.csv'
 separate_plots = True
 
 with open(directory+'/'+filename, 'r') as csv_file:
@@ -43,7 +44,7 @@ if separate_plots:
     plt.xlabel('Episodes')
     plt.ylabel('Timesteps')
     plt.title('Timesteps per episode')
-    plt.legend(loc="center right")
+    plt.legend(loc="upper right")
     plt.grid(True)
 
     plt.show()
@@ -65,7 +66,7 @@ else:
     plt.plot(x, y_timesteps, 'k', label='timesteps', marker='o')
     plt.xlabel('Episodes')
     plt.ylabel('Timesteps')
-    plt.legend(loc="center right")
+    plt.legend(loc="upper right")
     plt.grid(True)
 
     plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.35, wspace=0.35)
