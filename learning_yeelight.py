@@ -6,6 +6,7 @@ import random
 import matplotlib.pyplot as plt
 import json
 import random
+import pathlib
 import socket
 import sys
 from datetime import datetime
@@ -276,6 +277,7 @@ class SarsaSimplified(object):
         self.gamma = gamma
         self.disable_graphs = disable_graphs
         self.seconds_to_wait = seconds_to_wait
+        # What about the discount factor?
 
     # Function to choose the next action
     def choose_action(self, state, Qmatrix):
@@ -304,6 +306,7 @@ class SarsaSimplified(object):
         # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo (?)
         states = ["off_start", "on", "rgb", "brightness", "off_end", "invalid"]  # 0 1 2 3 4 5
 
+        pathlib.Path('./log/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         log_filename = datetime.now().strftime('./log/logfile_%H_%M_%S_%d_%m_%Y.log')
 
         # SARSA algorithm
@@ -424,9 +427,10 @@ class SarsaSimplified(object):
             with open(log_filename, "a") as write_file:
                 write_file.write("\nEpisode " + str(episode) + " finished.\n")
 
+        print(Q)
+
         # Visualizing the Q-matrix
         if not self.disable_graphs:
-            print(Q)
             print("--- %s seconds ---" % (time.time() - start_time))
             plt.plot(x, y_reward)
             plt.xlabel('Episodes')
