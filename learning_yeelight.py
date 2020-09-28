@@ -579,3 +579,6 @@ if __name__ == '__main__':
 
 # Set manually timeout for connecting, with a configurable parameter
 # Set number of ri-transmissions, with a configurable parameter
+# TODO matrix Q potrei salvare su file poi con poche cifre decimali
+# TODO i test potrebbero testare che i parametri, stati, azioni ecc passati in input siano poi quelli scritti in output
+

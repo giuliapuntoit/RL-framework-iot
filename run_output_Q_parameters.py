@@ -1,26 +1,64 @@
 import numpy as np
+import csv
 
 # First, I should call put the transition to states and computation of reward inside external methods
 # to call them from here, not to re-write them!
 
 
 # Q will be read from output_Q_data.csv
-# Statistics to compute Q will be read from output_parameters.csv
-# Print them in the console of this script
-# Identify which RL algorithm was used and use it
 # Retrieve actions and state from output_Q_data.csv
+# Statistics to compute Q will be read from output_parameters_data.csv
+
+# Identify which RL algorithm was used and use it
+
 directory = 'output_Q_parameters'
 file_Q = 'output_Q_data.csv'
 file_parameters = 'output_parameters_data.csv'
 
-with open(directory+'/'+filename, 'r') as csv_file:
+actions = []
+states = []
+
+Q = []
+
+parameters = {}
+
+# Retrieving Q matrix, states and actions
+with open(directory + '/' + file_Q, 'r') as csv_file:
     reader = csv.reader(csv_file, delimiter=',')
-    next(reader, None)
-    for row in reader:
-        x.append(int(row[0]))
-        y_reward.append(int(row[1]))
-        y_cum_reward.append(int(row[2]))
-        y_timesteps.append(int(row[3]))
+    for index_row, row in enumerate(reader):
+        if index_row == 0:  # Remember to remove first cell
+            for index_col, col in enumerate(row):
+                if index_col != 0:
+                    actions.append(str(col.strip()))
+        else:
+            for index_col, col in enumerate(row):
+                if index_col == 0:
+                    states.append(str(col))
+
+try:
+    tmp_matrix = np.genfromtxt(directory + '/' + file_Q, delimiter=',', dtype=np.float32)
+
+    Q = tmp_matrix[1:, 1:]
+
+except Exception as e:
+    print("Wrong file format:", e)
+    exit(1)
+
+print(states)
+print(actions)
+print(Q)
+
+if len(states) != len(Q) or len(actions) != len(Q[0]) or np.isnan(np.sum(Q)):
+    print("Wrong file format: wrong Q dimensions or nan values present")
+    exit(2)
+
+with open(directory + '/' + file_parameters, 'r') as csv_file:
+    reader = csv.reader(csv_file, delimiter=',')
+    parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
+
+print(parameters)  # For now the are all strings
+
+# I need some REAL generated files in order to be able to test and adjust the following code
 
 # First, connecting to the device, initialization
 
