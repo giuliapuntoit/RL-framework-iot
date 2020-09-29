@@ -384,7 +384,7 @@ class SarsaSimplified(object):
             output_writer.writerow(['alpha', self.alpha])
             output_writer.writerow(['gamma', self.gamma])
             output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
-            output_writer.writerow(['optimal_policy', " ".join(str(act) for act in optimal)])
+            output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal)])
 
         # SARSA algorithm SINCE algorithm is sarsa
 
@@ -491,10 +491,10 @@ class SarsaSimplified(object):
         # Salvo le azioni come numeri o come nome???
         # Se come numeri poi le posso retrievare usando serve_yeelight
 
-        header = ['Q'] # for output structure
+        header = ['Q']  # for output structure
 
-        for i in range(0, 5):
-            json_string = ServeYeelight(idLamp=1, method_chosen_index=i).run()
+        for i in range(0, self.num_actions_to_use):
+            json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=i).run()
             header.append(json.loads(json_string)['method'])
 
         with open(output_Q_filename, "w") as output_Q_file:
@@ -503,7 +503,7 @@ class SarsaSimplified(object):
             for index, stat in enumerate(states):
                 row = [stat]
                 for val in Q[index]:
-                    row.append(val)
+                    row.append("%.3f" % val)
                 output_Q_writer.writerow(row)
 
         # Visualizing the Q-matrix

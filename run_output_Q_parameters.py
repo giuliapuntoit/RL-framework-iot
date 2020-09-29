@@ -1,5 +1,9 @@
+import json
+
 import numpy as np
 import csv
+from threading import Thread
+from time import sleep
 
 # First, I should call put the transition to states and computation of reward inside external methods
 # to call them from here, not to re-write them!
@@ -9,6 +13,9 @@ import csv
 # Statistics to compute Q will be read from output_parameters_data.csv
 
 # Identify which RL algorithm was used and use it
+from learning_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, \
+    compute_next_state, compute_reward_from_props
+from serve_yeelight import ServeYeelight
 
 directory = 'output_Q_parameters'
 date = 'data'  # Date must be in format %H_%M_%S_%d_%m_%Y
@@ -45,6 +52,7 @@ except Exception as e:
 print(states)
 print(actions)
 print(Q)
+
 # I should check values using tests not prints!!!
 # TODO:
 # del tipo, runnare lo script con certi valori e verificare che il risultato sia quello scritto nei test
@@ -65,130 +73,91 @@ print(parameters)  # For now the are all strings
 # otherwise I do not know how to compare results
 # I should check values using tests not prints!!!
 
-optimal_policy = parameters['optimal_policy'].split(' ')  # Split values following spaces
+optimal_policy = parameters['optimal_policy'].split('-')  # Split policy string and save it into a list
 
 print(optimal_policy)
 # I should check values using tests not prints!!!
 
 # I need some REAL generated files in order to be able to test and adjust the following code
 
+detected_bulbs = {}
+bulb_idx2ip = {}
+RUNNING = True
+current_command_id = 0
+MCAST_GRP = '239.255.255.250'
+
 # First, connecting to the device, initialization, something like this:
 
-# if __name__ == '__main__':
-# # MAIN
-#
-# # first discover the lamp and Connect to the lamp
-# # start the bulb detection thread
-# detection_thread = Thread(target=bulbs_detection_loop)
-# detection_thread.start()
-# # give detection thread some time to collect bulb info
-# sleep(10)
-#
-# # show discovered lamps
-# display_bulbs()
-#
-# print(bulb_idx2ip)
-# max_wait = 0
-# while len(bulb_idx2ip) == 0 and max_wait < 10:
-#     sleep(1)
-#     max_wait += 1
-# if len(bulb_idx2ip) == 0:
-#     print("Bulb list is empty.")
-# else:
-#     display_bulbs()
-#     idLamp = list(bulb_idx2ip.keys())[0]
-#
-#     print("Waiting 5 seconds before using SARSA")
-#     sleep(5)
-#
-#     RUNNING = False
-#     # Do Sarsa
-#
-#     optimalPolicy, obtainedReward = SarsaSimplified(max_steps=100, total_episodes=50).run()
-#     if optimalPolicy:
-#         print("Optimal policy was found with reward", obtainedReward)
-#     else:
-#         print("No optimal policy reached with reward", obtainedReward)
-#
-# # goal achieved, tell detection thread to quit and wait
-# RUNNING = False
-# detection_thread.join()
-# # done
+# first discover the lamp and Connect to the lamp
+# start the bulb detection thread
+detection_thread = Thread(target=bulbs_detection_loop)
+detection_thread.start()
+# give detection thread some time to collect bulb info
+sleep(10)
 
-# Then I can follow the found optimal policy:
+# show discovered lamps
+display_bulbs()
 
-# print("Setting power off")
-# operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
-# sleep(self.seconds_to_wait)
-# current_state = 0
+print(bulb_idx2ip)
+max_wait = 0
+while len(bulb_idx2ip) == 0 and max_wait < 10:
+    sleep(1)
+    max_wait += 1
+if len(bulb_idx2ip) == 0:
+    print("Bulb list is empty.")
+else:
+    display_bulbs()
+    idLamp = list(bulb_idx2ip.keys())[0]
+
+    print("Waiting 5 seconds before verifying optimal obtained by SARSA")
+    sleep(5)
+
+    seconds_to_wait = int(parameters['seconds_to_wait'])
 #
-# if not self.disable_graphs:
-# print("Restarting... returning to state: off")
-# t = 0
-# final_policy = []
-# final_reward = 0
-# optimal = [5, 2, 4, 5]
-# while t < 10:
-# state = current_state
-# max_action = np.argmax(Q[state, :])
-# final_policy.append(max_action)
-#
-# previous_state = current_state
-#
-# json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
-# json_command = json.loads(json_string)
-# print("Json command is " + str(json_string))
-# operate_on_bulb_json(idLamp, json_string)
-# sleep(self.seconds_to_wait)
-#
-# state1 = previous_state
-#
-# # Questo dovrebbe essere in un metodo esterno!!!
-# if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
-#     0] == "on" and state1 == 0:
-#     state2 = states.index("on")
-# elif json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
-#     0] == "on" and state1 == 1:
-#     state2 = states.index("on")
-# elif json_command["method"] == "set_rgb" and state1 == 1:
-#     state2 = states.index("rgb")
-# elif json_command["method"] == "set_rgb" and state1 == 2:
-#     state2 = states.index("rgb")
-# elif json_command["method"] == "set_bright" and state1 == 2:
-#     state2 = states.index("brightness")
-# elif json_command["method"] == "set_bright" and state1 == 3:
-#     state2 = states.index("brightness")
-# elif json_command["method"] == "set_power" and json_command["params"][
-#     0] == "off" and state1 == 3:  # whatever state
-#     state2 = states.index("off_end")
-# elif json_command["method"] == "set_power" and json_command["params"][0] == "off":  # whatever state
-#     state2 = states.index("off_start")
-# else:
-#     # state2 = states.index("invalid") # fingiamo che se sbagli comando rimango sempre nello stesso stato
-#     state2 = state1
-#
-# # La computazione del reward dovrebbe essere in un metodo esterno!!!
-# tmp_reward = -1 + tot_reward
-#
-# if state1 == 0 and state2 == 1:
-#     tmp_reward += 1
-# if state1 == 1 and state2 == 2:
-#     tmp_reward += 2
-# if state1 == 2 and state2 == 3:
-#     tmp_reward += 4
-# if state1 == 3 and state2 == 4:
-#     tmp_reward += 1000
-#     done = True
-#
-# current_state = state2
-#
-# final_reward += tmp_reward
-# if not self.disable_graphs:
-#     print("New state", current_state)
-# if previous_state == 3 and current_state == 4:
-#     print("New state", current_state)
-#     break
-# t += 1
-#
-# print("Length final policy is", len(final_policy))
-# print("Final policy is", final_policy)
+    # Then I can follow the found optimal policy:
+    print("Setting power off")
+    operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
+    sleep(seconds_to_wait)
+    state1 = 0
+
+    print("Restarting... returning to state: off")
+    t = 0
+    final_policy = []
+    final_reward = 0
+
+    while t < 10:
+        max_action = np.argmax(Q[state1, :])
+        final_policy.append(max_action)
+        print("Action to perform is", max_action)
+
+        json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
+        json_command = json.loads(json_string)
+        print("Json command is " + str(json_string))
+        reward_from_response = operate_on_bulb_json(idLamp, json_string)
+        sleep(seconds_to_wait)
+
+        state2 = compute_next_state(json_command, states, state1)
+
+        print("From state", state1, "to state", state2)
+
+        reward_from_props = compute_reward_from_props(state1, state2)
+
+        tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
+        final_reward += tmp_reward
+
+        if state1 == 3 and state2 == 4:
+            print("Done")
+        state1 = state2
+        t += 1
+
+    print("Length final policy is", len(final_policy))
+    print("Final policy is", final_policy)
+    if len(final_policy) == len(optimal_policy) and np.array_equal(final_policy, optimal_policy):
+        print("Optimal policy found with reward: " + str(final_reward))
+    else:
+        print("Not optimal policy found with reward: " + str(final_reward))
+
+# goal achieved, tell detection thread to quit and wait
+RUNNING = False
+detection_thread.join()
+# done
