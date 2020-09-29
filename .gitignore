@@ -7,5 +7,4 @@ venv/
 log/
 output_csv/
 output_Q_parameters/
-data_file.json
-
+*.json

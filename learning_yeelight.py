@@ -318,7 +318,7 @@ def compute_reward_from_props(current_state, next_state):
 class SarsaSimplified(object):
 
     def __init__(self, epsilon=0.4, total_episodes=10, max_steps=100, alpha=0.005, gamma=0.95, disable_graphs=False,
-                 seconds_to_wait=4):
+                 seconds_to_wait=4, num_actions_to_use=5):  # num_actions should be 35
         self.epsilon = epsilon
         self.total_episodes = total_episodes
         self.max_steps = max_steps
@@ -326,6 +326,7 @@ class SarsaSimplified(object):
         self.gamma = gamma
         self.disable_graphs = disable_graphs
         self.seconds_to_wait = seconds_to_wait
+        self.num_actions_to_use = num_actions_to_use
         # What about the discount factor?
 
     # Function to choose the next action
@@ -333,8 +334,7 @@ class SarsaSimplified(object):
         # Here I should choose the method
         if np.random.uniform(0, 1) < self.epsilon:
             print("Select the action randomly")
-            # action = random.randint(0, 35 - 1)
-            action = random.randint(0, 5)
+            action = random.randint(0, self.num_actions_to_use - 1)
         else:
             # Select maximum, if multiple values select randomly
             print("Select maximum")
@@ -377,24 +377,23 @@ class SarsaSimplified(object):
 
         # Write parameters in output_parameters_filename
         with open(output_parameters_filename, mode='w') as output_file:
-            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
             output_writer.writerow(['algorithm_used', algorithm])
             output_writer.writerow(['epsilon', self.epsilon])
             output_writer.writerow(['max_steps', self.max_steps])
             output_writer.writerow(['alpha', self.alpha])
             output_writer.writerow(['gamma', self.gamma])
             output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
-            output_writer.writerow(['optimal_policy', " ".join(optimal)])
+            output_writer.writerow(['optimal_policy', " ".join(str(act) for act in optimal)])
 
         # SARSA algorithm SINCE algorithm is sarsa
 
         # Initializing the Q-matrix
         if not self.disable_graphs:
             print("N states: ", len(states))
-            # print("N actions: ", 35)  # 35 methods, bruttissimo questo parametro statico
-            print("N actions: ", 6)
-        # Q = np.zeros((len(states), 35))
-        Q = np.zeros((len(states), 6))
+            print("N actions: ", self.num_actions_to_use)
+
+        Q = np.zeros((len(states), self.num_actions_to_use))
 
         start_time = time.time()
 
@@ -441,8 +440,7 @@ class SarsaSimplified(object):
                 # forse anche l'aggiornamento dello stato dovrebbe essere in handle_response
                 # fare una state machine non sarebbe male? o una tabella?
 
-                # TODO metodo qua che si chiamerà compute_next_state()
-                # check current state using get_prop method 0
+                # TODO check current state using get_prop method 0
                 state2 = compute_next_state(json_command, states, state1)
 
                 print("From state", state1, "to state", state2)
@@ -460,17 +458,20 @@ class SarsaSimplified(object):
                 # Learning the Q-value
                 self.update(state1, state2, tmp_reward, action1, action2, Q)
 
+                with open(log_filename, "a") as write_file:
+                    write_file.write("\nTimestep " + str(t - 1) + " finished.")
+                    write_file.write(" Temporary reward: " + str(tmp_reward))
+                    write_file.write(" Previous state: " + str(state1))
+                    write_file.write(" Current state: " + str(state2))
+                    write_file.write(" Performed action: " + str(action1))
+                    write_file.write(" Next action: " + str(action2))
+
                 state1 = state2
                 action1 = action2
 
                 # Updating the respective values
                 t += 1
                 reward_per_episode += tmp_reward
-
-                with open(log_filename, "a") as write_file:
-                    write_file.write("\nTimestep " + str(t - 1) + " finished.")
-                    write_file.write(" Temporary reward: " + str(tmp_reward))
-                    write_file.write(" Current state: " + str(state1))
                 # If at the end of learning process
                 if done:
                     break
@@ -485,28 +486,50 @@ class SarsaSimplified(object):
                 output_writer.writerow([episode, reward_per_episode, cumulative_reward, t - 1])  # Episode or episode+1?
 
         print(Q)
+        # I want to save the Q-matrix inside output_Q_data.csv file
+
+        # Salvo le azioni come numeri o come nome???
+        # Se come numeri poi le posso retrievare usando serve_yeelight
+
+        header = ['Q'] # for output structure
+
+        for i in range(0, 5):
+            json_string = ServeYeelight(idLamp=1, method_chosen_index=i).run()
+            header.append(json.loads(json_string)['method'])
+
+        with open(output_Q_filename, "w") as output_Q_file:
+            output_Q_writer = csv.writer(output_Q_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
+            output_Q_writer.writerow(header)
+            for index, stat in enumerate(states):
+                row = [stat]
+                for val in Q[index]:
+                    row.append(val)
+                output_Q_writer.writerow(row)
 
         # Visualizing the Q-matrix
         if not self.disable_graphs:
             print("--- %s seconds ---" % (time.time() - start_time))
-            plt.plot(x, y_reward)
-            plt.xlabel('Episodes')
+            plt.subplot(3, 1, 1)
+            plt.plot(x, y_reward, 'k--', label='rew')
             plt.ylabel('Reward')
-            plt.title('Reward per episodes')
+            plt.title('Statistics per episode')
+            plt.legend(loc="center right")
+            plt.grid(True)
 
-            plt.show()
-
-            plt.plot(x, y_cum_reward)
-            plt.xlabel('Episodes')
+            plt.subplot(3, 1, 2)
+            plt.plot(x, y_cum_reward, 'k--', label='cum_rew')
             plt.ylabel('Cumulative reward')
-            plt.title('Cumulative reward over episodes')
+            plt.legend(loc="center right")
+            plt.grid(True)
 
-            plt.show()
-
-            plt.plot(x, y_timesteps)
+            plt.subplot(3, 1, 3)
+            plt.plot(x, y_timesteps, 'k--', label='timesteps', marker='o')
             plt.xlabel('Episodes')
-            plt.ylabel('Timestep to end of the episode')
-            plt.title('Timesteps per episode')
+            plt.ylabel('Timesteps')
+            plt.legend(loc="center right")
+            plt.grid(True)
+
+            plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.35, wspace=0.35)
 
             plt.show()
 
@@ -596,9 +619,8 @@ if __name__ == '__main__':
     detection_thread.join()
     # done
 
-    print("Total reward received", )
-
 # Set manually timeout for connecting, with a configurable parameter
 # Set number of ri-transmissions, with a configurable parameter
 # TODO matrix Q potrei salvare su file poi con poche cifre decimali
 # TODO i test potrebbero testare che i parametri, stati, azioni ecc passati in input siano poi quelli scritti in output
+# TODO Usa gli enum sia per gli state che per le actions!!! Le actions le puoi retrievare a run time, così poi le salvo come stringhe
