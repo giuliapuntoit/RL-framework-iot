@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+import csv
 import time
 import numpy as np
 import random
@@ -32,8 +32,6 @@ MCAST_GRP = '239.255.255.250'
 # Variables for RL
 tot_reward = 0
 
-current_state = 0
-
 # Socket setup
 scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 fcntl.fcntl(scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
@@ -44,6 +42,9 @@ mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
 listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
 sleep(2)
+
+
+# The following are utility functions: they could be written outside this script
 
 
 def next_cmd_id():
@@ -157,8 +158,7 @@ def handle_search_response(data):
 
 def handle_response(data):
     # This reward should be higher if you are following the desired path. How to enforce it?
-    global tot_reward
-    tot_reward = 0
+    reward_from_response = 0
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
     print("Json received is ")
@@ -166,16 +166,17 @@ def handle_response(data):
     if 'id' in json_received and json_received['id'] == current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
-            tot_reward = 0
+            reward_from_response = 0
         elif 'error' in json_received and json_received['error'] is not None:
             print("Error is", json_received['error'])
-            tot_reward = -100
+            reward_from_response = -100
         else:
             print("No result or error found in answer.")
-            tot_reward = -1000  # non è colpa di nessuno?
+            reward_from_response = -1000  # non è colpa di nessuno?
     else:
         print("Bad format response.")
-        tot_reward = -1000  # non è colpa di nessuno?
+        reward_from_response = -1000  # non è colpa di nessuno?
+    return reward_from_response
 
 
 def handle_response_no_reward(data):
@@ -260,10 +261,58 @@ def operate_on_bulb_json(id_lamp, json_string):
         msg = str(json_string) + "\r\n"
         tcp_socket.send(msg.encode())
         data = tcp_socket.recv(2048)
-        handle_response(data)
+        reward_from_response = handle_response(data)
         tcp_socket.close()
+        return reward_from_response
     except Exception as e:
         print("Unexpected error:", e)
+        return -1000
+
+
+# Il modellamento della funzione di reward e della transizioni tra stati è indipendente dall'algoritmo?
+# Ergo: posso metterli qua come metodi statici
+
+def compute_next_state(json_command, states, current_state):
+    next_state = states.index("invalid")
+    if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
+        0] == "on" and current_state == 0:
+        next_state = states.index("on")
+    elif json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
+        0] == "on" and current_state == 1:
+        next_state = states.index("on")
+    elif json_command["method"] == "set_rgb" and current_state == 1:
+        next_state = states.index("rgb")
+    elif json_command["method"] == "set_rgb" and current_state == 2:
+        next_state = states.index("rgb")
+    elif json_command["method"] == "set_bright" and current_state == 2:
+        next_state = states.index("brightness")
+    elif json_command["method"] == "set_bright" and current_state == 3:
+        next_state = states.index("brightness")
+    elif json_command["method"] == "set_power" and json_command["params"][
+        0] == "off" and current_state == 3:  # whatever state
+        next_state = states.index("off_end")
+    elif json_command["method"] == "set_power" and json_command["params"][0] == "off":  # whatever state
+        next_state = states.index("off_start")
+    else:
+        # next_state = states.index("invalid") # fingiamo che se sbagli comando rimango sempre nello stesso stato
+        next_state = current_state
+
+    return next_state
+
+
+def compute_reward_from_props(current_state, next_state):
+    # This assumes that the path goes from state 0 to state 4 (1 2 3 4)
+    reward_from_props = 0
+    # Reward from passing through other states:
+    if current_state == 0 and next_state == 1:
+        reward_from_props = 1
+    elif current_state == 1 and next_state == 2:
+        reward_from_props = 2
+    elif current_state == 2 and next_state == 3:
+        reward_from_props = 4
+    elif current_state == 3 and next_state == 4:
+        reward_from_props = 1000
+    return reward_from_props
 
 
 class SarsaSimplified(object):
@@ -303,8 +352,9 @@ class SarsaSimplified(object):
 
     def run(self):
 
-        # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo (?)
+        # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
         states = ["off_start", "on", "rgb", "brightness", "off_end", "invalid"]  # 0 1 2 3 4 5
+        optimal = [5, 2, 4, 5]  # optimal policy
 
         current_date = datetime.now()
 
@@ -315,15 +365,26 @@ class SarsaSimplified(object):
         output_Q_params_dir = 'output_Q_parameters'
         pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         output_Q_filename = current_date.strftime(
-            output_Q_params_dir + '/' + 'output_Q_' + '_%H_%M_%S_%d_%m_%Y' + '.csv')
+            output_Q_params_dir + '/' + 'output_Q' + '_%H_%M_%S_%d_%m_%Y' + '.csv')
         output_parameters_filename = current_date.strftime(
-            output_Q_params_dir + '/' + 'output_parameters_' + '_%H_%M_%S_%d_%m_%Y' + '.csv')
+            output_Q_params_dir + '/' + 'output_parameters' + '_%H_%M_%S_%d_%m_%Y' + '.csv')
 
         output_dir = 'output_csv'
         pathlib.Path(output_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         algorithm = 'sarsa'  # for now this is a static and useless info
         output_filename = current_date.strftime(
             output_dir + '/' + 'output_' + algorithm + '_%H_%M_%S_%d_%m_%Y' + '.csv')
+
+        # Write parameters in output_parameters_filename
+        with open(output_parameters_filename, mode='w') as output_file:
+            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            output_writer.writerow(['algorithm_used', algorithm])
+            output_writer.writerow(['epsilon', self.epsilon])
+            output_writer.writerow(['max_steps', self.max_steps])
+            output_writer.writerow(['alpha', self.alpha])
+            output_writer.writerow(['gamma', self.gamma])
+            output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
+            output_writer.writerow(['optimal_policy', " ".join(optimal)])
 
         # SARSA algorithm SINCE algorithm is sarsa
 
@@ -344,7 +405,10 @@ class SarsaSimplified(object):
 
         cumulative_reward = 0
 
-        global current_state
+        # Write into output_filename the header: Episodes, Reward, CumReward, Timesteps
+        with open(output_filename, mode='w') as output_file:
+            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            output_writer.writerow(['Episodes', 'Reward', 'CumReward', 'Timesteps'])
 
         # Starting the SARSA learning
         for episode in range(self.total_episodes):
@@ -357,7 +421,6 @@ class SarsaSimplified(object):
             sleep(self.seconds_to_wait)
 
             state1 = states.index("off_start")
-            current_state = state1
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -371,49 +434,24 @@ class SarsaSimplified(object):
                 json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=action1).run()
                 json_command = json.loads(json_string)
                 print("Json command is " + str(json_string))
-                operate_on_bulb_json(idLamp, json_string)
+                reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
 
                 # Il reward dovrebbe essere dato in base a handle_response
                 # forse anche l'aggiornamento dello stato dovrebbe essere in handle_response
                 # fare una state machine non sarebbe male? o una tabella?
 
-                # TODO metodo qua che si chiamerà compute_new_state()
+                # TODO metodo qua che si chiamerà compute_next_state()
                 # check current state using get_prop method 0
-                if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
-                    0] == "on" and state1 == 0:
-                    state2 = states.index("on")
-                elif json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
-                    0] == "on" and state1 == 1:
-                    state2 = states.index("on")
-                elif json_command["method"] == "set_rgb" and state1 == 1:
-                    state2 = states.index("rgb")
-                elif json_command["method"] == "set_rgb" and state1 == 2:
-                    state2 = states.index("rgb")
-                elif json_command["method"] == "set_bright" and state1 == 2:
-                    state2 = states.index("brightness")
-                elif json_command["method"] == "set_bright" and state1 == 3:
-                    state2 = states.index("brightness")
-                elif json_command["method"] == "set_power" and json_command["params"][
-                    0] == "off" and state1 == 3:  # whatever state
-                    state2 = states.index("off_end")
-                elif json_command["method"] == "set_power" and json_command["params"][0] == "off":  # whatever state
-                    state2 = states.index("off_start")
-                else:
-                    # state2 = states.index("invalid") # fingiamo che se sbagli comando rimango sempre nello stesso stato
-                    state2 = state1
+                state2 = compute_next_state(json_command, states, state1)
 
                 print("From state", state1, "to state", state2)
-                tmp_reward = -1 + tot_reward
 
-                if state1 == 0 and state2 == 1:
-                    tmp_reward += 1
-                if state1 == 1 and state2 == 2:
-                    tmp_reward += 2
-                if state1 == 2 and state2 == 3:
-                    tmp_reward += 4
+                reward_from_props = compute_reward_from_props(state1, state2)
+
+                tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
+
                 if state1 == 3 and state2 == 4:
-                    tmp_reward += 1000
                     done = True
 
                 # Choosing the next action
@@ -423,7 +461,6 @@ class SarsaSimplified(object):
                 self.update(state1, state2, tmp_reward, action1, action2, Q)
 
                 state1 = state2
-                current_state = state1
                 action1 = action2
 
                 # Updating the respective values
@@ -443,6 +480,9 @@ class SarsaSimplified(object):
             y_reward.append(reward_per_episode)
             with open(log_filename, "a") as write_file:
                 write_file.write("\nEpisode " + str(episode) + " finished.\n")
+            with open(output_filename, mode="a") as output_file:
+                output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                output_writer.writerow([episode, reward_per_episode, cumulative_reward, t - 1])  # Episode or episode+1?
 
         print(Q)
 
@@ -473,75 +513,38 @@ class SarsaSimplified(object):
         print("Setting power off")
         operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
         sleep(self.seconds_to_wait)
-        current_state = 0
+        state1 = 0
 
         if not self.disable_graphs:
             print("Restarting... returning to state: off")
         t = 0
         final_policy = []
         final_reward = 0
-        optimal = [5, 2, 4, 5]
         # TODO Questo codice nel while può e DEVE essere strutturato meglio
         while t < 10:
-            state = current_state
-            max_action = np.argmax(Q[state, :])
+            max_action = np.argmax(Q[state1, :])
             final_policy.append(max_action)
             if not self.disable_graphs:
                 print("Action to perform is", max_action)
 
-            previous_state = current_state
-
             json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
             json_command = json.loads(json_string)
             print("Json command is " + str(json_string))
-            operate_on_bulb_json(idLamp, json_string)
+            reward_from_response = operate_on_bulb_json(idLamp, json_string)
             sleep(self.seconds_to_wait)
 
-            state1 = previous_state
+            state2 = compute_next_state(json_command, states, state1)
 
-            if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
-                0] == "on" and state1 == 0:
-                state2 = states.index("on")
-            elif json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
-                0] == "on" and state1 == 1:
-                state2 = states.index("on")
-            elif json_command["method"] == "set_rgb" and state1 == 1:
-                state2 = states.index("rgb")
-            elif json_command["method"] == "set_rgb" and state1 == 2:
-                state2 = states.index("rgb")
-            elif json_command["method"] == "set_bright" and state1 == 2:
-                state2 = states.index("brightness")
-            elif json_command["method"] == "set_bright" and state1 == 3:
-                state2 = states.index("brightness")
-            elif json_command["method"] == "set_power" and json_command["params"][
-                0] == "off" and state1 == 3:  # whatever state
-                state2 = states.index("off_end")
-            elif json_command["method"] == "set_power" and json_command["params"][0] == "off":  # whatever state
-                state2 = states.index("off_start")
-            else:
-                # state2 = states.index("invalid") # fingiamo che se sbagli comando rimango sempre nello stesso stato
-                state2 = state1
+            print("From state", state1, "to state", state2)
 
-            tmp_reward = -1 + tot_reward
+            reward_from_props = compute_reward_from_props(state1, state2)
 
-            if state1 == 0 and state2 == 1:
-                tmp_reward += 1
-            if state1 == 1 and state2 == 2:
-                tmp_reward += 2
-            if state1 == 2 and state2 == 3:
-                tmp_reward += 4
-            if state1 == 3 and state2 == 4:
-                tmp_reward += 1000
-                done = True
-
-            current_state = state2
-
+            tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
             final_reward += tmp_reward
-            if not self.disable_graphs:
-                print("New state", current_state)
-            if previous_state == 3 and current_state == 4:
-                print("New state", current_state)
-                break
+
+            if state1 == 3 and state2 == 4:
+                print("Done")
+            state1 = state2
             t += 1
 
         print("Length final policy is", len(final_policy))
@@ -593,7 +596,7 @@ if __name__ == '__main__':
     detection_thread.join()
     # done
 
-    print("Total reward received", tot_reward)
+    print("Total reward received", )
 
 # Set manually timeout for connecting, with a configurable parameter
 # Set number of ri-transmissions, with a configurable parameter
