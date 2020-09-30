@@ -20,8 +20,7 @@ class ServeYeelight(object):
 
         method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
 
-        # print("Method selected is number " + str(n))
-        print(str(method_selected))
+        # print(str(method_selected))
 
         # print("Parsing method selected")
         method_name = method_selected["name"]
@@ -96,6 +95,6 @@ class ServeYeelight(object):
 
 
 if __name__ == '__main__':
-    json_command = ServeYeelight(method_chosen_index=1).run()
+    json_command = ServeYeelight(method_chosen_index=6).run()
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(json_command)

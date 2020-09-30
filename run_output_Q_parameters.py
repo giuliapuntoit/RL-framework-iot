@@ -73,9 +73,11 @@ print(parameters)  # For now the are all strings
 # otherwise I do not know how to compare results
 # I should check values using tests not prints!!!
 
+print("The RL algorithm used is ", parameters['algorithm_used'])
+
 optimal_policy = parameters['optimal_policy'].split('-')  # Split policy string and save it into a list
 
-print(optimal_policy)
+print("The optimal policy is ", optimal_policy)
 # I should check values using tests not prints!!!
 
 # I need some REAL generated files in order to be able to test and adjust the following code
@@ -125,7 +127,7 @@ else:
     final_policy = []
     final_reward = 0
 
-    while t < 10:
+    while t < 20:
         max_action = np.argmax(Q[state1, :])
         final_policy.append(max_action)
         print("Action to perform is", max_action)
@@ -161,3 +163,6 @@ else:
 RUNNING = False
 detection_thread.join()
 # done
+
+# TODO verifica che questo script funzioni
+# TODO questo script dovrebbe essere unico a prescindere dell'algoritmo usato, giusto?
