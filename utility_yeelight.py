@@ -5,8 +5,7 @@ from time import sleep
 import socket
 import re
 
-from learning_yeelight import RUNNING, listen_socket, MCAST_GRP, detected_bulbs, bulb_idx2ip, current_command_id
-from learning_yeelight import scan_socket
+from config import GlobalVar
 
 
 # The following are utility functions:
@@ -14,12 +13,12 @@ from learning_yeelight import scan_socket
 def send_search_broadcast():
     # multicast search request to all hosts in LAN, do not wait for response
     print("send_search_broadcast running")
-    multicase_address = (MCAST_GRP, 1982)
+    multicase_address = (GlobalVar.MCAST_GRP, 1982)
     msg = "M-SEARCH * HTTP/1.1\r\n"
     msg = msg + "HOST: 239.255.255.250:1982\r\n"
     msg = msg + "MAN: \"ssdp:discover\"\r\n"
     msg = msg + "ST: wifi_bulb"
-    scan_socket.sendto(msg.encode(), multicase_address)
+    GlobalVar.scan_socket.sendto(msg.encode(), multicase_address)
 
 
 def bulbs_detection_loop():
@@ -29,14 +28,14 @@ def bulbs_detection_loop():
     read_interval = 100
     time_elapsed = 0
 
-    while RUNNING:
+    while GlobalVar.RUNNING:
         if time_elapsed % search_interval == 0:
             send_search_broadcast()
 
         # scanner
         while True:
             try:
-                data = scan_socket.recv(2048)
+                data = GlobalVar.scan_socket.recv(2048)
             except socket.error as e:
                 err = e.args[0]
                 if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
@@ -49,7 +48,7 @@ def bulbs_detection_loop():
         # passive listener
         while True:
             try:
-                data, addr = listen_socket.recvfrom(2048)
+                data, addr = GlobalVar.listen_socket.recvfrom(2048)
             except socket.error as e:
                 err = e.args[0]
                 if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
@@ -61,8 +60,8 @@ def bulbs_detection_loop():
 
         time_elapsed += read_interval
         sleep(read_interval / 1000.0)
-    scan_socket.close()
-    listen_socket.close()
+    GlobalVar.scan_socket.close()
+    GlobalVar.listen_socket.close()
 
 
 def get_param_value(data, param):
@@ -93,15 +92,15 @@ def handle_search_response(data):
   '''
     location_re = re.compile("Location.*yeelight[^0-9]*([0-9]{1,3}(\.[0-9]{1,3}){3}):([0-9]*)")
     match = location_re.search(data.decode())
-    if match == None:
+    if match is None:
         print("invalid data received: " + data.decode())
         return
 
     host_ip = match.group(1)
-    if host_ip in detected_bulbs:
-        bulb_id = detected_bulbs[host_ip][0]
+    if host_ip in GlobalVar.detected_bulbs:
+        bulb_id = GlobalVar.detected_bulbs[host_ip][0]
     else:
-        bulb_id = len(detected_bulbs) + 1
+        bulb_id = len(GlobalVar.detected_bulbs) + 1
     host_port = match.group(3)
     model = get_param_value(data, "model")
     power = get_param_value(data, "power")
@@ -110,8 +109,8 @@ def handle_search_response(data):
     supported_methods = get_support_value(data).split(sep=None)
     # print(supported_methods)
     # use two dictionaries to store index->ip and ip->bulb map
-    detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port, supported_methods]
-    bulb_idx2ip[bulb_id] = host_ip
+    GlobalVar.detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port, supported_methods]
+    GlobalVar.bulb_idx2ip[bulb_id] = host_ip
 
 
 def handle_response(data):
@@ -121,7 +120,7 @@ def handle_response(data):
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
     # print("Json received is ")
     # print(json_received)
-    if 'id' in json_received and json_received['id'] == current_command_id:
+    if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
             reward_from_response = 0
@@ -142,9 +141,9 @@ def handle_response(data):
 def handle_response_no_reward(data):
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-    print("Json received is ")
-    print(json_received)
-    if 'id' in json_received and json_received['id'] == current_command_id:
+    # print("Json received is ")
+    # print(json_received)
+    if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
         elif 'error' in json_received and json_received['error'] is not None:
@@ -156,14 +155,14 @@ def handle_response_no_reward(data):
 
 
 def display_bulb(idx):
-    if idx not in bulb_idx2ip:
+    if idx not in GlobalVar.bulb_idx2ip:
         print("error: invalid bulb idx")
         return
-    bulb_ip = bulb_idx2ip[idx]
-    model = detected_bulbs[bulb_ip][1]
-    power = detected_bulbs[bulb_ip][2]
-    bright = detected_bulbs[bulb_ip][3]
-    rgb = detected_bulbs[bulb_ip][4]
+    bulb_ip = GlobalVar.bulb_idx2ip[idx]
+    model = GlobalVar.detected_bulbs[bulb_ip][1]
+    power = GlobalVar.detected_bulbs[bulb_ip][2]
+    bright = GlobalVar.detected_bulbs[bulb_ip][3]
+    rgb = GlobalVar.detected_bulbs[bulb_ip][4]
     print(str(idx) + ": ip=" \
           + bulb_ip + ",model=" + model \
           + ",power=" + power + ",bright=" \
@@ -171,8 +170,8 @@ def display_bulb(idx):
 
 
 def display_bulbs():
-    print(str(len(detected_bulbs)) + " managed bulbs")
-    for i in range(1, len(detected_bulbs) + 1):
+    print(str(len(GlobalVar.detected_bulbs)) + " managed bulbs")
+    for i in range(1, len(GlobalVar.detected_bulbs) + 1):
         display_bulb(i)
 
 
@@ -182,17 +181,17 @@ def operate_on_bulb(idx, method, params):
   Input data 'params' must be a compiled into one string.
   E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
   '''
-    if idx not in bulb_idx2ip:
+    if idx not in GlobalVar.bulb_idx2ip:
         print("error: invalid bulb idx")
         return
 
-    bulb_ip = bulb_idx2ip[idx]
-    port = detected_bulbs[bulb_ip][5]
+    bulb_ip = GlobalVar.bulb_idx2ip[idx]
+    port = GlobalVar.detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
-        msg = "{\"id\":" + str(current_command_id) + ",\"method\":\""
+        msg = "{\"id\":" + str(GlobalVar.current_command_id) + ",\"method\":\""
         msg += method + "\",\"params\":[" + params + "]}\r\n"
         tcp_socket.send(msg.encode())
         data = tcp_socket.recv(2048)
@@ -208,12 +207,12 @@ def operate_on_bulb_json(id_lamp, json_string):
   Input data 'params' must be a compiled into one string.
   E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
   '''
-    if id_lamp not in bulb_idx2ip:
+    if id_lamp not in GlobalVar.bulb_idx2ip:
         print("error: invalid bulb idx")
         return
 
-    bulb_ip = bulb_idx2ip[id_lamp]
-    port = detected_bulbs[bulb_ip][5]
+    bulb_ip = GlobalVar.bulb_idx2ip[id_lamp]
+    port = GlobalVar.detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print("connect ", bulb_ip, port, "...")

@@ -1,9 +1,15 @@
 import json
+import os
+import struct
 
 import numpy as np
 import csv
 from threading import Thread
 from time import sleep
+import socket
+import fcntl
+from config import GlobalVar
+
 
 # First, I should call put the transition to states and computation of reward inside external methods
 # to call them from here, not to re-write them!
@@ -13,12 +19,12 @@ from time import sleep
 # Statistics to compute Q will be read from output_parameters_data.csv
 
 # Identify which RL algorithm was used and use it
-from learning_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, \
+from utility_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, \
     compute_next_state, compute_reward_from_props
 from serve_yeelight import ServeYeelight
 
 directory = 'output_Q_parameters'
-date = 'data'  # Date must be in format %H_%M_%S_%d_%m_%Y
+date = '23_41_59_29_09_2020'  # Date must be in format %H_%M_%S_%d_%m_%Y
 file_Q = 'output_Q_' + date + '.csv'
 file_parameters = 'output_parameters_' + date + '.csv'
 
@@ -102,13 +108,16 @@ print("The optimal policy is ", optimal_policy)
 
 # I need some REAL generated files in order to be able to test and adjust the following code
 
-detected_bulbs = {}
-bulb_idx2ip = {}
-RUNNING = True
-current_command_id = 0
-MCAST_GRP = '239.255.255.250'
-
 # First, connecting to the device, initialization, something like this:
+
+# Socket setup
+GlobalVar.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+fcntl.fcntl(GlobalVar.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+GlobalVar.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+GlobalVar.listen_socket.bind(("", 1982))
+fcntl.fcntl(GlobalVar.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+mreq = struct.pack("4sl", socket.inet_aton(GlobalVar.MCAST_GRP), socket.INADDR_ANY)
+GlobalVar.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
 # first discover the lamp and Connect to the lamp
 # start the bulb detection thread
@@ -120,19 +129,21 @@ sleep(10)
 # show discovered lamps
 display_bulbs()
 
-print(bulb_idx2ip)
+print(GlobalVar.bulb_idx2ip)
 max_wait = 0
-while len(bulb_idx2ip) == 0 and max_wait < 10:
+while len(GlobalVar.bulb_idx2ip) == 0 and max_wait < 10:
     sleep(1)
     max_wait += 1
-if len(bulb_idx2ip) == 0:
+if len(GlobalVar.bulb_idx2ip) == 0:
     print("Bulb list is empty.")
 else:
     display_bulbs()
-    idLamp = list(bulb_idx2ip.keys())[0]
+    idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
 
     print("Waiting 5 seconds before verifying optimal obtained by SARSA")
     sleep(5)
+
+    GlobalVar.RUNNING = False
 
     seconds_to_wait = int(parameters['seconds_to_wait'])
     #
@@ -169,6 +180,7 @@ else:
 
         if state1 == 3 and state2 == 4:
             print("Done")
+            break
         state1 = state2
         t += 1
 

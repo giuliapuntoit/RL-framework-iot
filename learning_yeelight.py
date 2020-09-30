@@ -17,12 +17,14 @@ from serve_yeelight import ServeYeelight
 from utility_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, \
     compute_reward_from_props, compute_next_state, display_bulbs
 
+from config import GlobalVar
+
 # Global variables for bulb connection
-detected_bulbs = {}
-bulb_idx2ip = {}
-RUNNING = True
-current_command_id = 1
-MCAST_GRP = '239.255.255.250'
+GlobalVar.detected_bulbs = {}
+GlobalVar.bulb_idx2ip = {}
+GlobalVar.RUNNING = True
+GlobalVar.current_command_id = 1
+GlobalVar.MCAST_GRP = '239.255.255.250'
 
 # Global variables for RL
 tot_reward = 0
@@ -206,8 +208,7 @@ class ReinforcementLearningAlgorithm(object):
 
         # Starting the SARSA learning
         for episode in range(self.total_episodes):
-            if self.show_graphs:
-                print("Episode", episode)
+            print("Episode", episode)
             t = 0
             # Turn off the lamp
             print("Setting power off")
@@ -315,7 +316,7 @@ class ReinforcementLearningAlgorithm(object):
             print("E matrix")
             print(E)
             # Use same header as before with the first cell different
-            header[0] = ['E']  # for correct output structure
+            header[0] = 'E'  # for correct output structure
 
             with open(output_E_filename, "w") as output_E_file:
                 output_E_writer = csv.writer(output_E_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
@@ -403,13 +404,13 @@ class ReinforcementLearningAlgorithm(object):
 
 if __name__ == '__main__':
     # Socket setup
-    scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    fcntl.fcntl(scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    listen_socket.bind(("", 1982))
-    fcntl.fcntl(listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
-    listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    GlobalVar.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    fcntl.fcntl(GlobalVar.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+    GlobalVar.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    GlobalVar.listen_socket.bind(("", 1982))
+    fcntl.fcntl(GlobalVar.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+    mreq = struct.pack("4sl", socket.inet_aton(GlobalVar.MCAST_GRP), socket.INADDR_ANY)
+    GlobalVar.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
     # Give socket some time to set up
     sleep(2)
@@ -422,32 +423,33 @@ if __name__ == '__main__':
 
     # Show discovered lamps
     display_bulbs()
-    print(bulb_idx2ip)
+    print(GlobalVar.bulb_idx2ip)
 
     max_wait = 0
-    while len(bulb_idx2ip) == 0 and max_wait < 10:
+    while len(GlobalVar.bulb_idx2ip) == 0 and max_wait < 10:
         # Wait for 10 seconds to see if some bulb is present
         # The number of seconds could be extended if necessary
         sleep(1)
         max_wait += 1
-    if len(bulb_idx2ip) == 0:
+    if len(GlobalVar.bulb_idx2ip) == 0:
         print("Bulb list is empty.")
     else:
         # if some bulb was found, take first bulb
         display_bulbs()
-        idLamp = list(bulb_idx2ip.keys())[0]
+        idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
 
         print("Waiting 5 seconds before using RL algorithm")
         sleep(5)
 
         # Stop bulb detection loop
-        RUNNING = False
+        GlobalVar.RUNNING = False
 
         print("Starting RL algorithm")
-        ReinforcementLearningAlgorithm(max_steps=400, total_episodes=400,
-                                       num_actions_to_use=15,
-                                       show_graphs=True,
-                                       algorithm='sarsa').run()
+        ReinforcementLearningAlgorithm(max_steps=400, total_episodes=700,
+                                       num_actions_to_use=35,
+                                       show_graphs=False,
+                                       follow_policy=False,
+                                       algorithm='qlearning').run()
         print("Finish RL")
 
     # Goal achieved, tell detection thread to quit and wait
