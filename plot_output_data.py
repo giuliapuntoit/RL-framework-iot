@@ -84,4 +84,4 @@ else:
 
     plt.show()
 
-# TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsalambda, 3 qlearning)
+# TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsa_lambda, 3 qlearning)

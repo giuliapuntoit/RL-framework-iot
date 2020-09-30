@@ -51,6 +51,7 @@ except Exception as e:
 
 print(states)
 print(actions)
+print("Q matrix")
 print(Q)
 
 # I should check values using tests not prints!!!
@@ -74,6 +75,25 @@ print(parameters)  # For now the are all strings
 # I should check values using tests not prints!!!
 
 print("The RL algorithm used is ", parameters['algorithm_used'])
+
+if parameters['algorithm_used'] == 'sarsa_lambda':
+
+    file_E = 'output_E_' + date + '.csv'
+
+    try:
+        tmp_matrix = np.genfromtxt(directory + '/' + file_E, delimiter=',', dtype=np.float32)
+        E = tmp_matrix[1:, 1:]
+
+    except Exception as e:
+        print("Wrong file format:", e)
+        exit(3)
+
+    if len(states) != len(E) or len(actions) != len(E[0]) or np.isnan(np.sum(E)):
+        print("Wrong file format: wrong E dimensions or nan values present")
+        exit(4)
+
+    print("E matrix")
+    print(E)
 
 optimal_policy = parameters['optimal_policy'].split('-')  # Split policy string and save it into a list
 
@@ -115,7 +135,7 @@ else:
     sleep(5)
 
     seconds_to_wait = int(parameters['seconds_to_wait'])
-#
+    #
     # Then I can follow the found optimal policy:
     print("Setting power off")
     operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
