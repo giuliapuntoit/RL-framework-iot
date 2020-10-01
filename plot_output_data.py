@@ -6,7 +6,7 @@ y_reward = []
 y_cum_reward = []
 y_timesteps = []
 
-date = '23_41_59_29_09_2020'  # Date must be in format %H_%M_%S_%d_%m_%Y
+date = '00_52_15_01_10_2020'  # Date must be in format %H_%M_%S_%d_%m_%Y
 
 directory = 'output_Q_parameters'
 file_parameters = 'output_parameters_' + date + '.csv'
@@ -16,7 +16,7 @@ with open(directory + '/' + file_parameters, 'r') as csv_file:
     parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
 
 algorithm = parameters['algorithm_used']
-print("The RL algorithm used is ", algorithm)
+print("The RL algorithm used is", algorithm)
 
 
 directory = 'output_csv'

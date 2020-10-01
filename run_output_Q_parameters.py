@@ -140,7 +140,7 @@ else:
     display_bulbs()
     idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
 
-    print("Waiting 5 seconds before verifying optimal obtained by SARSA")
+    print("Waiting 5 seconds before verifying optimal obtained by", parameters['algorithm_used'])
     sleep(5)
 
     GlobalVar.RUNNING = False
