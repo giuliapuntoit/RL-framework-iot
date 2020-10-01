@@ -33,7 +33,7 @@ tot_reward = 0
 class ReinforcementLearningAlgorithm(object):
 
     def __init__(self, epsilon=0.4, total_episodes=10, max_steps=100, alpha=0.005, gamma=0.95, lam=0.9,
-                 show_graphs=False, follow_policy=True, use_old_matrix=False, date_old_matrix='HH_MM_SS_dd_mm_YY',
+                 show_graphs=False, follow_policy=True, use_old_matrix=False, date_old_matrix='YY_mm_dd_HH_MM_SS',
                  seconds_to_wait=4, num_actions_to_use=35, algorithm='sarsa'):
         self.total_episodes = total_episodes
         self.max_steps = max_steps
@@ -48,7 +48,7 @@ class ReinforcementLearningAlgorithm(object):
         # lambda is needed only in case of sarsa(lambda) algorithm
         if self.algorithm == 'sarsa_lambda':
             self.lam = lam
-        if date_old_matrix != 'HH_MM_SS_dd_mm_YY':
+        if date_old_matrix != 'YY_mm_dd_HH_MM_SS':
             self.use_old_matrix = use_old_matrix  # in sarsa lambda also E is needed
             self.date_old_matrix = date_old_matrix  # I should check it is in a correct format
         else:
@@ -106,24 +106,24 @@ class ReinforcementLearningAlgorithm(object):
         current_date = datetime.now()
 
         log_dir = 'log'
-        pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
-        log_filename = current_date.strftime(log_dir + '/' + 'log' + '_%H_%M_%S_%d_%m_%Y' + '.log')
+        pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5 YY_mm_dd_HH_MM_SS'
+        log_filename = current_date.strftime(log_dir + '/' + 'log_' + '%Y_%m_%d_%H_%M_%S' + '.log')
 
         output_Q_params_dir = 'output_Q_parameters'
         pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         output_Q_filename = current_date.strftime(
-            output_Q_params_dir + '/' + 'output_Q_' + '%H_%M_%S_%d_%m_%Y' + '.csv')
+            output_Q_params_dir + '/' + 'output_Q_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
         output_parameters_filename = current_date.strftime(
-            output_Q_params_dir + '/' + 'output_parameters_' + '%H_%M_%S_%d_%m_%Y' + '.csv')
+            output_Q_params_dir + '/' + 'output_parameters_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
         output_E_filename = ''
         if self.algorithm == 'sarsa_lambda':
             output_E_filename = current_date.strftime(
-                output_Q_params_dir + '/' + 'output_E_' + '%H_%M_%S_%d_%m_%Y' + '.csv')
+                output_Q_params_dir + '/' + 'output_E_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
         output_dir = 'output_csv'
         pathlib.Path(output_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         output_filename = current_date.strftime(
-            output_dir + '/' + 'output_' + self.algorithm + '_%H_%M_%S_%d_%m_%Y' + '.csv')
+            output_dir + '/' + 'output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
         # Write parameters in output_parameters_filename
         with open(output_parameters_filename, mode='w') as output_file:
@@ -131,10 +131,15 @@ class ReinforcementLearningAlgorithm(object):
             output_writer.writerow(['algorithm_used', self.algorithm])
             output_writer.writerow(['epsilon', self.epsilon])
             output_writer.writerow(['max_steps', self.max_steps])
+            output_writer.writerow(['total_episodes', self.total_episodes])
             output_writer.writerow(['alpha', self.alpha])
+            output_writer.writerow(['num_actions_to_use', self.num_actions_to_use])
             output_writer.writerow(['gamma', self.gamma])
             output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
             output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal)])
+
+            if self.algorithm == 'sarsa_lambda':
+                output_writer.writerow(['lambda', self.lam])
 
         # SARSA algorithm SINCE algorithm is sarsa
 
@@ -327,8 +332,10 @@ class ReinforcementLearningAlgorithm(object):
                         row.append("%.3f" % val)
                     output_E_writer.writerow(row)
 
+        with open(log_filename, "a") as write_file:
+            write_file.write("\nTotal time  of %s seconds." % (time.time() - start_time))
+
         if self.show_graphs:
-            print("--- %s seconds ---" % (time.time() - start_time))
             plt.subplot(3, 1, 1)
             plt.plot(x, y_reward, 'k--', label='rew')
             plt.ylabel('Reward')

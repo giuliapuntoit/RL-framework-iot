@@ -10,7 +10,6 @@ import socket
 import fcntl
 from config import GlobalVar
 
-
 # First, I should call put the transition to states and computation of reward inside external methods
 # to call them from here, not to re-write them!
 
@@ -24,7 +23,7 @@ from utility_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bul
 from serve_yeelight import ServeYeelight
 
 directory = 'output_Q_parameters'
-date = '23_41_59_29_09_2020'  # Date must be in format %H_%M_%S_%d_%m_%Y
+date = '23_41_59_29_09_2020'  # Date must be in format %Y_%m_%d_%H_%M_%S
 file_Q = 'output_Q_' + date + '.csv'
 file_parameters = 'output_parameters_' + date + '.csv'
 
@@ -80,23 +79,29 @@ print(parameters)  # For now the are all strings
 # otherwise I do not know how to compare results
 # I should check values using tests not prints!!!
 
+if parameters['num_actions_to_use'] is not None and len(actions) != parameters['num_actions_to_use']:
+    print("Different number of actions used")
+    exit(3)
+
 print("The RL algorithm used is ", parameters['algorithm_used'])
 
 if parameters['algorithm_used'] == 'sarsa_lambda':
 
     file_E = 'output_E_' + date + '.csv'
 
+    E = []
+
     try:
         tmp_matrix = np.genfromtxt(directory + '/' + file_E, delimiter=',', dtype=np.float32)
         E = tmp_matrix[1:, 1:]
 
+        if len(states) != len(E) or len(actions) != len(E[0]) or np.isnan(np.sum(E)):
+            print("Wrong file format: wrong E dimensions or nan values present")
+            exit(4)
+
     except Exception as e:
         print("Wrong file format:", e)
-        exit(3)
-
-    if len(states) != len(E) or len(actions) != len(E[0]) or np.isnan(np.sum(E)):
-        print("Wrong file format: wrong E dimensions or nan values present")
-        exit(4)
+        exit(5)
 
     print("E matrix")
     print(E)
@@ -195,6 +200,3 @@ else:
 RUNNING = False
 detection_thread.join()
 # done
-
-# TODO verifica che questo script funzioni
-# TODO questo script dovrebbe essere unico a prescindere dell'algoritmo usato, giusto?
