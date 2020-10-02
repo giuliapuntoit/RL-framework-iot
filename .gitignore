@@ -8,3 +8,5 @@ log/
 output_csv/
 output_Q_parameters/
 *.json
+*.png
+

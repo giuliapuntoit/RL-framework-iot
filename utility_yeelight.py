@@ -7,8 +7,9 @@ import re
 
 from config import GlobalVar
 
-
 # The following are utility functions:
+from serve_yeelight import ServeYeelight
+
 
 def send_search_broadcast():
     # multicast search request to all hosts in LAN, do not wait for response
@@ -154,6 +155,24 @@ def handle_response_no_reward(data):
         print("Bad format response.")
 
 
+def handle_response_props(data):
+    # Print response
+    json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
+    # print("Json received is ")
+    # print(json_received)
+    if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
+        if 'result' in json_received and json_received['result'] is not None:
+            print("Result is", json_received['result'])
+            return json_received['result']  # in teoria qua c'è la lista di valori di tutte le props richieste
+        elif 'error' in json_received and json_received['error'] is not None:
+            print("Error is", json_received['error'])
+        else:
+            print("No result or error found in answer.")
+    else:
+        print("Bad format response.")
+    return []  # se c'è un errore nella risposta o se non c'è risposta torno un array vuoto
+
+
 def display_bulb(idx):
     if idx not in GlobalVar.bulb_idx2ip:
         print("error: invalid bulb idx")
@@ -199,6 +218,34 @@ def operate_on_bulb(idx, method, params):
         tcp_socket.close()
     except Exception as e:
         print("Unexpected error:", e)
+
+
+def operate_on_bulb_props(idx, method, params):  # this method returns an array of properties values
+    '''
+  Operate on bulb; no guarantee of success.
+  Input data 'params' must be a compiled into one string.
+  E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
+  '''
+    if idx not in GlobalVar.bulb_idx2ip:
+        print("error: invalid bulb idx")
+        return []
+
+    bulb_ip = GlobalVar.bulb_idx2ip[idx]
+    port = GlobalVar.detected_bulbs[bulb_ip][5]
+    try:
+        tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("connect ", bulb_ip, port, "...")
+        tcp_socket.connect((bulb_ip, int(port)))
+        msg = "{\"id\":" + str(GlobalVar.current_command_id) + ",\"method\":\""
+        msg += method + "\",\"params\":[" + params + "]}\r\n"
+        tcp_socket.send(msg.encode())
+        data = tcp_socket.recv(2048)
+        props = handle_response_props(data)
+        tcp_socket.close()
+        return props
+    except Exception as e:
+        print("Unexpected error:", e)
+        return []
 
 
 def operate_on_bulb_json(id_lamp, json_string):
@@ -256,7 +303,36 @@ def compute_next_state(json_command, states, current_state):
     return next_state
 
 
-def compute_reward_from_props(current_state, next_state):
+def compute_next_state_from_props(id_lamp, states, current_state, old_props_values):
+    # I don't need the json_command
+    # I need the current state?
+    # I need the states?
+    # Setting power on
+
+    props_names = ServeYeelight().get_all_properties()
+
+    print("get_prop")
+    props_values = operate_on_bulb_props(id_lamp, "get_prop", props_names)
+    # from response compare properties before and after command
+    # which one? power bright rgb (other?)
+    sleep(2)
+
+    if not props_values:
+        print("Something went wrong from get_prop: keeping the current state")
+        return current_state
+
+    next_state = current_state + 1
+
+    # dovrei capire se il nuovo stato ha modificato cosa, solo per le prop che mi interessano?
+    # ad esempio se rgb è cambiato, ecc
+    # devo mantenere tutti i valori delle proprietà dello stato precedente
+
+    # direi che per ora potresti iniziare da cose semplici tipo salvarmi solo power bright rgb e vedere che cambino
+
+    return next_state
+
+
+def compute_reward_from_states(current_state, next_state):
     # This assumes that the path goes from state 0 to state 4 (1 2 3 4)
     reward_from_props = 0
     # Reward from passing through other states:

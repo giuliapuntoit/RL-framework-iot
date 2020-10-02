@@ -15,7 +15,7 @@ from threading import Thread
 from time import sleep
 from serve_yeelight import ServeYeelight
 from utility_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, \
-    compute_reward_from_props, compute_next_state, display_bulbs
+    compute_reward_from_states, compute_next_state, display_bulbs
 
 from config import GlobalVar
 
@@ -243,8 +243,8 @@ class ReinforcementLearningAlgorithm(object):
                 state2 = compute_next_state(json_command, states, state1)
                 print("From state", state1, "to state", state2)
 
-                reward_from_props = compute_reward_from_props(state1, state2)
-                tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
+                reward_from_states = compute_reward_from_states(state1, state2)
+                tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
 
                 if state1 == 3 and state2 == 4:
                     done = True
@@ -271,7 +271,7 @@ class ReinforcementLearningAlgorithm(object):
                     self.update_sarsa(state1, state2, tmp_reward, action1, action2, Q)
 
                 with open(log_filename, "a") as write_file:
-                    write_file.write("\nTimestep " + str(t - 1) + " finished.")
+                    write_file.write("\nTimestep " + str(t) + " finished.")
                     write_file.write(" Temporary reward: " + str(tmp_reward))
                     write_file.write(" Previous state: " + str(state1))
                     write_file.write(" Current state: " + str(state2))
@@ -389,9 +389,9 @@ class ReinforcementLearningAlgorithm(object):
 
                 print("From state", state1, "to state", state2)
 
-                reward_from_props = compute_reward_from_props(state1, state2)
+                reward_from_states = compute_reward_from_states(state1, state2)
 
-                tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
+                tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
                 print("Tmp reward " + str(tmp_reward))
                 final_reward += tmp_reward
 

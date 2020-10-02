@@ -76,7 +76,7 @@ class ServeYeelight(object):
                     if key == "rgb_value":
                         value = random.randint(0, 16777215)
                     if key == "brightness":
-                        value = random.randint(0,100)
+                        value = random.randint(0, 100)
                 else:
                     value = "Random string"
                 params.append(value)
@@ -93,8 +93,23 @@ class ServeYeelight(object):
 
         return json.dumps(command)
 
+    def get_all_properties(self):
+        self.method_chosen_index = 0
+        method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
+
+        print(str(method_selected))
+
+        method_params_list = method_selected["params_list"]
+        print(method_params_list)
+
+        params = []
+        for (key, value) in method_params_list:
+            params.append(key)
+
+        return params
+
 
 if __name__ == '__main__':
-    json_command = ServeYeelight(method_chosen_index=6).run()
+    json_command = ServeYeelight(method_chosen_index=2).run()
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(json_command)

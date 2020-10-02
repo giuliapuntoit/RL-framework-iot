@@ -19,7 +19,7 @@ from config import GlobalVar
 
 # Identify which RL algorithm was used and use it
 from utility_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, \
-    compute_next_state, compute_reward_from_props
+    compute_next_state, compute_reward_from_states
 from serve_yeelight import ServeYeelight
 
 directory = 'output_Q_parameters'
@@ -178,7 +178,7 @@ else:
 
         print("From state", state1, "to state", state2)
 
-        reward_from_props = compute_reward_from_props(state1, state2)
+        reward_from_props = compute_reward_from_states(state1, state2)
 
         tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
         final_reward += tmp_reward
