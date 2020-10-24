@@ -19,11 +19,11 @@ from config import GlobalVar
 
 # Identify which RL algorithm was used and use it
 from utility_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, \
-    compute_next_state, compute_reward_from_states
+    compute_next_state, compute_reward_from_states, compute_next_state_from_props
 from serve_yeelight import ServeYeelight
 
 directory = 'output_Q_parameters'
-date = '23_41_59_29_09_2020'  # Date must be in format %Y_%m_%d_%H_%M_%S
+date = '2020_10_07_20_34_34'  # Date must be in format %Y_%m_%d_%H_%M_%S
 file_Q = 'output_Q_' + date + '.csv'
 file_parameters = 'output_parameters_' + date + '.csv'
 
@@ -79,7 +79,7 @@ print(parameters)  # For now the are all strings
 # otherwise I do not know how to compare results
 # I should check values using tests not prints!!!
 
-if parameters['num_actions_to_use'] is not None and len(actions) != parameters['num_actions_to_use']:
+if parameters['num_actions_to_use'] is not None and len(actions) != int(parameters['num_actions_to_use']):
     print("Different number of actions used")
     exit(3)
 
@@ -156,7 +156,7 @@ else:
     print("Setting power off")
     operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
     sleep(seconds_to_wait)
-    state1 = 0
+    state1, old_props_values = compute_next_state_from_props(idLamp, 5, [])
 
     print("Restarting... returning to state: off")
     t = 0
@@ -174,7 +174,7 @@ else:
         reward_from_response = operate_on_bulb_json(idLamp, json_string)
         sleep(seconds_to_wait)
 
-        state2 = compute_next_state(json_command, states, state1)
+        state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
 
         print("From state", state1, "to state", state2)
 
@@ -183,10 +183,11 @@ else:
         tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
         final_reward += tmp_reward
 
-        if state1 == 3 and state2 == 4:
+        if state2 == 4:
             print("Done")
             break
         state1 = state2
+        old_props_values = new_props_values
         t += 1
 
     print("Length final policy is", len(final_policy))

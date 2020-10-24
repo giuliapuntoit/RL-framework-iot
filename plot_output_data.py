@@ -7,7 +7,7 @@ y_cum_reward = []
 y_timesteps = []
 
 # date = '00_52_15_01_10_2020'  # Date must be in format %Y_%m_%d_%H_%M_%S
-date = '23_41_59_29_09_2020'  # Date must be in format %Y_%m_%d_%H_%M_%S
+date = '2020_10_21_19_33_34'  # Date must be in format %Y_%m_%d_%H_%M_%S
 
 directory = 'output_Q_parameters'
 file_parameters = 'output_parameters_' + date + '.csv'
@@ -34,7 +34,7 @@ with open(directory+'/'+filename, 'r') as csv_file:
         y_timesteps.append(int(row[3]))
 
 if separate_plots:
-    plt.plot(x, y_reward, 'k--', label='rew')
+    plt.plot(x, y_reward, 'k', label='rew')
     plt.xlabel('Episodes')
     plt.ylabel('Reward')
     plt.title('Reward per episodes for ' + algorithm + ' algorithm')
@@ -52,7 +52,7 @@ if separate_plots:
 
     plt.show()
 
-    plt.plot(x, y_timesteps, 'k', label='timesteps', marker='o')
+    plt.plot(x, y_timesteps, 'k', label='timesteps')  #marker='o')
     plt.xlabel('Episodes')
     plt.ylabel('Timesteps')
     plt.title('Timesteps per episode for ' + algorithm + ' algorithm')
@@ -61,24 +61,24 @@ if separate_plots:
 
     plt.show()
 else:
-    plt.subplot(3, 1, 1)
-    plt.plot(x, y_reward, 'k--', label='rew')
+    plt.subplot(2, 1, 1)
+    plt.plot(x, y_reward, 'k', label='rew')
     plt.ylabel('Reward')
     plt.title('Statistics per episode for ' + algorithm + ' algorithm')
-    plt.legend(loc="center right")
+    # plt.legend(loc="center right")
     plt.grid(True)
 
-    plt.subplot(3, 1, 2)
-    plt.plot(x, y_cum_reward, 'k:', label='cum_rew')
-    plt.ylabel('Cumulative reward')
-    plt.legend(loc="center right")
-    plt.grid(True)
+    # plt.subplot(3, 1, 2)
+    # plt.plot(x, y_cum_reward, 'k:', label='cum_rew')
+    # plt.ylabel('Cumulative reward')
+    # plt.legend(loc="center right")
+    # plt.grid(True)
 
-    plt.subplot(3, 1, 3)
-    plt.plot(x, y_timesteps, 'k', label='timesteps', marker='o')
+    plt.subplot(2, 1, 2)
+    plt.plot(x, y_timesteps, 'k', label='timesteps')
     plt.xlabel('Episodes')
     plt.ylabel('Timesteps')
-    plt.legend(loc="upper right")
+    # plt.legend(loc="upper right")
     plt.grid(True)
 
     plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.35, wspace=0.35)

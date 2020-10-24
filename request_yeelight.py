@@ -276,7 +276,7 @@ else:
 
     # Choose method
     print("Doing a random method")
-    json_command = ServeYeelight(idLamp=idLamp).run()
+    json_command = ServeYeelight(idLamp=idLamp, method_chosen_index=0).run()
     print(json_command)
     print("Operating on bulb...")
     operate_on_bulb_json(idLamp, json_command)

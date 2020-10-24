@@ -15,7 +15,7 @@ from threading import Thread
 from time import sleep
 from serve_yeelight import ServeYeelight
 from utility_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, \
-    compute_reward_from_states, compute_next_state, display_bulbs
+    compute_reward_from_states, compute_next_state, compute_next_state_from_props, display_bulbs
 
 from config import GlobalVar
 
@@ -219,7 +219,7 @@ class ReinforcementLearningAlgorithm(object):
             print("Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             sleep(self.seconds_to_wait)
-            state1 = states.index("off_start")
+            state1, old_props_values = compute_next_state_from_props(idLamp, 5, [])
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -239,14 +239,13 @@ class ReinforcementLearningAlgorithm(object):
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
 
-                # TODO check current state using get_prop method 0
-                state2 = compute_next_state(json_command, states, state1)
+                state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
                 print("From state", state1, "to state", state2)
 
                 reward_from_states = compute_reward_from_states(state1, state2)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
 
-                if state1 == 3 and state2 == 4:
+                if state2 == 4:
                     done = True
 
                 if self.algorithm == 'sarsa_lambda':
@@ -254,7 +253,8 @@ class ReinforcementLearningAlgorithm(object):
                     action2 = self.choose_action(state2, Q)
 
                     # Learning the Q-value
-                    self.update_sarsa_lambda(state1, state2, tmp_reward, action1, action2, len(states), self.num_actions_to_use, Q, E)
+                    self.update_sarsa_lambda(state1, state2, tmp_reward, action1, action2, len(states),
+                                             self.num_actions_to_use, Q, E)
 
                 elif self.algorithm == 'qlearning':
                     action2 = -1  # Invalid action to avoid warnings
@@ -280,6 +280,7 @@ class ReinforcementLearningAlgorithm(object):
                         write_file.write(" Next action: " + str(action2))
 
                 state1 = state2
+                old_props_values = new_props_values
                 if self.algorithm != 'qlearning':
                     action1 = action2
 
@@ -365,7 +366,7 @@ class ReinforcementLearningAlgorithm(object):
             print("Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             sleep(self.seconds_to_wait)
-            state1 = 0
+            state1, old_props_values = compute_next_state_from_props(idLamp, 5, [])
 
             if self.show_graphs:
                 print("Restarting... returning to state: off")
@@ -385,7 +386,7 @@ class ReinforcementLearningAlgorithm(object):
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
 
-                state2 = compute_next_state(json_command, states, state1)
+                state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
 
                 print("From state", state1, "to state", state2)
 
@@ -395,18 +396,19 @@ class ReinforcementLearningAlgorithm(object):
                 print("Tmp reward " + str(tmp_reward))
                 final_reward += tmp_reward
 
-                if state1 == 3 and state2 == 4:
+                if state2 == 4:
                     print("Done")
                     break
                 state1 = state2
+                old_props_values = new_props_values
                 t += 1
 
             print("Length final policy is", len(final_policy))
             print("Final policy is", final_policy)
             if len(final_policy) == len(optimal) and np.array_equal(final_policy, optimal):
-                print("Optimal policy was found with final reward of ", final_reward)
+                print("Optimal policy was found with final reward of", final_reward)
             else:
-                print("No optimal policy reached with final reward of ", final_reward)
+                print("No optimal policy reached with final reward of", final_reward)
 
 
 if __name__ == '__main__':
@@ -452,11 +454,11 @@ if __name__ == '__main__':
         GlobalVar.RUNNING = False
 
         print("Starting RL algorithm")
-        ReinforcementLearningAlgorithm(max_steps=400, total_episodes=700,
-                                       num_actions_to_use=35,
+        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=5,
+                                       num_actions_to_use=6,
                                        show_graphs=False,
-                                       follow_policy=False,
-                                       algorithm='qlearning').run()
+                                       follow_policy=True,
+                                       algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
         print("Finish RL")
 
     # Goal achieved, tell detection thread to quit and wait

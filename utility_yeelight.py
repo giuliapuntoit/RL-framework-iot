@@ -158,14 +158,15 @@ def handle_response_no_reward(data):
 def handle_response_props(data):
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-    # print("Json received is ")
-    # print(json_received)
+    print("Json received is ")
+    print(json_received)
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             print("Result is", json_received['result'])
             return json_received['result']  # in teoria qua c'è la lista di valori di tutte le props richieste
         elif 'error' in json_received and json_received['error'] is not None:
             print("Error is", json_received['error'])
+            return json_received['error']
         else:
             print("No result or error found in answer.")
     else:
@@ -220,24 +221,20 @@ def operate_on_bulb(idx, method, params):
         print("Unexpected error:", e)
 
 
-def operate_on_bulb_props(idx, method, params):  # this method returns an array of properties values
-    '''
-  Operate on bulb; no guarantee of success.
-  Input data 'params' must be a compiled into one string.
-  E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
-  '''
-    if idx not in GlobalVar.bulb_idx2ip:
+def operate_on_bulb_props(id_lamp, json_string):
+    print("Operate on bulb props")
+    print(json_string)
+    if id_lamp not in GlobalVar.bulb_idx2ip:
         print("error: invalid bulb idx")
         return []
 
-    bulb_ip = GlobalVar.bulb_idx2ip[idx]
+    bulb_ip = GlobalVar.bulb_idx2ip[id_lamp]
     port = GlobalVar.detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
-        msg = "{\"id\":" + str(GlobalVar.current_command_id) + ",\"method\":\""
-        msg += method + "\",\"params\":[" + params + "]}\r\n"
+        msg = str(json_string) + "\r\n"
         tcp_socket.send(msg.encode())
         data = tcp_socket.recv(2048)
         props = handle_response_props(data)
@@ -303,33 +300,46 @@ def compute_next_state(json_command, states, current_state):
     return next_state
 
 
-def compute_next_state_from_props(id_lamp, states, current_state, old_props_values):
-    # I don't need the json_command
-    # I need the current state?
-    # I need the states?
-    # Setting power on
-
-    props_names = ServeYeelight().get_all_properties()
+def compute_next_state_from_props(id_lamp, current_state, old_props_values):
+    next_state = current_state
+    json_command = ServeYeelight(idLamp=id_lamp, method_chosen_index=0, select_all_props=True).run()
+    props_names = ServeYeelight(idLamp=id_lamp).get_all_properties()
 
     print("get_prop")
-    props_values = operate_on_bulb_props(id_lamp, "get_prop", props_names)
+    print(json_command)
+    props_values = operate_on_bulb_props(id_lamp, json_command)  # should contain an array of properties
+
+    # dovrei capire se il nuovo stato ha modificato cosa, per ora solo per le prop che mi interessano
+    # ad esempio se rgb è cambiato, ecc
+    # devo mantenere tutti i valori delle proprietà dello stato precedente
     # from response compare properties before and after command
-    # which one? power bright rgb (other?)
-    sleep(2)
+    # for now check power rgb bright
+
+    sleep(3)
 
     if not props_values:
         print("Something went wrong from get_prop: keeping the current state")
-        return current_state
+        return current_state, old_props_values
 
-    next_state = current_state + 1
+    power_index = 0
+    if props_values[power_index] == 'off':  # prima colonna e' il power
+        if current_state == 3:
+            next_state = 4
+        else:
+            next_state = 0
+    elif props_values[power_index] == 'on':
+        if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
+            next_state = 1
+        else:
+            rgb_index = 2
+            bright_index = 1
+            if props_values[rgb_index] != old_props_values[rgb_index] and current_state == 1:
+                next_state = 2
+            elif props_values[bright_index] != old_props_values[bright_index] and props_values[
+                bright_index] != 0 and current_state == 2:
+                next_state = 3
 
-    # dovrei capire se il nuovo stato ha modificato cosa, solo per le prop che mi interessano?
-    # ad esempio se rgb è cambiato, ecc
-    # devo mantenere tutti i valori delle proprietà dello stato precedente
-
-    # direi che per ora potresti iniziare da cose semplici tipo salvarmi solo power bright rgb e vedere che cambino
-
-    return next_state
+    return next_state, props_values
 
 
 def compute_reward_from_states(current_state, next_state):
@@ -342,6 +352,6 @@ def compute_reward_from_states(current_state, next_state):
         reward_from_props = 2
     elif current_state == 2 and next_state == 3:
         reward_from_props = 4
-    elif current_state == 3 and next_state == 4:
+    if current_state == 3 and next_state == 4:  # Just the last step
         reward_from_props = 1000
     return reward_from_props

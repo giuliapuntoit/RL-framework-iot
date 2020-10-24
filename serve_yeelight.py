@@ -7,9 +7,10 @@ import json
 # randomizing method selected
 
 class ServeYeelight(object):
-    def __init__(self, idLamp=0, method_chosen_index=-1):
+    def __init__(self, idLamp=0, method_chosen_index=-1, select_all_props=False):
         self.method_chosen_index = method_chosen_index
         self.id = idLamp
+        self.select_all_props = select_all_props
         # print("Using serve yeelight.")
 
     def run(self):
@@ -33,7 +34,13 @@ class ServeYeelight(object):
         # For now we ignore optional parameters
         if method_max_params == -1:
             n = random.randint(1, len(method_params_list) - 1)
-            sample_params_list = random.sample(method_params_list, n)
+            if self.select_all_props:
+                print("Selecting specific props")
+                sample_params_list = [('power', ""),  # values on off
+                                      ('bright', 0),  # range 1 100
+                                      ('rgb', 0), ]  # range 1 16777215
+            else:
+                sample_params_list = random.sample(method_params_list, n)
             # print(sample_params_list)
             for (key, value) in sample_params_list:
                 params.append(key)
@@ -98,9 +105,7 @@ class ServeYeelight(object):
         method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
 
         print(str(method_selected))
-
         method_params_list = method_selected["params_list"]
-        print(method_params_list)
 
         params = []
         for (key, value) in method_params_list:
@@ -110,6 +115,6 @@ class ServeYeelight(object):
 
 
 if __name__ == '__main__':
-    json_command = ServeYeelight(method_chosen_index=2).run()
+    json_command = ServeYeelight(method_chosen_index=6).run()
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(json_command)
