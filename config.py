@@ -6,3 +6,4 @@ class GlobalVar(object):
     current_command_id = 1
     listen_socket = None
     scan_socket = None
+    timeout = 5

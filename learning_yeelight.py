@@ -15,7 +15,7 @@ from threading import Thread
 from time import sleep
 from serve_yeelight import ServeYeelight
 from utility_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, \
-    compute_reward_from_states, compute_next_state, compute_next_state_from_props, display_bulbs
+    compute_reward_from_states, compute_next_state_from_props, display_bulbs
 
 from config import GlobalVar
 
@@ -34,7 +34,7 @@ class ReinforcementLearningAlgorithm(object):
 
     def __init__(self, epsilon=0.4, total_episodes=10, max_steps=100, alpha=0.005, gamma=0.95, lam=0.9,
                  show_graphs=False, follow_policy=True, use_old_matrix=False, date_old_matrix='YY_mm_dd_HH_MM_SS',
-                 seconds_to_wait=4, num_actions_to_use=35, algorithm='sarsa'):
+                 seconds_to_wait=4, num_actions_to_use=37, algorithm='sarsa'):
         self.total_episodes = total_episodes
         self.max_steps = max_steps
         self.epsilon = epsilon
@@ -58,11 +58,11 @@ class ReinforcementLearningAlgorithm(object):
     def choose_action(self, state, Qmatrix):
         # Here I should choose the method
         if np.random.uniform(0, 1) < self.epsilon:
-            print("Select the action randomly")
+            # print("\t\tSelect the action randomly")
             action = random.randint(0, self.num_actions_to_use - 1)  # don't use the first one
         else:
             # Select maximum, if multiple values select randomly
-            print("Select maximum")
+            # print("\t\tSelect maximum")
             # choose random action between the max ones
             action = np.random.choice(np.where(Qmatrix[state, :] == Qmatrix[state, :].max())[0])
         # The action then should be converted when used into a json_string returned by serve_yeelight
@@ -100,8 +100,9 @@ class ReinforcementLearningAlgorithm(object):
     def run(self):
 
         # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
-        states = ["off_start", "on", "rgb", "brightness", "off_end", "invalid"]  # 0 1 2 3 4 5
-        optimal = [5, 2, 4, 5]  # optimal policy
+        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end", "6_invalid"]  # 0 1 2 4 0 optimal path
+
+        optimal = [5, 2, 4, 6]  # optimal policy
 
         current_date = datetime.now()
 
@@ -213,13 +214,15 @@ class ReinforcementLearningAlgorithm(object):
 
         # Starting the SARSA learning
         for episode in range(self.total_episodes):
+            print("----------------------------------------------------------------")
             print("Episode", episode)
             t = 0
             # Turn off the lamp
-            print("Setting power off")
+            print("\t\tREQUEST: Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             sleep(self.seconds_to_wait)
-            state1, old_props_values = compute_next_state_from_props(idLamp, 5, [])
+            state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
+            print("\tSTARTING FROM STATE", states[state1])
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -232,20 +235,20 @@ class ReinforcementLearningAlgorithm(object):
                 if self.algorithm == 'qlearning':
                     action1 = self.choose_action(state1, Q)
 
-                print("Doing an action")
-                json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=action1).run()
+                # print("\t\tDoing an action")
+                json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
                 json_command = json.loads(json_string)
-                print("Json command is " + str(json_string))
+                print("\t\tREQUEST:", str(json_string))
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
 
                 state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
-                print("From state", state1, "to state", state2)
+                print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
                 reward_from_states = compute_reward_from_states(state1, state2)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
 
-                if state2 == 4:
+                if state2 == 5:
                     done = True
 
                 if self.algorithm == 'sarsa_lambda':
@@ -299,12 +302,13 @@ class ReinforcementLearningAlgorithm(object):
             with open(output_filename, mode="a") as output_file:
                 output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                 output_writer.writerow([episode, reward_per_episode, cumulative_reward, t - 1])  # Episode or episode+1?
+            print("\tREWARD OF THE EPISODE:", reward_per_episode)
 
         # Print and save the Q-matrix inside output_Q_data.csv file
         print(Q)
         header = ['Q']  # for correct output structure
         for i in range(0, self.num_actions_to_use):
-            json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=i).run()
+            json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=i).run()
             header.append(json.loads(json_string)['method'])
 
         with open(output_Q_filename, "w") as output_Q_file:
@@ -363,52 +367,51 @@ class ReinforcementLearningAlgorithm(object):
 
         # Following the best policy found
         if self.follow_policy:
-            print("Setting power off")
+            print("------------------------------------------")
+            print("Follow policy")
+            print("\t\tREQUEST: Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             sleep(self.seconds_to_wait)
-            state1, old_props_values = compute_next_state_from_props(idLamp, 5, [])
+            state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
+            print("\tSTARTING FROM STATE", states[state1])
 
-            if self.show_graphs:
-                print("Restarting... returning to state: off")
             t = 0
             final_policy = []
             final_reward = 0
-            # TODO Questo codice nel while può e DEVE essere strutturato meglio
             while t < 20:
                 max_action = np.argmax(Q[state1, :])
                 final_policy.append(max_action)
                 if self.show_graphs:
-                    print("Action to perform is", max_action)
+                    print("\tACTION TO PERFORM", max_action)
 
-                json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
-                json_command = json.loads(json_string)
-                print("Json command is " + str(json_string))
+                json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=max_action).run()
+                print("\t\tREQUEST:", str(json_string))
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
 
                 state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
 
-                print("From state", state1, "to state", state2)
+                print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
                 reward_from_states = compute_reward_from_states(state1, state2)
 
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
-                print("Tmp reward " + str(tmp_reward))
+                print("\tTMP REWARD:", str(tmp_reward))
                 final_reward += tmp_reward
 
-                if state2 == 4:
+                if state2 == 5:
                     print("Done")
                     break
                 state1 = state2
                 old_props_values = new_props_values
                 t += 1
 
-            print("Length final policy is", len(final_policy))
-            print("Final policy is", final_policy)
+            print("\tLength final policy:", len(final_policy))
+            print("\tFinal policy:", final_policy)
             if len(final_policy) == len(optimal) and np.array_equal(final_policy, optimal):
-                print("Optimal policy was found with final reward of", final_reward)
+                print("\tOptimal policy was found with final reward of", final_reward)
             else:
-                print("No optimal policy reached with final reward of", final_reward)
+                print("\tNo optimal policy reached with final reward of", final_reward)
 
 
 if __name__ == '__main__':
@@ -418,6 +421,8 @@ if __name__ == '__main__':
     GlobalVar.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     GlobalVar.listen_socket.bind(("", 1982))
     fcntl.fcntl(GlobalVar.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+    # GlobalVar.scan_socket.settimeout(GlobalVar.timeout)  # set 2 seconds of timeout -> could be a configurable parameter
+    # GlobalVar.listen_socket.settimeout(GlobalVar.timeout)
     mreq = struct.pack("4sl", socket.inet_aton(GlobalVar.MCAST_GRP), socket.INADDR_ANY)
     GlobalVar.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
@@ -453,20 +458,37 @@ if __name__ == '__main__':
         # Stop bulb detection loop
         GlobalVar.RUNNING = False
 
-        print("Starting RL algorithm")
-        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=5,
-                                       num_actions_to_use=6,
+        print("############# Starting RL algorithm #############")
+        ReinforcementLearningAlgorithm(max_steps=200, total_episodes=15,
+                                       num_actions_to_use=37,
+                                       seconds_to_wait=7,
                                        show_graphs=False,
                                        follow_policy=True,
+                                       use_old_matrix=True,
+                                       date_old_matrix='2020_10_25_22_28_49',
                                        algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-        print("Finish RL")
+        print('sarsa end')
+        # ReinforcementLearningAlgorithm(max_steps=200, total_episodes=30,
+        #                                num_actions_to_use=37,
+        #                                show_graphs=False,
+        #                                follow_policy=True,
+        #                                algorithm='sarsa_lambda').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
+        # print('sarsa_lambda end')
+        # ReinforcementLearningAlgorithm(max_steps=200, total_episodes=10,
+        #                                num_actions_to_use=37,
+        #                                show_graphs=False,
+        #                                use_old_matrix=True,
+        #                                date_old_matrix='2020_10_25_13_34_28',
+        #                                follow_policy=True,
+        #                                algorithm='qlearning').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
+        # print('qlearning end')
+        print("############# Finish RL algorithm #############")
 
     # Goal achieved, tell detection thread to quit and wait
     RUNNING = False  # non credo serva di nuovo
     detection_thread.join()
     # Done
 
-# Set manually timeout for connecting, with a configurable parameter
 # Set number of ri-transmissions, with a configurable parameter
 # TODO i test potrebbero testare che i parametri, stati, azioni ecc passati in input siano poi quelli scritti in output, \
 #  che ci sia un certo file, che il nome del file corrisponde alla data giusta, al nome dell'algo ecc

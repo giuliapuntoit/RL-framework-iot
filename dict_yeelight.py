@@ -15,10 +15,9 @@ class DictYeelight(object):
 
     def __init__(self, method_requested=2):
         self.method_requested = method_requested
-        print("Using dictionary yeelight.")
+        # print("Using dictionary yeelight.")
 
     def run(self):
-
         properties = [('power', ""),  # values on off
                       ('bright', 0),  # range 1 100
                       ('ct', 0),  # range 1700 6500 (k?)
@@ -93,11 +92,21 @@ class DictYeelight(object):
                              ('duration', 0),  # int
                          ],
                          },
-                        {"name": "set_power",
+                        {"name": "set_power",  # ON
                          "min_params": 3,
                          "max_params": 4,  # mode is optional
                          "params_list": [
-                             ('power', ""),  # string
+                             ('power', "on"),  # string
+                             ('effect', ""),  # string
+                             ('duration', 0),  # int
+                             ('mode', 0),  # int
+                         ],
+                         },
+                        {"name": "set_power",  # OFF TODO non il miglior modo per distinguerli ma vediamo se funziona
+                         "min_params": 3,
+                         "max_params": 4,  # mode is optional
+                         "params_list": [
+                             ('power', "off"),  # string
                              ('effect', ""),  # string
                              ('duration', 0),  # int
                              ('mode', 0),  # int
@@ -232,11 +241,20 @@ class DictYeelight(object):
                          "max_params": 0,
                          "params_list": []
                          },
-                        {"name": "bg_set_power",
+                        {"name": "bg_set_power",  # ON
                          "min_params": 3,
                          "max_params": 3,
                          "params_list": [
-                             ('power', ""),  # string
+                             ('power', "on"),  # string
+                             ('effect', ""),  # string
+                             ('duration', 0),  # int
+                             ('mode', 0),  # int
+                         ]},
+                        {"name": "bg_set_power",  # OFF
+                         "min_params": 3,
+                         "max_params": 3,
+                         "params_list": [
+                             ('power', "off"),  # string
                              ('effect', ""),  # string
                              ('duration', 0),  # int
                              ('mode', 0),  # int
@@ -328,7 +346,7 @@ class DictYeelight(object):
         #     if 0 <= int(sys.argv[1]) < len(methods):
         #         method_selected = int(sys.argv[1])
 
-        print("Method selected is number: " + str(method_selected))
+        # print("Method selected is number: " + str(method_selected))
         # print("Total methods is " + str(len(methods)))
         return methods[method_selected]
 

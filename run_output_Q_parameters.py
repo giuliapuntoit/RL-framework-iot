@@ -18,12 +18,11 @@ from config import GlobalVar
 # Statistics to compute Q will be read from output_parameters_data.csv
 
 # Identify which RL algorithm was used and use it
-from utility_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, \
-    compute_next_state, compute_reward_from_states, compute_next_state_from_props
+from utility_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, compute_reward_from_states, compute_next_state_from_props
 from serve_yeelight import ServeYeelight
 
 directory = 'output_Q_parameters'
-date = '2020_10_07_20_34_34'  # Date must be in format %Y_%m_%d_%H_%M_%S
+date = '2020_10_25_22_28_49'  # Date must be in format %Y_%m_%d_%H_%M_%S
 file_Q = 'output_Q_' + date + '.csv'
 file_parameters = 'output_parameters_' + date + '.csv'
 
@@ -59,12 +58,11 @@ print(actions)
 print("Q matrix")
 print(Q)
 
-# I should check values using tests not prints!!!
 # TODO:
 # del tipo, runnare lo script con certi valori e verificare che il risultato sia quello scritto nei test
 # ad esempio certi valori di parametri, questa esatta lunghezza e questi esatti stati e azioni
 # il risultato deve essere coerente con ciò che mi aspetto
-# cosicché cambiando parametri posso aspettarmi un risultato giusto
+# cosicche' cambiando parametri posso aspettarmi un risultato giusto
 
 if len(states) != len(Q) or len(actions) != len(Q[0]) or np.isnan(np.sum(Q)):
     print("Wrong file format: wrong Q dimensions or nan values present")
@@ -83,7 +81,7 @@ if parameters['num_actions_to_use'] is not None and len(actions) != int(paramete
     print("Different number of actions used")
     exit(3)
 
-print("The RL algorithm used is ", parameters['algorithm_used'])
+print("The RL algorithm used is", parameters['algorithm_used'])
 
 if parameters['algorithm_used'] == 'sarsa_lambda':
 
@@ -121,6 +119,8 @@ fcntl.fcntl(GlobalVar.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
 GlobalVar.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 GlobalVar.listen_socket.bind(("", 1982))
 fcntl.fcntl(GlobalVar.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+# GlobalVar.scan_socket.settimeout(GlobalVar.timeout)  # set 2 seconds of timeout
+# GlobalVar.listen_socket.settimeout(GlobalVar.timeout)
 mreq = struct.pack("4sl", socket.inet_aton(GlobalVar.MCAST_GRP), socket.INADDR_ANY)
 GlobalVar.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
@@ -153,12 +153,14 @@ else:
     seconds_to_wait = int(parameters['seconds_to_wait'])
     #
     # Then I can follow the found optimal policy:
-    print("Setting power off")
+    print("------------------------------------------")
+    print("Follow policy")
+    print("\t\tREQUEST: Setting power off")
     operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
     sleep(seconds_to_wait)
-    state1, old_props_values = compute_next_state_from_props(idLamp, 5, [])
+    state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
+    print("\tSTARTING FROM STATE", states[state1])
 
-    print("Restarting... returning to state: off")
     t = 0
     final_policy = []
     final_reward = 0
@@ -166,36 +168,36 @@ else:
     while t < 20:
         max_action = np.argmax(Q[state1, :])
         final_policy.append(max_action)
-        print("Action to perform is", max_action)
+        print("\tACTION TO PERFORM", max_action)
 
-        json_string = ServeYeelight(idLamp=idLamp, method_chosen_index=max_action).run()
-        json_command = json.loads(json_string)
-        print("Json command is " + str(json_string))
+        json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=max_action).run()
+        print("\t\tREQUEST:", str(json_string))
         reward_from_response = operate_on_bulb_json(idLamp, json_string)
         sleep(seconds_to_wait)
 
         state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
 
-        print("From state", state1, "to state", state2)
+        print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
         reward_from_props = compute_reward_from_states(state1, state2)
 
         tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
+        print("\tTMP REWARD:", str(tmp_reward))
         final_reward += tmp_reward
 
-        if state2 == 4:
+        if state2 == 5:
             print("Done")
             break
         state1 = state2
         old_props_values = new_props_values
         t += 1
 
-    print("Length final policy is", len(final_policy))
-    print("Final policy is", final_policy)
+    print("\tLength final policy:", len(final_policy))
+    print("\tFinal policy:", final_policy)
     if len(final_policy) == len(optimal_policy) and np.array_equal(final_policy, optimal_policy):
-        print("Optimal policy found with reward: " + str(final_reward))
+        print("\tOptimal policy found with reward: " + str(final_reward))
     else:
-        print("Not optimal policy found with reward: " + str(final_reward))
+        print("\tNot optimal policy found with reward: " + str(final_reward))
 
 # goal achieved, tell detection thread to quit and wait
 RUNNING = False

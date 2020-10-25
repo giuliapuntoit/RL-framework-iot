@@ -6,8 +6,7 @@ y_reward = []
 y_cum_reward = []
 y_timesteps = []
 
-# date = '00_52_15_01_10_2020'  # Date must be in format %Y_%m_%d_%H_%M_%S
-date = '2020_10_21_19_33_34'  # Date must be in format %Y_%m_%d_%H_%M_%S
+date = '2020_10_25_16_28_25'  # Date must be in format %Y_%m_%d_%H_%M_%S
 
 directory = 'output_Q_parameters'
 file_parameters = 'output_parameters_' + date + '.csv'

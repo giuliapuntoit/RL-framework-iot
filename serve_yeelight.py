@@ -7,17 +7,17 @@ import json
 # randomizing method selected
 
 class ServeYeelight(object):
-    def __init__(self, idLamp=0, method_chosen_index=-1, select_all_props=False):
+    def __init__(self, id_lamp=0, method_chosen_index=-1, select_all_props=False):
         self.method_chosen_index = method_chosen_index
-        self.id = idLamp
+        self.id = id_lamp
         self.select_all_props = select_all_props
         # print("Using serve yeelight.")
 
     def run(self):
 
         if self.method_chosen_index == -1:
-            # length of methods is 35
-            self.method_chosen_index = random.randint(0, 35 - 1)
+            # length of methods is 37
+            self.method_chosen_index = random.randint(0, 37 - 1)
 
         method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
 
@@ -35,7 +35,7 @@ class ServeYeelight(object):
         if method_max_params == -1:
             n = random.randint(1, len(method_params_list) - 1)
             if self.select_all_props:
-                print("Selecting specific props")
+                # print("Selecting specific props")
                 sample_params_list = [('power', ""),  # values on off
                                       ('bright', 0),  # range 1 100
                                       ('rgb', 0), ]  # range 1 16777215
@@ -52,10 +52,7 @@ class ServeYeelight(object):
                     break
                 n = random.randint(0, 20)
                 if key == "power":
-                    if n % 2 == 0:
-                        value = "on"
-                    else:
-                        value = "off"
+                    pass
                 elif key == "effect":
                     if (2 * n + 1) % 2 == 0:
                         value = "smooth"
@@ -82,8 +79,10 @@ class ServeYeelight(object):
                 elif value == 0:
                     if key == "rgb_value":
                         value = random.randint(0, 16777215)
-                    if key == "brightness":
-                        value = random.randint(0, 100)
+                    elif key == "brightness":
+                        value = random.randint(1, 100)
+                    else:
+                        value = random.randint(0, 100)  # valori random, da capire a che servono TODO
                 else:
                     value = "Random string"
                 params.append(value)
@@ -104,7 +103,7 @@ class ServeYeelight(object):
         self.method_chosen_index = 0
         method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
 
-        print(str(method_selected))
+        # print(str(method_selected))
         method_params_list = method_selected["params_list"]
 
         params = []

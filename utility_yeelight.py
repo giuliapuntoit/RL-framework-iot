@@ -123,17 +123,17 @@ def handle_response(data):
     # print(json_received)
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            print("Result is", json_received['result'])
+            print("\t\t\tRESPONSE: result ->", json_received['result'])
             reward_from_response = 0
         elif 'error' in json_received and json_received['error'] is not None:
-            print("Error is", json_received['error'])
+            print("\t\t\tRESPONSE: error ->", json_received['error'])
             reward_from_response = -100
         else:
-            print("No result or error found in answer.")
+            print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
             reward_from_response = -1000  # non è colpa di nessuno?
             # TODO verificare quando arrivare qui e riprovare a simluare per tornare di nuovo al crash lampadina
     else:
-        print("Bad format response.")
+        print("\t\t\tRESPONSE: Bad format response")
         reward_from_response = -1000  # non è colpa di nessuno?
         # TODO verificare quando arrivare qui e riprovare a simluare per tornare di nuovo al crash lampadina
     return reward_from_response
@@ -146,31 +146,30 @@ def handle_response_no_reward(data):
     # print(json_received)
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            print("Result is", json_received['result'])
+            print("\t\t\tRESPONSE: result ->", json_received['result'])
         elif 'error' in json_received and json_received['error'] is not None:
-            print("Error is", json_received['error'])
+            print("\t\t\tRESPONSE: error ->", json_received['error'])
         else:
-            print("No result or error found in answer.")
+            print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
     else:
-        print("Bad format response.")
+        print("\t\t\tRESPONSE: Bad format response")
 
 
 def handle_response_props(data):
     # Print response
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-    print("Json received is ")
-    print(json_received)
+    # print("Json received is", + json_received)
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            print("Result is", json_received['result'])
+            print("\t\t\tRESPONSE: result ->", json_received['result'])
             return json_received['result']  # in teoria qua c'è la lista di valori di tutte le props richieste
         elif 'error' in json_received and json_received['error'] is not None:
-            print("Error is", json_received['error'])
+            print("\t\t\tRESPONSE: error ->", json_received['error'])
             return json_received['error']
         else:
-            print("No result or error found in answer.")
+            print("\t\t\tRESPONSE: No result or error found in answer")
     else:
-        print("Bad format response.")
+        print("\t\t\tRESPONSE: Bad format response")
     return []  # se c'è un errore nella risposta o se non c'è risposta torno un array vuoto
 
 
@@ -209,7 +208,8 @@ def operate_on_bulb(idx, method, params):
     port = GlobalVar.detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("connect ", bulb_ip, port, "...")
+        tcp_socket.settimeout(GlobalVar.timeout)
+        # print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
         msg = "{\"id\":" + str(GlobalVar.current_command_id) + ",\"method\":\""
         msg += method + "\",\"params\":[" + params + "]}\r\n"
@@ -218,12 +218,11 @@ def operate_on_bulb(idx, method, params):
         handle_response_no_reward(data)  # I do not want to compute reward when I manually turn off the lamp
         tcp_socket.close()
     except Exception as e:
-        print("Unexpected error:", e)
+        print("\t\t\tUnexpected error:", e)
 
 
 def operate_on_bulb_props(id_lamp, json_string):
-    print("Operate on bulb props")
-    print(json_string)
+    print("\t\tREQUEST FOR PROPS:", json_string)
     if id_lamp not in GlobalVar.bulb_idx2ip:
         print("error: invalid bulb idx")
         return []
@@ -232,7 +231,8 @@ def operate_on_bulb_props(id_lamp, json_string):
     port = GlobalVar.detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("connect ", bulb_ip, port, "...")
+        tcp_socket.settimeout(GlobalVar.timeout)
+        # print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
         msg = str(json_string) + "\r\n"
         tcp_socket.send(msg.encode())
@@ -241,7 +241,7 @@ def operate_on_bulb_props(id_lamp, json_string):
         tcp_socket.close()
         return props
     except Exception as e:
-        print("Unexpected error:", e)
+        print("\t\t\tUnexpected error:", e)
         return []
 
 
@@ -259,7 +259,8 @@ def operate_on_bulb_json(id_lamp, json_string):
     port = GlobalVar.detected_bulbs[bulb_ip][5]
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print("connect ", bulb_ip, port, "...")
+        tcp_socket.settimeout(GlobalVar.timeout)
+        # print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
         msg = str(json_string) + "\r\n"
         tcp_socket.send(msg.encode())
@@ -268,10 +269,11 @@ def operate_on_bulb_json(id_lamp, json_string):
         tcp_socket.close()
         return reward_from_response
     except Exception as e:
-        print("Unexpected error:", e)
+        print("\t\t\tUnexpected error:", e)
         return -1000
 
 
+# Useless method, could cancel TODO
 def compute_next_state(json_command, states, current_state):
     next_state = states.index("invalid")
     if json_command["method"] == "set_power" and json_command["params"] and json_command["params"][
@@ -301,16 +303,16 @@ def compute_next_state(json_command, states, current_state):
 
 
 def compute_next_state_from_props(id_lamp, current_state, old_props_values):
+    # 0 1 2 4 5
     next_state = current_state
-    json_command = ServeYeelight(idLamp=id_lamp, method_chosen_index=0, select_all_props=True).run()
-    props_names = ServeYeelight(idLamp=id_lamp).get_all_properties()
+    json_command = ServeYeelight(id_lamp=id_lamp, method_chosen_index=0, select_all_props=True).run()
+    # props_names = ServeYeelight(id_lamp=id_lamp).get_all_properties()
 
-    print("get_prop")
-    print(json_command)
+    # print("get_prop")
+    # print(json_command)
     props_values = operate_on_bulb_props(id_lamp, json_command)  # should contain an array of properties
 
     # dovrei capire se il nuovo stato ha modificato cosa, per ora solo per le prop che mi interessano
-    # ad esempio se rgb è cambiato, ecc
     # devo mantenere tutti i valori delle proprietà dello stato precedente
     # from response compare properties before and after command
     # for now check power rgb bright
@@ -318,40 +320,49 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     sleep(3)
 
     if not props_values:
-        print("Something went wrong from get_prop: keeping the current state")
+        print("\t\tSomething went wrong from get_prop: keeping the current state")
         return current_state, old_props_values
 
     power_index = 0
     if props_values[power_index] == 'off':  # prima colonna e' il power
-        if current_state == 3:
-            next_state = 4
-        else:
+        if current_state == 0 or current_state == 6:
             next_state = 0
+        else:
+            next_state = 5  # end state
     elif props_values[power_index] == 'on':
         if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
             next_state = 1
         else:
-            rgb_index = 2
             bright_index = 1
-            if props_values[rgb_index] != old_props_values[rgb_index] and current_state == 1:
+            rgb_index = 2
+            if current_state == 1 and props_values[bright_index] != old_props_values[bright_index] and props_values[rgb_index] != old_props_values[rgb_index]:
+                next_state = 4
+            elif current_state == 1 and props_values[rgb_index] != old_props_values[rgb_index]:
                 next_state = 2
-            elif props_values[bright_index] != old_props_values[bright_index] and props_values[
-                bright_index] != 0 and current_state == 2:
+            elif current_state == 3 and props_values[rgb_index] != old_props_values[rgb_index]:
+                next_state = 4
+            elif current_state == 1 and props_values[bright_index] != old_props_values[bright_index]:
                 next_state = 3
+            elif current_state == 2 and props_values[bright_index] != old_props_values[bright_index]:
+                next_state = 4
 
     return next_state, props_values
 
 
 def compute_reward_from_states(current_state, next_state):
-    # This assumes that the path goes from state 0 to state 4 (1 2 3 4)
+    # This assumes that the path goes 0 1 2 4 5
     reward_from_props = 0
     # Reward from passing through other states:
     if current_state == 0 and next_state == 1:
-        reward_from_props = 1
+        reward_from_props = 1  # per on
+    elif current_state == 1 and next_state == 3:
+        reward_from_props = 2  # per bright
     elif current_state == 1 and next_state == 2:
-        reward_from_props = 2
-    elif current_state == 2 and next_state == 3:
-        reward_from_props = 4
-    if current_state == 3 and next_state == 4:  # Just the last step
-        reward_from_props = 1000
+        reward_from_props = 3  # per rgb
+    elif current_state == 3 and next_state == 4:
+        reward_from_props = 4  # per rgb bright
+    elif current_state == 2 and next_state == 4:
+        reward_from_props = 5  # per rgb bright
+    elif current_state == 4 and next_state == 5:  # Just the last step
+        reward_from_props = 2000
     return reward_from_props
