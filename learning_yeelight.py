@@ -406,12 +406,13 @@ class ReinforcementLearningAlgorithm(object):
                 old_props_values = new_props_values
                 t += 1
 
-            print("\tLength final policy:", len(final_policy))
-            print("\tFinal policy:", final_policy)
+            print("\tRESULTS:")
+            print("\t\tLength final policy:", len(final_policy))
+            print("\t\tFinal policy:", final_policy)
             if len(final_policy) == len(optimal) and np.array_equal(final_policy, optimal):
-                print("\tOptimal policy was found with final reward of", final_reward)
+                print("\t\tOptimal policy was found with final reward of", final_reward)
             else:
-                print("\tNo optimal policy reached with final reward of", final_reward)
+                print("\t\tNo optimal policy reached with final reward of", final_reward)
 
 
 if __name__ == '__main__':
