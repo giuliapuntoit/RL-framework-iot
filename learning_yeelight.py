@@ -13,6 +13,9 @@ import os
 import struct
 from threading import Thread
 from time import sleep
+
+from plot_output_data import PlotOutputData
+from run_output_Q_parameters import RunOutputQParameters
 from serve_yeelight import ServeYeelight
 from utility_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, \
     compute_reward_from_states, compute_next_state_from_props, display_bulbs
@@ -32,7 +35,7 @@ tot_reward = 0
 
 class ReinforcementLearningAlgorithm(object):
 
-    def __init__(self, epsilon=0.4, total_episodes=10, max_steps=100, alpha=0.005, gamma=0.95, lam=0.9,
+    def __init__(self, epsilon=0.6, total_episodes=10, max_steps=100, alpha=0.005, gamma=0.95, lam=0.9,
                  show_graphs=False, follow_policy=True, use_old_matrix=False, date_old_matrix='YY_mm_dd_HH_MM_SS',
                  seconds_to_wait=4, num_actions_to_use=37, algorithm='sarsa'):
         self.total_episodes = total_episodes
@@ -100,7 +103,8 @@ class ReinforcementLearningAlgorithm(object):
     def run(self):
 
         # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
-        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end", "6_invalid"]  # 0 1 2 4 0 optimal path
+        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+                  "6_invalid"]  # 0 1 2 4 0 optimal path
 
         optimal = [5, 2, 4, 6]  # optimal policy
 
@@ -216,6 +220,7 @@ class ReinforcementLearningAlgorithm(object):
         for episode in range(self.total_episodes):
             print("----------------------------------------------------------------")
             print("Episode", episode)
+            sleep(60)  # wait a minute before starting the episode (It works???) TODO
             t = 0
             # Turn off the lamp
             print("\t\tREQUEST: Setting power off")
@@ -227,7 +232,7 @@ class ReinforcementLearningAlgorithm(object):
             done = False
             reward_per_episode = 0
             # exploration reduces every 50 episodes
-            if (episode + 1) % 50 == 0:  # configurable parameter
+            if (episode + 1) % 30 == 0:  # configurable parameter
                 self.epsilon = self.epsilon - 0.001 * self.epsilon  # could be another configurable parameter, decay of epsilon
 
             while t < self.max_steps:
@@ -317,7 +322,7 @@ class ReinforcementLearningAlgorithm(object):
             for index, stat in enumerate(states):
                 row = [stat]
                 for val in Q[index]:
-                    row.append("%.3f" % val)
+                    row.append("%.4f" % val)
                 output_Q_writer.writerow(row)
 
         # Only for sarsa(lambda)
@@ -334,85 +339,19 @@ class ReinforcementLearningAlgorithm(object):
                 for index, stat in enumerate(states):
                     row = [stat]
                     for val in E[index]:
-                        row.append("%.3f" % val)
+                        row.append("%.4f" % val)
                     output_E_writer.writerow(row)
 
         with open(log_filename, "a") as write_file:
-            write_file.write("\nTotal time  of %s seconds." % (time.time() - start_time))
+            write_file.write("\nTotal time of %s seconds." % (time.time() - start_time))
 
+        sleep(5)  # wait for writing to files
         if self.show_graphs:
-            plt.subplot(3, 1, 1)
-            plt.plot(x, y_reward, 'k--', label='rew')
-            plt.ylabel('Reward')
-            plt.title('Statistics per episode')
-            plt.legend(loc="center right")
-            plt.grid(True)
-
-            plt.subplot(3, 1, 2)
-            plt.plot(x, y_cum_reward, 'k--', label='cum_rew')
-            plt.ylabel('Cumulative reward')
-            plt.legend(loc="center right")
-            plt.grid(True)
-
-            plt.subplot(3, 1, 3)
-            plt.plot(x, y_timesteps, 'k--', label='timesteps', marker='o')
-            plt.xlabel('Episodes')
-            plt.ylabel('Timesteps')
-            plt.legend(loc="center right")
-            plt.grid(True)
-
-            plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.35, wspace=0.35)
-
-            plt.show()
+            PlotOutputData(date_to_retrieve=current_date.strftime('%Y_%m_%d_%H_%M_%S'), separate_plots=False).run()
 
         # Following the best policy found
         if self.follow_policy:
-            print("------------------------------------------")
-            print("Follow policy")
-            print("\t\tREQUEST: Setting power off")
-            operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
-            sleep(self.seconds_to_wait)
-            state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
-            print("\tSTARTING FROM STATE", states[state1])
-
-            t = 0
-            final_policy = []
-            final_reward = 0
-            while t < 20:
-                max_action = np.argmax(Q[state1, :])
-                final_policy.append(max_action)
-                if self.show_graphs:
-                    print("\tACTION TO PERFORM", max_action)
-
-                json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=max_action).run()
-                print("\t\tREQUEST:", str(json_string))
-                reward_from_response = operate_on_bulb_json(idLamp, json_string)
-                sleep(self.seconds_to_wait)
-
-                state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
-
-                print("\tFROM STATE", states[state1], "TO STATE", states[state2])
-
-                reward_from_states = compute_reward_from_states(state1, state2)
-
-                tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
-                print("\tTMP REWARD:", str(tmp_reward))
-                final_reward += tmp_reward
-
-                if state2 == 5:
-                    print("Done")
-                    break
-                state1 = state2
-                old_props_values = new_props_values
-                t += 1
-
-            print("\tRESULTS:")
-            print("\t\tLength final policy:", len(final_policy))
-            print("\t\tFinal policy:", final_policy)
-            if len(final_policy) == len(optimal) and np.array_equal(final_policy, optimal):
-                print("\t\tOptimal policy was found with final reward of", final_reward)
-            else:
-                print("\t\tNo optimal policy reached with final reward of", final_reward)
+            RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=current_date.strftime('%Y_%m_%d_%H_%M_%S')).run()
 
 
 if __name__ == '__main__':
@@ -460,13 +399,11 @@ if __name__ == '__main__':
         GlobalVar.RUNNING = False
 
         print("############# Starting RL algorithm #############")
-        ReinforcementLearningAlgorithm(max_steps=200, total_episodes=15,
+        ReinforcementLearningAlgorithm(max_steps=200, total_episodes=120,
                                        num_actions_to_use=37,
                                        seconds_to_wait=7,
                                        show_graphs=False,
                                        follow_policy=True,
-                                       use_old_matrix=True,
-                                       date_old_matrix='2020_10_25_22_28_49',
                                        algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
         print('sarsa end')
         # ReinforcementLearningAlgorithm(max_steps=200, total_episodes=30,
@@ -475,14 +412,16 @@ if __name__ == '__main__':
         #                                follow_policy=True,
         #                                algorithm='sarsa_lambda').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
         # print('sarsa_lambda end')
-        # ReinforcementLearningAlgorithm(max_steps=200, total_episodes=10,
-        #                                num_actions_to_use=37,
-        #                                show_graphs=False,
-        #                                use_old_matrix=True,
-        #                                date_old_matrix='2020_10_25_13_34_28',
-        #                                follow_policy=True,
-        #                                algorithm='qlearning').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-        # print('qlearning end')
+        sleep(300)
+        ReinforcementLearningAlgorithm(max_steps=200, total_episodes=120,
+                                       num_actions_to_use=37,
+                                       seconds_to_wait=7,
+                                       show_graphs=False,
+                                       # use_old_matrix=True,
+                                       # date_old_matrix='2020_10_25_22_28_49',
+                                       follow_policy=True,
+                                       algorithm='qlearning').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
+        print('qlearning end')
         print("############# Finish RL algorithm #############")
 
     # Goal achieved, tell detection thread to quit and wait

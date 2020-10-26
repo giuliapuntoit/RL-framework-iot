@@ -24,17 +24,19 @@ from serve_yeelight import ServeYeelight
 
 
 class RunOutputQParameters(object):
-    def __init__(self, date='YY_mm_dd_HH_MM_SS'):
-        if date != 'YY_mm_dd_HH_MM_SS':
-            self.date = date  # Date must be in format %Y_%m_%d_%H_%M_%S
+    def __init__(self, id_lamp=0, date_to_retrieve='YY_mm_dd_HH_MM_SS'):
+        self.id_lamp = id_lamp
+        if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
+            self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S
         else:
             print("Invalid date")
             exit(1)
 
     def run(self):
         directory = 'output_Q_parameters'
-        file_Q = 'output_Q_' + self.date + '.csv'
-        file_parameters = 'output_parameters_' + self.date + '.csv'
+        file_Q = 'output_Q_' + self.date_to_retrieve + '.csv'
+        file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
+        file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
         actions = []
         states = []
@@ -95,7 +97,7 @@ class RunOutputQParameters(object):
 
         if parameters['algorithm_used'] == 'sarsa_lambda':
 
-            file_E = 'output_E_' + self.date + '.csv'
+            file_E = 'output_E_' + self.date_to_retrieve + '.csv'
 
             E = []
 
@@ -125,9 +127,9 @@ class RunOutputQParameters(object):
         print("------------------------------------------")
         print("Follow policy")
         print("\t\tREQUEST: Setting power off")
-        operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
+        operate_on_bulb(self.id_lamp, "set_power", str("\"off\", \"sudden\", 0"))
         sleep(seconds_to_wait)
-        state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
+        state1, old_props_values = compute_next_state_from_props(self.id_lamp, 0, [])
         print("\tSTARTING FROM STATE", states[state1])
 
         t = 0
@@ -139,12 +141,12 @@ class RunOutputQParameters(object):
             final_policy.append(max_action)
             print("\tACTION TO PERFORM", max_action)
 
-            json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=max_action).run()
+            json_string = ServeYeelight(id_lamp=self.id_lamp, method_chosen_index=max_action).run()
             print("\t\tREQUEST:", str(json_string))
-            reward_from_response = operate_on_bulb_json(idLamp, json_string)
+            reward_from_response = operate_on_bulb_json(self.id_lamp, json_string)
             sleep(seconds_to_wait)
 
-            state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
+            state2, new_props_values = compute_next_state_from_props(self.id_lamp, state1, old_props_values)
 
             print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
@@ -155,7 +157,7 @@ class RunOutputQParameters(object):
             final_reward += tmp_reward
 
             if state2 == 5:
-                print("Done")
+                print("DONE AT TIMESTEP", t)
                 break
             state1 = state2
             old_props_values = new_props_values
@@ -210,7 +212,7 @@ if __name__ == '__main__':
 
         GlobalVar.RUNNING = False
 
-        RunOutputQParameters(date="2020_10_25_22_28_49").run()
+        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_25_22_28_49").run()
 
     # goal achieved, tell detection thread to quit and wait
     RUNNING = False

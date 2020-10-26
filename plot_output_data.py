@@ -3,9 +3,9 @@ import csv
 
 
 class PlotOutputData(object):
-    def __init__(self, date='YY_mm_dd_HH_MM_SS', separate_plots=False):
-        if date != 'YY_mm_dd_HH_MM_SS':
-            self.date = date  # Date must be in format %Y_%m_%d_%H_%M_%S
+    def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', separate_plots=False):
+        if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
+            self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S
         else:
             print("Invalid date")
             exit(1)
@@ -18,7 +18,7 @@ class PlotOutputData(object):
         y_timesteps = []
 
         directory = 'output_Q_parameters'
-        file_parameters = 'output_parameters_' + self.date + '.csv'
+        file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
         with open(directory + '/' + file_parameters, 'r') as csv_file:
             reader = csv.reader(csv_file, delimiter=',')
@@ -28,7 +28,7 @@ class PlotOutputData(object):
         print("RL algorithm used:", algorithm)
 
         directory = 'output_csv'
-        filename = 'output_' + algorithm + '_' + self.date + '.csv'
+        filename = 'output_' + algorithm + '_' + self.date_to_retrieve + '.csv'
 
         with open(directory + '/' + filename, 'r') as csv_file:
             reader = csv.reader(csv_file, delimiter=',')
@@ -95,7 +95,7 @@ class PlotOutputData(object):
 
 
 if __name__ == '__main__':
-    PlotOutputData(date='2020_10_25_16_28_25', separate_plots=False).run()
+    PlotOutputData(date_to_retrieve='2020_10_25_16_28_25', separate_plots=False).run()
 
 
 # TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsa_lambda, 3 qlearning)
