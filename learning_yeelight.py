@@ -35,14 +35,28 @@ tot_reward = 0
 
 class ReinforcementLearningAlgorithm(object):
 
-    def __init__(self, epsilon=0.6, total_episodes=10, max_steps=100, alpha=0.005, gamma=0.95, lam=0.9,
-                 show_graphs=False, follow_policy=True, use_old_matrix=False, date_old_matrix='YY_mm_dd_HH_MM_SS',
-                 seconds_to_wait=4, num_actions_to_use=37, algorithm='sarsa'):
+    def __init__(self, epsilon=0.6,
+                 total_episodes=10,
+                 max_steps=100,
+                 alpha=0.005,
+                 gamma=0.95,
+                 lam=0.9,
+                 decay_episode=30,
+                 decay_value=0.001,
+                 show_graphs=False,
+                 follow_policy=True,
+                 use_old_matrix=False,
+                 date_old_matrix='YY_mm_dd_HH_MM_SS',
+                 seconds_to_wait=4,
+                 num_actions_to_use=37,
+                 algorithm='sarsa'):
         self.total_episodes = total_episodes
         self.max_steps = max_steps
         self.epsilon = epsilon
         self.alpha = alpha
         self.gamma = gamma
+        self.decay_episode = decay_episode
+        self.decay_value = decay_value
         self.show_graphs = show_graphs
         self.follow_policy = follow_policy
         self.seconds_to_wait = seconds_to_wait
@@ -232,8 +246,8 @@ class ReinforcementLearningAlgorithm(object):
             done = False
             reward_per_episode = 0
             # exploration reduces every 50 episodes
-            if (episode + 1) % 30 == 0:  # configurable parameter
-                self.epsilon = self.epsilon - 0.001 * self.epsilon  # could be another configurable parameter, decay of epsilon
+            if (episode + 1) % self.decay_episode == 0:  # configurable parameter
+                self.epsilon = self.epsilon - self.decay_value * self.epsilon  # could be another configurable parameter, decay of epsilon
 
             while t < self.max_steps:
                 # Getting the next state
