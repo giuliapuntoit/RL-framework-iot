@@ -24,8 +24,9 @@ from serve_yeelight import ServeYeelight
 
 
 class RunOutputQParameters(object):
-    def __init__(self, id_lamp=0, date_to_retrieve='YY_mm_dd_HH_MM_SS'):
+    def __init__(self, id_lamp=0, date_to_retrieve='YY_mm_dd_HH_MM_SS', show_retrieved_info=True):
         self.id_lamp = id_lamp
+        self.show_retrieved_info = show_retrieved_info
         if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
             self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S
         else:
@@ -35,7 +36,6 @@ class RunOutputQParameters(object):
     def run(self):
         directory = 'output_Q_parameters'
         file_Q = 'output_Q_' + self.date_to_retrieve + '.csv'
-        file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
         file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
         actions = []
@@ -65,10 +65,12 @@ class RunOutputQParameters(object):
             print("Wrong file format:", e)
             exit(1)
 
-        print(states)
-        print(actions)
-        print("Q matrix")
-        print(Q)
+        np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
+        if self.show_retrieved_info:
+            print("STATES:\n\t", states)
+            print("ACTIONS:\n\t", actions)
+            print("Q MATRIX:")
+            print(Q)
 
         # TODO:
         # del tipo, runnare lo script con certi valori e verificare che il risultato sia quello scritto nei test
@@ -84,16 +86,13 @@ class RunOutputQParameters(object):
             reader = csv.reader(csv_file, delimiter=',')
             parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
 
-        print(parameters)  # For now the are all strings
-        # I think the optimal policy that I chose should be inserted into parameters,
-        # otherwise I do not know how to compare results
-        # I should check values using tests not prints!!!
+        if self.show_retrieved_info:
+            print("USED PARAMETERS:\n\t", parameters)  # For now the are all strings
+            # I should check values using tests not prints!!!
 
         if parameters['num_actions_to_use'] is not None and len(actions) != int(parameters['num_actions_to_use']):
             print("Different number of actions used")
             exit(3)
-
-        print("RL algorithm used:", parameters['algorithm_used'])
 
         if parameters['algorithm_used'] == 'sarsa_lambda':
 
@@ -113,19 +112,24 @@ class RunOutputQParameters(object):
                 print("Wrong file format:", e)
                 exit(5)
 
-            print("E matrix")
-            print(E)
+            if self.show_retrieved_info:
+                print("E MATRIX:")
+                print(E)
 
         optimal_policy = parameters['optimal_policy'].split('-')  # Split policy string and save it into a list
-
-        print("Optimal policy:", optimal_policy)
-        # I should check values using tests not prints!!!
-
-        #### FOLLOW POLICY ####
         seconds_to_wait = int(parameters['seconds_to_wait'])
+
+        if self.show_retrieved_info:
+            print("RL ALGORITHM:\n\t", parameters['algorithm_used'])
+            print("POSSIBLE OPTIMAL POLICY:\n\t", optimal_policy)
+            # I should check values using tests not prints!!!
+            # TODO I should save the states in order to know which path I followed
+
+        # ### FOLLOW POLICY ###
         # Then I can follow the found optimal policy:
-        print("------------------------------------------")
-        print("Follow policy")
+        if self.show_retrieved_info:
+            print("------------------------------------------")
+            print("FOLLOW POLICY")
         print("\t\tREQUEST: Setting power off")
         operate_on_bulb(self.id_lamp, "set_power", str("\"off\", \"sudden\", 0"))
         sleep(seconds_to_wait)
@@ -166,10 +170,12 @@ class RunOutputQParameters(object):
         print("\tRESULTS:")
         print("\t\tLength final policy:", len(final_policy))
         print("\t\tFinal policy:", final_policy)
-        if len(final_policy) == len(optimal_policy) and np.array_equal(final_policy, optimal_policy):
-            print("\t\tOptimal policy found with reward: " + str(final_reward))
+        if len(final_policy) <= len(optimal_policy) and final_reward >= 1900:
+            print("\t\tOptimal policy found with reward:", final_reward)
+            return True
         else:
-            print("\t\tNot optimal policy found with reward: " + str(final_reward))
+            print("\t\tNot optimal policy found with reward:", final_reward)
+            return False
 
         # First, connecting to the device, initialization, something like this:
 
@@ -212,7 +218,7 @@ if __name__ == '__main__':
 
         GlobalVar.RUNNING = False
 
-        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_25_22_28_49").run()
+        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_26_18_55_47").run()
 
     # goal achieved, tell detection thread to quit and wait
     RUNNING = False

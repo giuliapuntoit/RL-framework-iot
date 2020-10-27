@@ -81,10 +81,12 @@ class ServeYeelight(object):
                         value = random.randint(0, 16777215)
                     elif key == "brightness":
                         value = random.randint(1, 100)
+                    elif key == "percentage":
+                        value = random.randint(-100, 100)
                     else:
                         value = random.randint(0, 100)  # valori random, da capire a che servono TODO
                 else:
-                    value = "Random string"
+                    value = "RandomString"
                 params.append(value)
                 cnt += 1
 
