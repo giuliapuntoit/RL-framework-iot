@@ -49,7 +49,7 @@ class ReinforcementLearningAlgorithm(object):
                  date_old_matrix='YY_mm_dd_HH_MM_SS',
                  seconds_to_wait=4,
                  follow_partial_policy=False,
-                 follow_policy_every_tot_episodes=2,
+                 follow_policy_every_tot_episodes=5,
                  num_actions_to_use=37,
                  algorithm='sarsa'):
         self.total_episodes = total_episodes
@@ -149,6 +149,9 @@ class ReinforcementLearningAlgorithm(object):
         output_filename = current_date.strftime(
             output_dir + '/' + 'output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
+        partial_output_filename = current_date.strftime(
+            output_dir + '/' + 'partial_output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+
         # Write parameters in output_parameters_filename
         with open(output_parameters_filename, mode='w') as output_file:
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
@@ -237,6 +240,12 @@ class ReinforcementLearningAlgorithm(object):
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             output_writer.writerow(['Episodes', 'Reward', 'CumReward', 'Timesteps'])
 
+        if self.follow_partial_policy:
+            with open(partial_output_filename, mode='w') as partial_output_file:
+                output_writer = csv.writer(partial_output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                output_writer.writerow(
+                    ['CurrentEpisode', 'Timesteps', 'ObtainedReward', 'Time', 'PolicySelected', 'StatesPassed'])
+
         # Starting the SARSA learning
         for episode in range(self.total_episodes):
             print("----------------------------------------------------------------")
@@ -263,7 +272,6 @@ class ReinforcementLearningAlgorithm(object):
 
                 # print("\t\tDoing an action")
                 json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
-                json_command = json.loads(json_string)
                 print("\t\tREQUEST:", str(json_string))
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 sleep(self.seconds_to_wait)
@@ -334,21 +342,34 @@ class ReinforcementLearningAlgorithm(object):
                 if episode % self.follow_policy_every_tot_episodes == 0:  # ogni 2 episodi salva in Q e segue la policy (if <= len(optimal policy) end of learning)
                     print("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
                     print("\tFOLLOW PARTIAL POLICY AT EPISODE", episode)
+                    sleep(10)
                     header = ['Q']  # for correct output structure
                     for i in range(0, self.num_actions_to_use):
                         json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=i).run()
                         header.append(json.loads(json_string)['method'])
 
                     with open(output_Q_filename, "w") as output_Q_file:
-                        output_Q_writer = csv.writer(output_Q_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
+                        output_Q_writer = csv.writer(output_Q_file, delimiter=',', quotechar='"',
+                                                     quoting=csv.QUOTE_NONE)
                         output_Q_writer.writerow(header)
                         for index, stat in enumerate(states):
                             row = [stat]
                             for val in Q[index]:
                                 row.append("%.4f" % val)
                             output_Q_writer.writerow(row)
+                    found_policy, dict_results = RunOutputQParameters(id_lamp=idLamp,
+                                                                      date_to_retrieve=current_date.strftime(
+                                                                          '%Y_%m_%d_%H_%M_%S'),
+                                                                      show_retrieved_info=False).run()
+                    with open(partial_output_filename, mode="a") as partial_output_file:
+                        output_writer = csv.writer(partial_output_file, delimiter=',', quotechar='"',
+                                                   quoting=csv.QUOTE_MINIMAL)
+                        output_writer.writerow(
+                            [episode, dict_results['timesteps_from_run'], dict_results['reward_from_run'],
+                             dict_results['time_from_run'], dict_results['policy_from_run'],
+                             dict_results['states_from_run']])  # Episode or episode+1?
 
-                    if RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=current_date.strftime('%Y_%m_%d_%H_%M_%S'), show_retrieved_info=False).run():
+                    if found_policy:
                         # I could stop here if found good policy, could continue if you think you could find a better one
                         pass
 
@@ -441,23 +462,38 @@ if __name__ == '__main__':
         # Stop bulb detection loop
         GlobalVar.RUNNING = False
 
-        # TODO select values for each parameter (arrays)
-        #  and then loop over those values with only 20 episodes
-        #  and check at the end if it's able to follow the policy
-        #  or performing how many steps over the total (always sarsa?)
+        print("\n############# Starting RL algorithm grid search #############")
+        # Check if after 20 episodes it's able to follow the policy
+        # Collecting data for future graphs
+        for eps in [0.3, 0.6, 0.9]:
+            for alp in [0.005, 0.05, 0.5]:
+                for gam in [0.45, 0.75, 0.95]:
+                    ReinforcementLearningAlgorithm(max_steps=200, total_episodes=20,
+                                                   num_actions_to_use=37,
+                                                   seconds_to_wait=7,
+                                                   epsilon=eps,
+                                                   alpha=alp,
+                                                   gamma=gam,
+                                                   show_graphs=False,
+                                                   follow_policy=True,
+                                                   follow_partial_policy=True,
+                                                   follow_policy_every_tot_episodes=2,
+                                                   algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
 
-        print("\n############# Starting RL algorithm #############")
-        ReinforcementLearningAlgorithm(max_steps=10, total_episodes=10,
-                                       num_actions_to_use=37,
-                                       seconds_to_wait=7,
-                                       show_graphs=False,
-                                       use_old_matrix=True,
-                                       date_old_matrix='2020_10_26_01_51_42',
-                                       follow_policy=True,
-                                       follow_partial_policy=True,
-                                       follow_policy_every_tot_episodes=2,
-                                       algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-        print('sarsa end')
+        # Then max steps and seconds to wait manually, with best configured parameters
+
+        # print("\n############# Starting RL algorithm #############")
+        # ReinforcementLearningAlgorithm(max_steps=10, total_episodes=5,
+        #                                num_actions_to_use=37,
+        #                                seconds_to_wait=7,
+        #                                show_graphs=False,
+        #                                follow_policy=True,
+        #                                follow_partial_policy=True,
+        #                                follow_policy_every_tot_episodes=2,
+        #                                use_old_matrix=True,
+        #                                date_old_matrix='2020_10_26_01_51_42',
+        #                                algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
+        # print('sarsa end')
         # sleep(300)
         # ReinforcementLearningAlgorithm(max_steps=200, total_episodes=20,
         #                                num_actions_to_use=37,

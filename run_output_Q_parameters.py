@@ -4,6 +4,7 @@ import struct
 
 import numpy as np
 import csv
+import time
 from threading import Thread
 from time import sleep
 import socket
@@ -125,6 +126,8 @@ class RunOutputQParameters(object):
             # I should check values using tests not prints!!!
             # TODO I should save the states in order to know which path I followed
 
+        # time start
+        start_time = time.time()
         # ### FOLLOW POLICY ###
         # Then I can follow the found optimal policy:
         if self.show_retrieved_info:
@@ -139,8 +142,10 @@ class RunOutputQParameters(object):
         t = 0
         final_policy = []
         final_reward = 0
+        final_states = []
 
         while t < 20:
+            final_states.append(states[state1])
             max_action = np.argmax(Q[state1, :])
             final_policy.append(max_action)
             print("\tACTION TO PERFORM", max_action)
@@ -161,21 +166,32 @@ class RunOutputQParameters(object):
             final_reward += tmp_reward
 
             if state2 == 5:
+                final_states.append(states[state2])
                 print("DONE AT TIMESTEP", t)
                 break
             state1 = state2
             old_props_values = new_props_values
             t += 1
 
+        # time finish
+        final_time = time.time() - start_time
+
+        dict_results = {'timesteps_from_run': t + 1,
+                        'reward_from_run': final_reward,
+                        'time_from_run': final_time,
+                        'policy_from_run': final_policy,
+                        'states_from_run': final_states, }
+
         print("\tRESULTS:")
+        print("\t\tTotal time:", final_time)
         print("\t\tLength final policy:", len(final_policy))
         print("\t\tFinal policy:", final_policy)
         if len(final_policy) <= len(optimal_policy) and final_reward >= 1900:
             print("\t\tOptimal policy found with reward:", final_reward)
-            return True
+            return True, dict_results
         else:
             print("\t\tNot optimal policy found with reward:", final_reward)
-            return False
+            return False, dict_results
 
         # First, connecting to the device, initialization, something like this:
 
