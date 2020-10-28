@@ -339,7 +339,7 @@ class ReinforcementLearningAlgorithm(object):
             print("\tREWARD OF THE EPISODE:", reward_per_episode)
 
             if self.follow_partial_policy:
-                if episode % self.follow_policy_every_tot_episodes == 0:  # ogni 2 episodi salva in Q e segue la policy (if <= len(optimal policy) end of learning)
+                if (episode + 1) % self.follow_policy_every_tot_episodes == 0:  # ogni 2 episodi salva in Q e segue la policy (if <= len(optimal policy) end of learning)
                     print("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
                     print("\tFOLLOW PARTIAL POLICY AT EPISODE", episode)
                     sleep(10)
@@ -371,6 +371,8 @@ class ReinforcementLearningAlgorithm(object):
 
                     if found_policy:
                         # I could stop here if found good policy, could continue if you think you could find a better one
+                        # Questo nel nostro caso essendo l'esecuzione molto lenta appena apprendo non ho bisogno di andare avanti
+                        # In una situazione reale probabilmente non lo posso fare perché non so quale sia la policy ottimale
                         pass
 
         # Print and save the Q-matrix inside output_Q_data.csv file
@@ -475,12 +477,13 @@ if __name__ == '__main__':
                                                    alpha=alp,
                                                    gamma=gam,
                                                    show_graphs=False,
-                                                   follow_policy=True,
+                                                   follow_policy=False,
                                                    follow_partial_policy=True,
                                                    follow_policy_every_tot_episodes=2,
                                                    algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
+                    sleep(300)
 
-        # Then max steps and seconds to wait manually, with best configured parameters
+        # Then max steps and seconds to wait manually, with best configured parameters (should be 27 runs)
 
         # print("\n############# Starting RL algorithm #############")
         # ReinforcementLearningAlgorithm(max_steps=10, total_episodes=5,
@@ -521,7 +524,3 @@ if __name__ == '__main__':
 # TODO i test potrebbero testare che i parametri, stati, azioni ecc passati in input siano poi quelli scritti in output, \
 #  che ci sia un certo file, che il nome del file corrisponde alla data giusta, al nome dell'algo ecc
 # TODO Usa gli enum sia per gli state che per le actions!!! Le actions le puoi retrievare a run time, così poi le salvo come stringhe
-# Potrei fare dei controlli che se la matrice rispecchia quella ottimale,
-# con le massime azioni giuste, fermo l'apprendimento
-# Questo nel nostro caso essendo l'esecuzione molto lenta appena apprendo non ho bisogno di andare avanti
-# In una situazione reale probabilmente non lo posso fare perché non so quale sia la policy ottimale
