@@ -95,7 +95,7 @@ class PlotOutputData(object):
 
 
 if __name__ == '__main__':
-    PlotOutputData(date_to_retrieve='2020_10_25_16_28_25', separate_plots=False).run()
+    PlotOutputData(date_to_retrieve='2020_10_26_18_55_47', separate_plots=False).run()
 
 
 # TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsa_lambda, 3 qlearning)

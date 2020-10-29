@@ -1,3 +1,5 @@
+import string
+
 from dict_yeelight import DictYeelight
 import random
 import pprint
@@ -38,7 +40,12 @@ class ServeYeelight(object):
                 # print("Selecting specific props")
                 sample_params_list = [('power', ""),  # values on off
                                       ('bright', 0),  # range 1 100
-                                      ('rgb', 0), ]  # range 1 16777215
+                                      ('rgb', 0),     # range 1 16777215
+                                      ('ct', 0),      # range 1700 6500 (k)
+                                      ('name', ""),  # values set in set_name command
+                                      ('hue', 0),  # range 0 359
+                                      ('sat', 0),  # range 0 100
+                                      ]
             else:
                 sample_params_list = random.sample(method_params_list, n)
             # print(sample_params_list)
@@ -83,10 +90,12 @@ class ServeYeelight(object):
                         value = random.randint(1, 100)
                     elif key == "percentage":
                         value = random.randint(-100, 100)
+                    elif key == "ct_value":
+                        value = random.randint(1700,6500)
                     else:
                         value = random.randint(0, 100)  # valori random, da capire a che servono TODO
                 else:
-                    value = "RandomString"
+                    value = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))
                 params.append(value)
                 cnt += 1
 

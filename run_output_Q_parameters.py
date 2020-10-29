@@ -118,7 +118,7 @@ class RunOutputQParameters(object):
                 print(E)
 
         optimal_policy = parameters['optimal_policy'].split('-')  # Split policy string and save it into a list
-        seconds_to_wait = int(parameters['seconds_to_wait'])
+        seconds_to_wait = float(parameters['seconds_to_wait'])
 
         if self.show_retrieved_info:
             print("RL ALGORITHM:\n\t", parameters['algorithm_used'])

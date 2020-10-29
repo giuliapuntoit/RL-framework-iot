@@ -2,6 +2,7 @@
 import json
 import random
 import socket
+import string
 import sys
 import time
 import fcntl
@@ -273,35 +274,66 @@ else:
 
     # Chiami dict_yeelight (probabilmente il comando specifico verra' preso in base ad una matrice)
     # Il dict torna un json tramite serve_yeelight
+    json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=0, select_all_props=True).run()
+    operate_on_bulb_json(idLamp, json_command)  # should contain an array of properties
+    sleep(2)
+
+    json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=0, select_all_props=True).run()
+    operate_on_bulb_json(idLamp, json_command)  # should contain an array of properties
+
+    sleep(4)
 
     # Choose method
     print("Doing a random method")
-    json_command = ServeYeelight(idLamp=idLamp, method_chosen_index=0, select_all_props=False).run()
+    json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=1, select_all_props=False).run()
     print(json_command)
     print("Operating on bulb...")
     operate_on_bulb_json(idLamp, json_command)
 
     # Provo a crashare la lampadina eseguendo il compando operate_on_bulb_json con json_command in loop? Potrei provare
 
+    sleep(3)
+
+    json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=17, select_all_props=False).run()
+    print(json_command)
+    operate_on_bulb_json(idLamp, json_command)
+
+    sleep(3)
+
+    json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=0, select_all_props=True).run()
+    operate_on_bulb_json(idLamp, json_command)  # should contain an array of properties
+
+    sleep(3)
+
+
+    # changing color
+    operate_on_bulb(idLamp, "set_rgb", str(str(120120) + ", \"sudden\", 500"))
+
+    sleep(2)
+
+    json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=0, select_all_props=True).run()
+    operate_on_bulb_json(idLamp, json_command)  # should contain an array of properties
+
     sleep(2)
 
     # Set brightness
-    print("Changing brightness")
-    brightness = random.randint(1, 100)
-    operate_on_bulb(idLamp, "set_bright", str(brightness))
-
+    # print("Changing brightness")
+    # brightness = random.randint(1, 100)
+    # operate_on_bulb(idLamp, "set_bright", str(brightness))
+    #
     sleep(2)
 
     # Set rgb
     print("Changing color rgb")
-    rgb = random.randint(1, 16777215)
-    operate_on_bulb(idLamp, "set_rgb", str(str(rgb) + ", \"smooth\", 500"))
+    # rgb = random.randint(1, 16777215)
+    rgb = 255
+    operate_on_bulb(idLamp, "set_rgb", str(str(rgb) + ", \"sudden\", 500"))
+    #
+    sleep(2)
+    json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=0, select_all_props=True).run()
+    operate_on_bulb_json(idLamp, json_command)  # should contain an array of properties
 
     sleep(2)
-
-    # Toggle
-    print("Toggling lamp")
-    operate_on_bulb(idLamp, "toggle", "")
 
     sleep(2)
 

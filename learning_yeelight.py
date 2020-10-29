@@ -467,21 +467,26 @@ if __name__ == '__main__':
         print("\n############# Starting RL algorithm grid search #############")
         # Check if after 20 episodes it's able to follow the policy
         # Collecting data for future graphs
-        for eps in [0.3, 0.6, 0.9]:
-            for alp in [0.005, 0.05, 0.5]:
-                for gam in [0.45, 0.75, 0.95]:
-                    ReinforcementLearningAlgorithm(max_steps=200, total_episodes=20,
-                                                   num_actions_to_use=37,
-                                                   seconds_to_wait=7,
-                                                   epsilon=eps,
-                                                   alpha=alp,
-                                                   gamma=gam,
-                                                   show_graphs=False,
-                                                   follow_policy=False,
-                                                   follow_partial_policy=True,
-                                                   follow_policy_every_tot_episodes=2,
-                                                   algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-                    sleep(300)
+        # for eps in [0.3, 0.6, 0.9]:
+        #     for alp in [0.005, 0.05, 0.5]:
+        #         for gam in [0.45, 0.75, 0.95]:
+        eps = 0.6
+        alp = 0.005
+        gam = 0.95
+        max_st = 100
+        for secs in [0.01, 0.1, 2]:
+            ReinforcementLearningAlgorithm(max_steps=max_st, total_episodes=20,
+                                           num_actions_to_use=37,
+                                           seconds_to_wait=secs,
+                                           epsilon=eps,
+                                           alpha=alp,
+                                           gamma=gam,
+                                           show_graphs=False,
+                                           follow_policy=False,
+                                           follow_partial_policy=True,
+                                           follow_policy_every_tot_episodes=2,
+                                           algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
+            sleep(100)
 
         # Then max steps and seconds to wait manually, with best configured parameters (should be 27 runs)
 

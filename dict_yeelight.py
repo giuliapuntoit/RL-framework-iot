@@ -20,7 +20,7 @@ class DictYeelight(object):
     def run(self):
         properties = [('power', ""),  # values on off
                       ('bright', 0),  # range 1 100
-                      ('ct', 0),  # range 1700 6500 (k?)
+                      ('ct', 0),  # range 1700 6500 (k)
                       ('rgb', 0),  # range 1 16777215
                       ('hue', 0),  # range 0 359
                       ('sat', 0),  # range 0 100
