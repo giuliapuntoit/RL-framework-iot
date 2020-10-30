@@ -47,7 +47,7 @@ class ReinforcementLearningAlgorithm(object):
                  follow_policy=True,
                  use_old_matrix=False,
                  date_old_matrix='YY_mm_dd_HH_MM_SS',
-                 seconds_to_wait=4,
+                 seconds_to_wait=4.0,
                  follow_partial_policy=False,
                  follow_policy_every_tot_episodes=5,
                  num_actions_to_use=37,
@@ -121,11 +121,31 @@ class ReinforcementLearningAlgorithm(object):
     def run(self):
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
+        # PATH 1
         # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
-        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
-                  "6_invalid"]  # 0 1 2 4 0 optimal path
+        # states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+        #           "6_invalid"]  # 0 1 2 4 0 optimal path
+        #
+        # optimal = [5, 2, 4, 6]  # optimal policy
 
-        optimal = [5, 2, 4, 6]  # optimal policy
+        # PATH 2
+        # states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+        #           "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright"
+        #           ]  # 0 1 8 10 5 optimal path
+        #
+        # optimal = [5, 17, 4, 6]  # optimal policy
+
+        # PATH 3
+        # start from 0_off_start and from color set to 255 (blue), to check lamp visually
+        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+                  "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright",
+                  "12_ct", "13_ct_bright", "14_rgb_ct", "15_rgb_bright_ct", "16_off_middle", "17_on_middle",
+                  "18_ct_middle",
+                  "19_rgb_middle", "20_bright_middle", "21_ct_rgb_middle", "22_ct_bright_middle",
+                  "23_rgb_bright_middle", "24_ct_rgb_bright_middle",
+                  ]  # 0 1 12 13 16 17 18 5 optimal path
+
+        optimal = [5, 1, 4, 6, 5, 1, 6]  # optimal policy
 
         current_date = datetime.now()
 
@@ -253,6 +273,13 @@ class ReinforcementLearningAlgorithm(object):
             sleep(60)
             t = 0
             # Turn off the lamp
+
+            # ONLY FOR PATH 3
+            operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 0"))
+            sleep(self.seconds_to_wait)
+            operate_on_bulb(idLamp, "set_rgb", str("255" + ", \"sudden\", 500"))
+            sleep(self.seconds_to_wait)
+
             print("\t\tREQUEST: Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             sleep(self.seconds_to_wait)
@@ -266,6 +293,8 @@ class ReinforcementLearningAlgorithm(object):
                 self.epsilon = self.epsilon - self.decay_value * self.epsilon  # could be another configurable parameter, decay of epsilon
 
             while t < self.max_steps:
+                if t > 55:  # to avoid crashing lamp
+                    sleep(60)
                 # Getting the next state
                 if self.algorithm == 'qlearning':
                     action1 = self.choose_action(state1, Q)
@@ -339,7 +368,8 @@ class ReinforcementLearningAlgorithm(object):
             print("\tREWARD OF THE EPISODE:", reward_per_episode)
 
             if self.follow_partial_policy:
-                if (episode + 1) % self.follow_policy_every_tot_episodes == 0:  # ogni 2 episodi salva in Q e segue la policy (if <= len(optimal policy) end of learning)
+                if (
+                        episode + 1) % self.follow_policy_every_tot_episodes == 0:  # ogni 2 episodi salva in Q e segue la policy (if <= len(optimal policy) end of learning)
                     print("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
                     print("\tFOLLOW PARTIAL POLICY AT EPISODE", episode)
                     sleep(10)
@@ -464,29 +494,23 @@ if __name__ == '__main__':
         # Stop bulb detection loop
         GlobalVar.RUNNING = False
 
-        print("\n############# Starting RL algorithm grid search #############")
+        print("\n############# Starting RL algorithm path2 #############")
         # Check if after 20 episodes it's able to follow the policy
         # Collecting data for future graphs
         # for eps in [0.3, 0.6, 0.9]:
         #     for alp in [0.005, 0.05, 0.5]:
         #         for gam in [0.45, 0.75, 0.95]:
-        eps = 0.6
-        alp = 0.005
-        gam = 0.95
-        max_st = 100
-        for secs in [0.01, 0.1, 2]:
-            ReinforcementLearningAlgorithm(max_steps=max_st, total_episodes=20,
-                                           num_actions_to_use=37,
-                                           seconds_to_wait=secs,
-                                           epsilon=eps,
-                                           alpha=alp,
-                                           gamma=gam,
-                                           show_graphs=False,
-                                           follow_policy=False,
-                                           follow_partial_policy=True,
-                                           follow_policy_every_tot_episodes=2,
-                                           algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-            sleep(100)
+        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=120,
+                                       num_actions_to_use=37,
+                                       seconds_to_wait=0.1,
+                                       epsilon=0.6,
+                                       alpha=0.005,
+                                       gamma=0.95,
+                                       show_graphs=False,
+                                       follow_policy=True,
+                                       follow_partial_policy=True,
+                                       follow_policy_every_tot_episodes=50,
+                                       algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
 
         # Then max steps and seconds to wait manually, with best configured parameters (should be 27 runs)
 

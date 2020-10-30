@@ -234,7 +234,7 @@ if __name__ == '__main__':
 
         GlobalVar.RUNNING = False
 
-        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_26_18_55_47").run()
+        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_30_02_10_16").run()
 
     # goal achieved, tell detection thread to quit and wait
     RUNNING = False
