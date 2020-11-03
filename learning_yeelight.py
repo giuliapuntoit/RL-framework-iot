@@ -41,7 +41,7 @@ class ReinforcementLearningAlgorithm(object):
                  alpha=0.005,
                  gamma=0.95,
                  lam=0.9,
-                 decay_episode=30,
+                 decay_episode=20,
                  decay_value=0.001,
                  show_graphs=False,
                  follow_policy=True,
@@ -66,8 +66,8 @@ class ReinforcementLearningAlgorithm(object):
         self.follow_policy_every_tot_episodes = follow_policy_every_tot_episodes
         self.num_actions_to_use = num_actions_to_use
         self.algorithm = algorithm
-        # lambda is needed only in case of sarsa(lambda) algorithm
-        if self.algorithm == 'sarsa_lambda':
+        # lambda is needed only in case of sarsa(lambda) or Q(lambda) algorithms
+        if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             self.lam = lam
         if date_old_matrix != 'YY_mm_dd_HH_MM_SS':
             self.use_old_matrix = use_old_matrix  # in sarsa lambda also E is needed
@@ -110,6 +110,25 @@ class ReinforcementLearningAlgorithm(object):
                 Qmatrix[s, a] = Qmatrix[s, a] + self.alpha * delta * Ematrix[s, a]
                 Ematrix[s, a] = self.gamma * self.lam * Ematrix[s, a]
 
+    # Qlearning(lambda) (Watkins's Q(lambda) algorithm)
+    # Function to update the Q-value matrix and the Eligibility matrix
+    def update_qlearning_lambda(self, state, state2, reward, action, action2, len_states, len_actions, Qmatrix,
+                                Ematrix):
+        predict = Qmatrix[state, action]
+        maxQ = np.amax(Qmatrix[state2, :])  # find maximum value for the new state Q(s', a*)
+        maxIndex = np.argmax(Qmatrix[state2, :])  # find index of the maximum value a*
+        target = reward + self.gamma * maxQ
+        delta = target - predict
+        Ematrix[state, action] = Ematrix[state, action] + 1
+        # for all s, a
+        for s in range(len_states):
+            for a in range(len_actions):
+                Qmatrix[s, a] = Qmatrix[s, a] + self.alpha * delta * Ematrix[s, a]
+                if action2 == maxIndex:
+                    Ematrix[s, a] = self.gamma * self.lam * Ematrix[s, a]
+                else:
+                    Ematrix[s, a] = 0
+
     # Q-learning
     # Function to learn the Q-value
     def update_qlearning(self, state, state2, reward, action, Qmatrix):
@@ -121,31 +140,36 @@ class ReinforcementLearningAlgorithm(object):
     def run(self):
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
-        # PATH 1
-        # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
-        # states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
-        #           "6_invalid"]  # 0 1 2 4 0 optimal path
-        #
-        # optimal = [5, 2, 4, 6]  # optimal policy
+        states = []
+        optimal = []
+        if GlobalVar.path == 1:
+            # PATH 1
+            # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
+            states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+                      "6_invalid"]  # 0 1 2 4 0 optimal path
 
-        # PATH 2
-        # states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
-        #           "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright"
-        #           ]  # 0 1 8 10 5 optimal path
-        #
-        # optimal = [5, 17, 4, 6]  # optimal policy
+            optimal = [5, 2, 4, 6]  # optimal policy
 
-        # PATH 3
-        # start from 0_off_start and from color set to 255 (blue), to check lamp visually
-        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
-                  "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright",
-                  "12_ct", "13_ct_bright", "14_rgb_ct", "15_rgb_bright_ct", "16_off_middle", "17_on_middle",
-                  "18_ct_middle",
-                  "19_rgb_middle", "20_bright_middle", "21_ct_rgb_middle", "22_ct_bright_middle",
-                  "23_rgb_bright_middle", "24_ct_rgb_bright_middle",
-                  ]  # 0 1 12 13 16 17 18 5 optimal path
+        elif GlobalVar.path == 2:
+            # PATH 2
+            states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+                      "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright"
+                      ]  # 0 1 8 10 5 optimal path
 
-        optimal = [5, 1, 4, 6, 5, 1, 6]  # optimal policy
+            optimal = [5, 17, 4, 6]  # optimal policy
+
+        elif GlobalVar.path == 3:
+            # PATH 3
+            # start from 0_off_start and from color set to 255 (blue), to check lamp visually
+            states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+                      "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright",
+                      "12_ct", "13_ct_bright", "14_rgb_ct", "15_rgb_bright_ct", "16_off_middle", "17_on_middle",
+                      "18_ct_middle",
+                      "19_rgb_middle", "20_bright_middle", "21_ct_rgb_middle", "22_ct_bright_middle",
+                      "23_rgb_bright_middle", "24_ct_rgb_bright_middle",
+                      ]  # 0 1 12 13 16 17 18 5 optimal path
+
+            optimal = [5, 1, 4, 6, 5, 1, 6]  # optimal policy
 
         current_date = datetime.now()
 
@@ -160,7 +184,7 @@ class ReinforcementLearningAlgorithm(object):
         output_parameters_filename = current_date.strftime(
             output_Q_params_dir + '/' + 'output_parameters_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
         output_E_filename = ''
-        if self.algorithm == 'sarsa_lambda':
+        if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             output_E_filename = current_date.strftime(
                 output_Q_params_dir + '/' + 'output_E_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
@@ -187,7 +211,7 @@ class ReinforcementLearningAlgorithm(object):
             output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
             output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal)])
 
-            if self.algorithm == 'sarsa_lambda':
+            if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                 output_writer.writerow(['lambda', self.lam])
 
         # SARSA algorithm SINCE algorithm is sarsa
@@ -223,7 +247,7 @@ class ReinforcementLearningAlgorithm(object):
         # check the format of the matrix is correct
 
         E = []
-        if self.algorithm == 'sarsa_lambda':
+        if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             E = np.zeros((len(states), self.num_actions_to_use))  # trace for state action pairs
 
             if self.use_old_matrix:
@@ -266,22 +290,27 @@ class ReinforcementLearningAlgorithm(object):
                 output_writer.writerow(
                     ['CurrentEpisode', 'Timesteps', 'ObtainedReward', 'Time', 'PolicySelected', 'StatesPassed'])
 
+        count_actions = 0
         # Starting the SARSA learning
         for episode in range(self.total_episodes):
             print("----------------------------------------------------------------")
             print("Episode", episode)
-            sleep(60)
+            sleep(3)
             t = 0
             # Turn off the lamp
 
-            # ONLY FOR PATH 3
-            operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 0"))
-            sleep(self.seconds_to_wait)
-            operate_on_bulb(idLamp, "set_rgb", str("255" + ", \"sudden\", 500"))
-            sleep(self.seconds_to_wait)
+            if GlobalVar.path == 3:
+                # ONLY FOR PATH 3
+                operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 0"))
+                count_actions += 1
+                sleep(self.seconds_to_wait)
+                operate_on_bulb(idLamp, "set_rgb", str("255" + ", \"sudden\", 500"))
+                count_actions += 1
+                sleep(self.seconds_to_wait)
 
             print("\t\tREQUEST: Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
+            count_actions += 1
             sleep(self.seconds_to_wait)
             state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
             print("\tSTARTING FROM STATE", states[state1])
@@ -290,11 +319,15 @@ class ReinforcementLearningAlgorithm(object):
             reward_per_episode = 0
             # exploration reduces every 50 episodes
             if (episode + 1) % self.decay_episode == 0:  # configurable parameter
-                self.epsilon = self.epsilon - self.decay_value * self.epsilon  # could be another configurable parameter, decay of epsilon
+                self.epsilon = self.epsilon - self.decay_value  # * self.epsilon  # could be another configurable parameter, decay of epsilon
+                if self.epsilon < 0.3:
+                    self.epsilon = 0.3
+                    self.decay_value = 0
 
             while t < self.max_steps:
-                if t > 55:  # to avoid crashing lamp
+                if count_actions > 55:  # to avoid crashing lamp
                     sleep(60)
+                    count_actions = 0
                 # Getting the next state
                 if self.algorithm == 'qlearning':
                     action1 = self.choose_action(state1, Q)
@@ -303,6 +336,7 @@ class ReinforcementLearningAlgorithm(object):
                 json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
                 print("\t\tREQUEST:", str(json_string))
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
+                count_actions += 1
                 sleep(self.seconds_to_wait)
 
                 state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
@@ -310,6 +344,7 @@ class ReinforcementLearningAlgorithm(object):
 
                 reward_from_states = compute_reward_from_states(state1, state2)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
+                print("[DEBUG] TMP REWARD:", tmp_reward)
 
                 if state2 == 5:
                     done = True
@@ -321,6 +356,14 @@ class ReinforcementLearningAlgorithm(object):
                     # Learning the Q-value
                     self.update_sarsa_lambda(state1, state2, tmp_reward, action1, action2, len(states),
                                              self.num_actions_to_use, Q, E)
+
+                elif self.algorithm == 'qlearning_lambda':
+                    # Choosing the next action
+                    action2 = self.choose_action(state2, Q)
+
+                    # Learning the Q-value
+                    self.update_qlearning_lambda(state1, state2, tmp_reward, action1, action2, len(states),
+                                                 self.num_actions_to_use, Q, E)
 
                 elif self.algorithm == 'qlearning':
                     action2 = -1  # Invalid action to avoid warnings
@@ -368,11 +411,14 @@ class ReinforcementLearningAlgorithm(object):
             print("\tREWARD OF THE EPISODE:", reward_per_episode)
 
             if self.follow_partial_policy:
-                if (
-                        episode + 1) % self.follow_policy_every_tot_episodes == 0:  # ogni 2 episodi salva in Q e segue la policy (if <= len(optimal policy) end of learning)
+                if (episode + 1) % self.follow_policy_every_tot_episodes == 0:
+                    # ogni 2 episodi salva in Q e segue la policy (if <= len(optimal policy) end of learning)
                     print("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
                     print("\tFOLLOW PARTIAL POLICY AT EPISODE", episode)
-                    sleep(10)
+                    if count_actions > 35:  # to avoid crashing lamp
+                        sleep(60)
+                        count_actions = 0
+                    # Save Q-matrix
                     header = ['Q']  # for correct output structure
                     for i in range(0, self.num_actions_to_use):
                         json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=i).run()
@@ -387,10 +433,27 @@ class ReinforcementLearningAlgorithm(object):
                             for val in Q[index]:
                                 row.append("%.4f" % val)
                             output_Q_writer.writerow(row)
+
+                    # Save E-matrix
+                    # Only for sarsa(lambda) and Q(lambda)
+                    if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
+                        # Use same header as before with the first cell different
+                        header[0] = 'E'  # for correct output structure
+
+                        with open(output_E_filename, "w") as output_E_file:
+                            output_E_writer = csv.writer(output_E_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
+                            output_E_writer.writerow(header)
+                            for index, stat in enumerate(states):
+                                row = [stat]
+                                for val in E[index]:
+                                    row.append("%.4f" % val)
+                                output_E_writer.writerow(row)
+
                     found_policy, dict_results = RunOutputQParameters(id_lamp=idLamp,
                                                                       date_to_retrieve=current_date.strftime(
                                                                           '%Y_%m_%d_%H_%M_%S'),
                                                                       show_retrieved_info=False).run()
+                    count_actions += 20
                     with open(partial_output_filename, mode="a") as partial_output_file:
                         output_writer = csv.writer(partial_output_file, delimiter=',', quotechar='"',
                                                    quoting=csv.QUOTE_MINIMAL)
@@ -421,8 +484,8 @@ class ReinforcementLearningAlgorithm(object):
                     row.append("%.4f" % val)
                 output_Q_writer.writerow(row)
 
-        # Only for sarsa(lambda)
-        if self.algorithm == 'sarsa_lambda':
+        # Only for sarsa(lambda) and Q(lambda)
+        if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             # Print and save the E-matrix inside output_E_data.csv file
             print("E matrix")
             print(E)
@@ -494,54 +557,27 @@ if __name__ == '__main__':
         # Stop bulb detection loop
         GlobalVar.RUNNING = False
 
-        print("\n############# Starting RL algorithm path2 #############")
+        print("\n############# Starting RL algorithm path", GlobalVar.path, "#############")
         # Check if after 20 episodes it's able to follow the policy
         # Collecting data for future graphs
         # for eps in [0.3, 0.6, 0.9]:
         #     for alp in [0.005, 0.05, 0.5]:
         #         for gam in [0.45, 0.75, 0.95]:
-        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=120,
+        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
                                        num_actions_to_use=37,
                                        seconds_to_wait=0.1,
                                        epsilon=0.6,
-                                       alpha=0.005,
+                                       alpha=0.05,
                                        gamma=0.95,
-                                       show_graphs=False,
+                                       use_old_matrix=True,
+                                       date_old_matrix='2020_11_03_00_20_12',
+                                       decay_value=0.1,
+                                       show_graphs=True,
                                        follow_policy=True,
-                                       follow_partial_policy=True,
-                                       follow_policy_every_tot_episodes=50,
-                                       algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
+                                       follow_partial_policy=False,
+                                       follow_policy_every_tot_episodes=30,
+                                       algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
 
-        # Then max steps and seconds to wait manually, with best configured parameters (should be 27 runs)
-
-        # print("\n############# Starting RL algorithm #############")
-        # ReinforcementLearningAlgorithm(max_steps=10, total_episodes=5,
-        #                                num_actions_to_use=37,
-        #                                seconds_to_wait=7,
-        #                                show_graphs=False,
-        #                                follow_policy=True,
-        #                                follow_partial_policy=True,
-        #                                follow_policy_every_tot_episodes=2,
-        #                                use_old_matrix=True,
-        #                                date_old_matrix='2020_10_26_01_51_42',
-        #                                algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-        # print('sarsa end')
-        # sleep(300)
-        # ReinforcementLearningAlgorithm(max_steps=200, total_episodes=20,
-        #                                num_actions_to_use=37,
-        #                                seconds_to_wait=7,
-        #                                show_graphs=False,
-        #                                follow_policy=True,
-        #                                algorithm='sarsa_lambda').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-        # print('sarsa_lambda end')
-        # sleep(300)
-        # ReinforcementLearningAlgorithm(max_steps=200, total_episodes=20,
-        #                                num_actions_to_use=37,
-        #                                seconds_to_wait=7,
-        #                                show_graphs=False,
-        #                                follow_policy=True,
-        #                                algorithm='qlearning').run()  # 'sarsa' 'sarsa_lambda' 'qlearning'
-        # print('qlearning end')
         print("############# Finish RL algorithm #############")
 
     # Goal achieved, tell detection thread to quit and wait

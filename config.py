@@ -7,3 +7,5 @@ class GlobalVar(object):
     listen_socket = None
     scan_socket = None
     timeout = 5
+    reward = 0
+    path = 2

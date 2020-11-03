@@ -127,14 +127,14 @@ def handle_response(data):
             reward_from_response = 0
         elif 'error' in json_received and json_received['error'] is not None:
             print("\t\t\tRESPONSE: error ->", json_received['error'])
-            reward_from_response = -100
+            reward_from_response = -10
         else:
             print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
-            reward_from_response = -1000  # non è colpa di nessuno?
+            reward_from_response = -20  # non è colpa di nessuno?
             # TODO verificare quando arrivare qui e riprovare a simluare per tornare di nuovo al crash lampadina
     else:
         print("\t\t\tRESPONSE: Bad format response")
-        reward_from_response = -1000  # non è colpa di nessuno?
+        reward_from_response = -20  # non è colpa di nessuno?
         # TODO verificare quando arrivare qui e riprovare a simluare per tornare di nuovo al crash lampadina
     return reward_from_response
 
@@ -270,7 +270,7 @@ def operate_on_bulb_json(id_lamp, json_string):
         return reward_from_response
     except Exception as e:
         print("\t\t\tUnexpected error:", e)
-        return -1000
+        return -10
 
 
 # Useless method, could cancel TODO
@@ -317,7 +317,7 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
         print("\t\tSomething went wrong from get_prop: keeping the current state")
         return current_state, old_props_values
 
-    sleep(1)
+    sleep(0.5)
 
     power_index = 0
     bright_index = 1
@@ -327,125 +327,131 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     hue_index = 5
     sat_index = 6
 
-    # PATH 1
-    # 0 1 2 4 5
-    # if props_values[power_index] == 'off':  # prima colonna e' il power
-    #     if current_state == 0 or current_state == 6:
-    #         next_state = 0
-    #     else:
-    #         next_state = 5  # end state
-    # elif props_values[power_index] == 'on':
-    #     if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
-    #         next_state = 1
-    #     else:
-    #         if current_state == 1 and props_values[bright_index] != old_props_values[bright_index] and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 4
-    #         elif current_state == 1 and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 2
-    #         elif current_state == 3 and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 4
-    #         elif current_state == 1 and props_values[bright_index] != old_props_values[bright_index]:
-    #             next_state = 3
-    #         elif current_state == 2 and props_values[bright_index] != old_props_values[bright_index]:
-    #             next_state = 4
-    # PATH 2
-    # 0 1 8 10 5
-    # if props_values[power_index] == 'off':  # prima colonna e' il power
-    #     if old_props_values and props_values[name_index] != old_props_values[name_index] and current_state == 0:
-    #         next_state = 7
-    #     elif current_state == 0 or current_state == 6:
-    #         next_state = 0
-    #     else:
-    #         next_state = 5  # end state
-    # elif props_values[power_index] == 'on':
-    #     name_modified = (props_values[name_index] != old_props_values[name_index])
-    #     if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
-    #         next_state = 1
-    #     elif current_state == 7:  # name already modified
-    #         next_state = 8
-    #     elif current_state == 1 and name_modified:
-    #         next_state = 8
-    #     else:
-    #         if current_state == 1 and props_values[bright_index] != old_props_values[bright_index] and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 4
-    #         elif current_state == 1 and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 2
-    #         elif current_state == 1 and props_values[bright_index] != old_props_values[bright_index]:
-    #             next_state = 3
-    #         # case when name modified already
-    #         if current_state == 8 and props_values[bright_index] != old_props_values[bright_index] and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 11
-    #         elif current_state == 8 and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 9
-    #         elif current_state == 8 and props_values[bright_index] != old_props_values[bright_index]:
-    #             next_state = 10
-    #         elif current_state == 3 and name_modified:
-    #             next_state = 10
-    #         elif current_state == 3 and props_values[rgb_index] != old_props_values[rgb_index]:
-    #             next_state = 4
-    #         elif current_state == 2 and name_modified:
-    #             next_state = 9
-    #         elif current_state == 2 and props_values[bright_index] != old_props_values[bright_index]:
-    #             next_state = 4
-    #         elif current_state == 4 and name_modified:
-    #             next_state = 11
+    if GlobalVar.path == 1:
+        # PATH 1
+        # 0 1 2 4 5
+        if props_values[power_index] == 'off':  # prima colonna e' il power
+            if current_state == 0 or current_state == 6:
+                next_state = 0
+            else:
+                next_state = 5  # end state
+        elif props_values[power_index] == 'on':
+            if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
+                next_state = 1
+            else:
+                if old_props_values:
+                    if current_state == 1 and props_values[bright_index] != old_props_values[bright_index] and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 4
+                    elif current_state == 1 and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 2
+                    elif current_state == 3 and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 4
+                    elif current_state == 1 and props_values[bright_index] != old_props_values[bright_index]:
+                        next_state = 3
+                    elif current_state == 2 and props_values[bright_index] != old_props_values[bright_index]:
+                        next_state = 4
+    elif GlobalVar.path == 2:
+        # PATH 2
+        # 0 1 8 10 5
+        if props_values[power_index] == 'off':  # prima colonna e' il power
+            if old_props_values and props_values[name_index] != old_props_values[name_index] and current_state == 0:
+                next_state = 7
+            elif current_state == 0 or current_state == 6:
+                next_state = 0
+            else:
+                next_state = 5  # end state
+        elif props_values[power_index] == 'on':
+            name_modified = (old_props_values and props_values[name_index] != old_props_values[name_index])
+            if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
+                next_state = 1
+            elif current_state == 7:  # name already modified
+                next_state = 8
+            elif current_state == 1 and name_modified:
+                next_state = 8
+            else:
+                if old_props_values:
+                    if current_state == 1 and props_values[bright_index] != old_props_values[bright_index] and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 4
+                    elif current_state == 1 and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 2
+                    elif current_state == 1 and props_values[bright_index] != old_props_values[bright_index]:
+                        next_state = 3
+                    # case when name modified already
+                    if current_state == 8 and props_values[bright_index] != old_props_values[bright_index] and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 11
+                    elif current_state == 8 and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 9
+                    elif current_state == 8 and props_values[bright_index] != old_props_values[bright_index]:
+                        next_state = 10
+                    elif current_state == 3 and name_modified:
+                        next_state = 10
+                    elif current_state == 3 and props_values[rgb_index] != old_props_values[rgb_index]:
+                        next_state = 4
+                    elif current_state == 2 and name_modified:
+                        next_state = 9
+                    elif current_state == 2 and props_values[bright_index] != old_props_values[bright_index]:
+                        next_state = 4
+                    elif current_state == 4 and name_modified:
+                        next_state = 11
 
-    # PATH 3
-    # 0 1 12 13 16 17 18 5
-    if props_values[power_index] == 'off':  # prima colonna e' il power
-        if current_state == 0 or current_state == 6:
-            next_state = 0
-        elif current_state in [1, 2, 3, 4, 12, 13, 14, 15]:
-            next_state = 16
-        else:
-            next_state = 5  # end state
-    elif props_values[power_index] == 'on':
-        bright_modified = (props_values[bright_index] != old_props_values[bright_index])
-        rgb_modified = (props_values[rgb_index] != old_props_values[rgb_index])
-        ct_modified = (props_values[ct_index] != old_props_values[ct_index])
-        if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
-            next_state = 1
-        elif current_state == 16:
-            next_state = 17
-        else:
-            if current_state == 1 and bright_modified and rgb_modified and ct_modified:
-                next_state = 15
-            elif current_state == 1 and bright_modified and rgb_modified:
-                next_state = 4
-            elif current_state == 1 and rgb_modified and ct_modified:
-                next_state = 14
-            elif current_state == 1 and bright_modified and ct_modified:
-                next_state = 13
-            elif current_state == 1 and rgb_modified:
-                next_state = 2
-            elif current_state == 1 and bright_modified:
-                next_state = 3
-            elif current_state == 1 and ct_modified:
-                next_state = 12
-            elif current_state == 3 and rgb_modified and ct_modified:
-                next_state = 15
-            elif current_state == 3 and rgb_modified:
-                next_state = 4
-            elif current_state == 3 and ct_modified:
-                next_state = 13
-            elif current_state == 2 and bright_modified and ct_modified:
-                next_state = 15
-            elif current_state == 2 and bright_modified:
-                next_state = 4
-            elif current_state == 2 and ct_modified:
-                next_state = 14
-            elif current_state == 12 and rgb_modified and bright_modified:
-                next_state = 15
-            elif current_state == 12 and rgb_modified:
-                next_state = 14
-            elif current_state == 12 and bright_modified:
-                next_state = 13
-            elif current_state == 13 and rgb_modified:
-                next_state = 15
-            elif current_state == 17 and (rgb_modified or bright_modified):
-                next_state = 19
-            elif current_state == 17 and ct_modified:
-                next_state = 18
+    elif GlobalVar.path == 3:
+        # PATH 3
+        # 0 1 12 13 16 17 18 5
+        if props_values[power_index] == 'off':  # prima colonna e' il power
+            if current_state == 0 or current_state == 6:
+                next_state = 0
+            elif current_state in [1, 2, 3, 4, 12, 13, 14, 15, 16]:
+                next_state = 16
+            else:
+                next_state = 5  # end state
+        elif props_values[power_index] == 'on':
+            if old_props_values:
+                bright_modified = (props_values[bright_index] != old_props_values[bright_index])
+                rgb_modified = (props_values[rgb_index] != old_props_values[rgb_index])
+                ct_modified = (props_values[ct_index] != old_props_values[ct_index])
+                if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
+                    next_state = 1
+                elif current_state == 16:
+                    next_state = 17
+                else:
+                    if current_state == 1 and bright_modified and rgb_modified and ct_modified:
+                        next_state = 15
+                    elif current_state == 1 and bright_modified and rgb_modified:
+                        next_state = 4
+                    elif current_state == 1 and rgb_modified and ct_modified:
+                        next_state = 14
+                    elif current_state == 1 and bright_modified and ct_modified:
+                        next_state = 13
+                    elif current_state == 1 and rgb_modified:
+                        next_state = 2
+                    elif current_state == 1 and bright_modified:
+                        next_state = 3
+                    elif current_state == 1 and ct_modified:
+                        next_state = 12
+                    elif current_state == 3 and rgb_modified and ct_modified:
+                        next_state = 15
+                    elif current_state == 3 and rgb_modified:
+                        next_state = 4
+                    elif current_state == 3 and ct_modified:
+                        next_state = 13
+                    elif current_state == 2 and bright_modified and ct_modified:
+                        next_state = 15
+                    elif current_state == 2 and bright_modified:
+                        next_state = 4
+                    elif current_state == 2 and ct_modified:
+                        next_state = 14
+                    elif current_state == 12 and rgb_modified and bright_modified:
+                        next_state = 15
+                    elif current_state == 12 and rgb_modified:
+                        next_state = 14
+                    elif current_state == 12 and bright_modified:
+                        next_state = 13
+                    elif current_state == 13 and rgb_modified:
+                        next_state = 15
+                    elif current_state == 17 and (rgb_modified or bright_modified):
+                        next_state = 19
+                    elif current_state == 17 and ct_modified:
+                        next_state = 18
 
     return next_state, props_values
 
@@ -454,52 +460,79 @@ def compute_reward_from_states(current_state, next_state):
     # This assumes that the path goes 0 1 2 4 5
     reward_from_props = 0
 
-    # PATH 1
-    # Reward from passing through other states:
-    # if current_state == 0 and next_state == 1:
-    #     reward_from_props = 1  # per on
-    # elif current_state == 1 and next_state == 3:
-    #     reward_from_props = 2  # per bright
-    # elif current_state == 1 and next_state == 2:
-    #     reward_from_props = 3  # per rgb
-    # elif current_state == 3 and next_state == 4:
-    #     reward_from_props = 4  # per rgb bright
-    # elif current_state == 2 and next_state == 4:
-    #     reward_from_props = 5  # per rgb bright
-    # elif current_state == 4 and next_state == 5:  # Just the last step
-    #     reward_from_props = 2000
+    if GlobalVar.path == 1:
+        # PATH 1
+        # Reward from passing through other states:
+        if current_state == 0 and next_state == 1:
+            reward_from_props = 1  # per on
+        elif current_state == 1 and next_state == 3:
+            reward_from_props = 2  # per bright
+        elif current_state == 1 and next_state == 2:
+            reward_from_props = 3  # per rgb
+        elif current_state == 3 and next_state == 4:
+            reward_from_props = 4  # per rgb bright
+        elif current_state == 2 and next_state == 4:
+            reward_from_props = 5  # per rgb bright
+        elif current_state == 4 and next_state == 5:  # Just the last step
+            reward_from_props = 200
+            GlobalVar.reward += reward_from_props
+            tmp = GlobalVar.reward
+            GlobalVar.reward = 0
+            return tmp
+        GlobalVar.reward += reward_from_props
+        return 0
 
-    # PATH 2
-    # if current_state == 0 and next_state == 1:
-    #     reward_from_props = 1
-    # elif current_state == 0 and next_state == 7:
-    #     reward_from_props = 2
-    # elif current_state == 7 and next_state == 8:
-    #     reward_from_props = 2
-    # elif current_state == 1 and next_state == 8:
-    #     reward_from_props = 10
-    # elif current_state == 8 and next_state == 10:
-    #     reward_from_props = 10
-    # elif current_state == 11 and next_state == 5:
-    #     reward_from_props = 15
-    # elif current_state == 10 and next_state == 5:
-    #     reward_from_props = 2000
+    elif GlobalVar.path == 2:
+        # PATH 2
+        if current_state == 0 and next_state == 1:
+            reward_from_props = 2
+        elif current_state == 0 and next_state == 7:
+            reward_from_props = 1
+        elif current_state == 7 and next_state == 8:
+            reward_from_props = 2
+        elif current_state == 1 and next_state == 8:
+            reward_from_props = 10
+        elif current_state == 8 and next_state == 10:
+            reward_from_props = 10
+        elif current_state == 11 and next_state == 5:
+            reward_from_props = 15
+            GlobalVar.reward += reward_from_props
+            tmp = GlobalVar.reward
+            GlobalVar.reward = 0
+            return tmp
+        elif current_state == 10 and next_state == 5:
+            reward_from_props = 200
+            GlobalVar.reward += reward_from_props
+            tmp = GlobalVar.reward
+            GlobalVar.reward = 0
+            return tmp
+        GlobalVar.reward += reward_from_props
+        return 0
 
-    # PATH 3
-    if current_state == 0 and next_state == 1:
-        reward_from_props = 1
-    elif current_state == 1 and next_state == 3:
-        reward_from_props = 2
-    elif current_state == 1 and next_state == 12:
-        reward_from_props = 3
-    elif current_state == 3 and next_state == 13:
-        reward_from_props = 10
-    elif current_state == 12 and next_state == 13:
-        reward_from_props = 15
-    elif current_state == 16 and next_state == 17:
-        reward_from_props = 2
-    elif current_state == 17 and next_state == 18:
-        reward_from_props = 3
-    elif current_state == 18 and next_state == 5:
-        reward_from_props = 2500
+    elif GlobalVar.path == 3:
+        # PATH 3
+        if current_state == 0 and next_state == 1:
+            reward_from_props = 1
+        elif current_state == 1 and next_state == 3:
+            reward_from_props = 2
+        elif current_state == 1 and next_state == 12:
+            reward_from_props = 10
+        elif current_state == 3 and next_state == 13:
+            reward_from_props = 2
+        elif current_state == 12 and next_state == 13:
+            reward_from_props = 5
+        elif current_state == 13 and next_state == 16:
+            reward_from_props = 20
+        elif current_state == 16 and next_state == 17:
+            reward_from_props = 2
+        elif current_state == 17 and next_state == 18:
+            reward_from_props = 10
+        elif current_state == 18 and next_state == 5:
+            reward_from_props = 200
+            GlobalVar.reward += reward_from_props
+            tmp = GlobalVar.reward
+            GlobalVar.reward = 0
+            return tmp
+        GlobalVar.reward += reward_from_props
+        return 0
     return reward_from_props

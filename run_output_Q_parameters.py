@@ -95,7 +95,7 @@ class RunOutputQParameters(object):
             print("Different number of actions used")
             exit(3)
 
-        if parameters['algorithm_used'] == 'sarsa_lambda':
+        if parameters['algorithm_used'] == 'sarsa_lambda' or parameters['algorithm_used'] == 'qlearning_lambda':
 
             file_E = 'output_E_' + self.date_to_retrieve + '.csv'
 
@@ -186,7 +186,7 @@ class RunOutputQParameters(object):
         print("\t\tTotal time:", final_time)
         print("\t\tLength final policy:", len(final_policy))
         print("\t\tFinal policy:", final_policy)
-        if len(final_policy) <= len(optimal_policy) and final_reward >= 1900:
+        if len(final_policy) <= len(optimal_policy) and final_reward >= 190:
             print("\t\tOptimal policy found with reward:", final_reward)
             return True, dict_results
         else:

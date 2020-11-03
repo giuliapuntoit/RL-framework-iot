@@ -221,4 +221,4 @@ if __name__ == '__main__':
     PlotOutputData(date_to_retrieve='2020_10_28_14_49_55', algos=algos, paths=paths, params=params,
                    separate_plots=False).run()
 
-# TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsa_lambda, 3 qlearning)
+# TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda)
