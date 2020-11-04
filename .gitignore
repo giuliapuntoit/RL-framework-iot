@@ -4,9 +4,8 @@
 __pycache__/
 venv/
 .venv
-log/
-output_csv/
-output_Q_parameters/
+output/
+plot/
 *.json
 *.png
 

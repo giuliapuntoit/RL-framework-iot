@@ -1,6 +1,6 @@
 import string
 
-from dict_yeelight import DictYeelight
+from dictionary.dict_yeelight import DictYeelight
 import random
 import pprint
 import json
@@ -105,8 +105,8 @@ class ServeYeelight(object):
                    }
 
         # Check json command inside file
-        with open("data_file.json", "w") as write_file:
-            json.dump(command, write_file)
+        # with open("data_file.json", "w") as write_file:
+        #     json.dump(command, write_file)
 
         return json.dumps(command)
 

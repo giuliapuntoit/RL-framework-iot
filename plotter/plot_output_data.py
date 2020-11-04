@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import csv
 
+from config import GlobalVar
+
 
 class PlotOutputData(object):
     def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', separate_plots=False):
@@ -17,7 +19,7 @@ class PlotOutputData(object):
         y_cum_reward = []
         y_timesteps = []
 
-        directory = 'output_Q_parameters'
+        directory = GlobalVar.directory + 'output/output_Q_parameters'
         file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
         with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -25,9 +27,10 @@ class PlotOutputData(object):
             parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
 
         algorithm = parameters['algorithm_used']
-        print("RL algorithm used:", algorithm)
+        print("RL ALGORITHM:", algorithm)
+        print("PLOTTING GRAPHS...")
 
-        directory = 'output_csv'
+        directory = GlobalVar.directory + 'output/output_csv'
         filename = 'output_' + algorithm + '_' + self.date_to_retrieve + '.csv'
 
         with open(directory + '/' + filename, 'r') as csv_file:
@@ -39,7 +42,6 @@ class PlotOutputData(object):
                 y_cum_reward.append(int(row[2]))
                 y_timesteps.append(int(row[3]))
 
-        print("PLOTTING GRAPHS...")
         if self.separate_plots:
             plt.plot(x, y_reward, 'k', label='rew')
             plt.xlabel('Episodes')
@@ -97,4 +99,4 @@ class PlotOutputData(object):
 if __name__ == '__main__':
     PlotOutputData(date_to_retrieve='2020_10_30_02_10_16', separate_plots=False).run()
 
-# TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda)
+# 1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda

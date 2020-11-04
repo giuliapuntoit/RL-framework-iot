@@ -5,6 +5,8 @@ import tkinter
 import numpy as np
 import fastplot
 
+from config import GlobalVar
+
 
 class PlotOutputData(object):
     def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', algos=[], paths=[], params=[], separate_plots=False):
@@ -26,7 +28,7 @@ class PlotOutputData(object):
             y_cum_reward = []
             y_timesteps = []
             self.date_to_retrieve = dat
-            directory = 'output_Q_parameters'
+            directory = GlobalVar.directory + 'output/output_Q_parameters'
             file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
             with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -34,9 +36,9 @@ class PlotOutputData(object):
                 parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
 
             algorithm = parameters['algorithm_used']
-            print("RL algorithm used:", algorithm)
+            print("RL ALGORITHM:", algorithm)
 
-            directory = 'output_csv'
+            directory = GlobalVar.directory + 'output/output_csv'
             filename = 'output_' + algorithm + '_' + self.date_to_retrieve + '.csv'
 
             with open(directory + '/' + filename, 'r') as csv_file:
@@ -78,7 +80,7 @@ class PlotOutputData(object):
             y_cum_reward = []
             y_timesteps = []
             self.date_to_retrieve = dat
-            directory = 'output_Q_parameters'
+            directory = GlobalVar.directory + 'output/output_Q_parameters'
             file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
             with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -88,7 +90,7 @@ class PlotOutputData(object):
             algorithm = parameters['algorithm_used']
             print("RL algorithm used:", algorithm)
 
-            directory = 'output_csv'
+            directory = GlobalVar.directory + 'output/output_csv'
             filename = 'output_' + algorithm + '_' + self.date_to_retrieve + '.csv'
 
             with open(directory + '/' + filename, 'r') as csv_file:
@@ -125,7 +127,7 @@ class PlotOutputData(object):
             y_time_p = []
             y_timesteps_p = []
             self.date_to_retrieve = param
-            directory = 'output_Q_parameters'
+            directory = GlobalVar.directory + 'output/output_Q_parameters'
             file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
             with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -133,9 +135,9 @@ class PlotOutputData(object):
                 parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
 
             algorithm = parameters['algorithm_used']
-            print("RL algorithm used:", algorithm)
+            print("RL ALGORITHM:", algorithm)
 
-            directory = 'output_csv'
+            directory = GlobalVar.directory + 'output/output_csv'
             filename = 'partial_output_' + algorithm + '_' + self.date_to_retrieve + '.csv'
 
             with open(directory + '/' + filename, 'r') as csv_file:
@@ -164,20 +166,20 @@ class PlotOutputData(object):
             # plt.title('Timesteps per algorithm')
             # plt.legend()
 
-        # plt.savefig('plots/0_epsilon.png')
+        # plt.savefig(GlobalVar.directory + 'plot/0_epsilon.png')
         # print(np.matrix(rewards).transpose())
 
         data = pd.DataFrame(np.matrix(timesteps).transpose(),
                             index=episodes[0],
                             columns=['0.3', '0.6', '0.9'],)
-        fastplot.plot(data, 'plots/0_epsilon_bars_timesteps.png', mode='bars_multi', style='latex',
+        fastplot.plot(data, GlobalVar.directory + 'plot/0_epsilon_bars_timesteps.png', mode='bars_multi', style='latex',
                       ylabel='Timesteps', legend=True, ylim=(0, 30), legend_ncol=3,
                       legend_args={'markerfirst': True})
 
         data = pd.DataFrame(np.matrix(rewards).transpose(),
                             index=episodes[0],
                             columns=['0.3', '0.6', '0.9'],)
-        fastplot.plot(data, 'plots/0_epsilon_bars_rew.png', mode='bars_multi', style='latex',
+        fastplot.plot(data, GlobalVar.directory + 'plot/0_epsilon_bars_rew.png', mode='bars_multi', style='latex',
                       ylabel='Timesteps', legend=True, legend_ncol=3,
                       legend_args={'markerfirst': True})
 

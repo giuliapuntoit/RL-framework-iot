@@ -9,3 +9,4 @@ class GlobalVar(object):
     timeout = 5
     reward = 0
     path = 2
+    directory = "../"

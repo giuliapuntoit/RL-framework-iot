@@ -14,11 +14,12 @@ import struct
 from threading import Thread
 from time import sleep
 
-from plot_output_data import PlotOutputData
-from run_output_Q_parameters import RunOutputQParameters
-from serve_yeelight import ServeYeelight
-from utility_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, \
-    compute_reward_from_states, compute_next_state_from_props, display_bulbs
+from plotter.plot_output_data import PlotOutputData
+from learning.run_output_Q_parameters import RunOutputQParameters
+from request_builder.builder_yeelight import ServeYeelight
+from device_communication.api_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, display_bulbs
+from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props, get_states, \
+    get_optimal_policy, get_optimal_path
 
 from config import GlobalVar
 
@@ -28,6 +29,7 @@ GlobalVar.bulb_idx2ip = {}
 GlobalVar.RUNNING = True
 GlobalVar.current_command_id = 1
 GlobalVar.MCAST_GRP = '239.255.255.250'
+idLamp = ""
 
 # Global variables for RL
 tot_reward = 0
@@ -142,42 +144,22 @@ class ReinforcementLearningAlgorithm(object):
 
         states = []
         optimal = []
-        if GlobalVar.path == 1:
-            # PATH 1
-            # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
-            states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
-                      "6_invalid"]  # 0 1 2 4 0 optimal path
 
-            optimal = [5, 2, 4, 6]  # optimal policy
+        states = get_states()
 
-        elif GlobalVar.path == 2:
-            # PATH 2
-            states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
-                      "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright"
-                      ]  # 0 1 8 10 5 optimal path
+        optimal = get_optimal_policy()
 
-            optimal = [5, 17, 4, 6]  # optimal policy
-
-        elif GlobalVar.path == 3:
-            # PATH 3
-            # start from 0_off_start and from color set to 255 (blue), to check lamp visually
-            states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
-                      "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright",
-                      "12_ct", "13_ct_bright", "14_rgb_ct", "15_rgb_bright_ct", "16_off_middle", "17_on_middle",
-                      "18_ct_middle",
-                      "19_rgb_middle", "20_bright_middle", "21_ct_rgb_middle", "22_ct_bright_middle",
-                      "23_rgb_bright_middle", "24_ct_rgb_bright_middle",
-                      ]  # 0 1 12 13 16 17 18 5 optimal path
-
-            optimal = [5, 1, 4, 6, 5, 1, 6]  # optimal policy
+        # TODO use optimal_path information in saving of file and in run script
+        # TODO also for testing could be useful
+        optimal_path = get_optimal_path()
 
         current_date = datetime.now()
 
-        log_dir = 'log'
+        log_dir = GlobalVar.directory + 'output/log'
         pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5 YY_mm_dd_HH_MM_SS'
         log_filename = current_date.strftime(log_dir + '/' + 'log_' + '%Y_%m_%d_%H_%M_%S' + '.log')
 
-        output_Q_params_dir = 'output_Q_parameters'
+        output_Q_params_dir = GlobalVar.directory + 'output/output_Q_parameters'
         pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         output_Q_filename = current_date.strftime(
             output_Q_params_dir + '/' + 'output_Q_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
@@ -188,7 +170,7 @@ class ReinforcementLearningAlgorithm(object):
             output_E_filename = current_date.strftime(
                 output_Q_params_dir + '/' + 'output_E_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
-        output_dir = 'output_csv'
+        output_dir = GlobalVar.directory + 'output/output_csv'
         pathlib.Path(output_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         output_filename = current_date.strftime(
             output_dir + '/' + 'output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
@@ -469,6 +451,7 @@ class ReinforcementLearningAlgorithm(object):
                         pass
 
         # Print and save the Q-matrix inside output_Q_data.csv file
+        print("Q MATRIX:")
         print(Q)
         header = ['Q']  # for correct output structure
         for i in range(0, self.num_actions_to_use):
@@ -513,7 +496,7 @@ class ReinforcementLearningAlgorithm(object):
             RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=current_date.strftime('%Y_%m_%d_%H_%M_%S')).run()
 
 
-if __name__ == '__main__':
+def main():
     # Socket setup
     GlobalVar.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     fcntl.fcntl(GlobalVar.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
@@ -549,6 +532,7 @@ if __name__ == '__main__':
     else:
         # if some bulb was found, take first bulb
         display_bulbs()
+        global idLamp
         idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
 
         print("Waiting 5 seconds before using RL algorithm")
@@ -563,7 +547,7 @@ if __name__ == '__main__':
         # for eps in [0.3, 0.6, 0.9]:
         #     for alp in [0.005, 0.05, 0.5]:
         #         for gam in [0.45, 0.75, 0.95]:
-        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
+        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=5,
                                        num_actions_to_use=37,
                                        seconds_to_wait=0.1,
                                        epsilon=0.6,
@@ -585,7 +569,9 @@ if __name__ == '__main__':
     detection_thread.join()
     # Done
 
-# Set number of ri-transmissions, with a configurable parameter
+
+if __name__ == '__main__':
+    main()
+
 # TODO i test potrebbero testare che i parametri, stati, azioni ecc passati in input siano poi quelli scritti in output, \
 #  che ci sia un certo file, che il nome del file corrisponde alla data giusta, al nome dell'algo ecc
-# TODO Usa gli enum sia per gli state che per le actions!!! Le actions le puoi retrievare a run time, così poi le salvo come stringhe

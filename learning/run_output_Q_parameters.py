@@ -19,9 +19,9 @@ from config import GlobalVar
 # Statistics to compute Q will be read from output_parameters_data.csv
 
 # Identify which RL algorithm was used and use it
-from utility_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json, \
-    compute_reward_from_states, compute_next_state_from_props
-from serve_yeelight import ServeYeelight
+from device_communication.api_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json
+from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props
+from request_builder.builder_yeelight import ServeYeelight
 
 
 class RunOutputQParameters(object):
@@ -35,7 +35,7 @@ class RunOutputQParameters(object):
             exit(1)
 
     def run(self):
-        directory = 'output_Q_parameters'
+        directory = GlobalVar.directory + 'output/output_Q_parameters'
         file_Q = 'output_Q_' + self.date_to_retrieve + '.csv'
         file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
