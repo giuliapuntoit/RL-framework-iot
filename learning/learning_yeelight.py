@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import csv
 import numpy as np
-import matplotlib.pyplot as plt
 import json
 import random
 import pathlib
@@ -142,16 +141,11 @@ class ReinforcementLearningAlgorithm(object):
     def run(self):
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
-        states = []
-        optimal = []
-
         states = get_states()
-
         optimal = get_optimal_policy()
-
+        optimal_path = get_optimal_path()
         # TODO use optimal_path information in saving of file and in run script
         # TODO also for testing could be useful
-        optimal_path = get_optimal_path()
 
         current_date = datetime.now()
 
