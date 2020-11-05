@@ -59,3 +59,39 @@ if __name__ == '__main__':
 
     # As input file I need only the log file
     GetTrainingTimeTraffic(date_to_retrieve='2020_10_28_01_32_46', target_output='qlearning_lambda.csv').run()
+
+    sarsa = ['2020_11_04_21_41_26',
+             '2020_11_04_21_54_34',
+             '2020_11_04_22_06_05',
+             '2020_11_04_22_19_05',
+             '2020_11_04_22_30_16']
+
+    for dat in sarsa:
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_sarsa.csv').run()
+
+    sarsa_lambda = ['2020_11_04_22_40_03',
+                    '2020_11_04_22_54_42',
+                    '2020_11_04_23_08_01',
+                    '2020_11_04_23_19_47',
+                    '2020_11_04_23_29_09']
+
+    for dat in sarsa_lambda:
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_sarsa_lambda.csv').run()
+
+    qlearning = ['2020_11_04_23_44_01',
+                 '2020_11_04_23_55_34',
+                 '2020_11_05_00_08_03',
+                 '2020_11_05_00_19_35',
+                 '2020_11_05_00_31_08']
+
+    for dat in qlearning:
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_qlearning.csv').run()
+
+    qlearning_lambda = ['2020_11_05_00_41_57',
+                        '2020_11_05_00_53_43',
+                        '2020_11_05_01_03_24',
+                        '2020_11_05_01_14_54',
+                        '2020_11_05_01_24_42']
+
+    for dat in qlearning_lambda:
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_qlearning_lambda.csv').run()

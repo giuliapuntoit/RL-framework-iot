@@ -142,16 +142,16 @@ class ReinforcementLearningAlgorithm(object):
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
         states = get_states()
-        optimal = get_optimal_policy()
+        optimal_policy = get_optimal_policy()
         optimal_path = get_optimal_path()
-        # TODO use optimal_path information in saving of file and in run script
-        # TODO also for testing could be useful
 
         current_date = datetime.now()
 
         log_dir = GlobalVar.directory + 'output/log'
         pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5 YY_mm_dd_HH_MM_SS'
         log_filename = current_date.strftime(log_dir + '/' + 'log_' + '%Y_%m_%d_%H_%M_%S' + '.log')
+
+        log_date_filename = GlobalVar.directory + 'output/log_date.log'
 
         output_Q_params_dir = GlobalVar.directory + 'output/output_Q_parameters'
         pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
@@ -172,6 +172,10 @@ class ReinforcementLearningAlgorithm(object):
         partial_output_filename = current_date.strftime(
             output_dir + '/' + 'partial_output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
+        with open(log_date_filename, mode='a') as output_file:
+            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
+            output_writer.writerow([current_date.strftime('%Y_%m_%d_%H_%M_%S'), self.algorithm])
+
         # Write parameters in output_parameters_filename
         with open(output_parameters_filename, mode='w') as output_file:
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
@@ -185,7 +189,8 @@ class ReinforcementLearningAlgorithm(object):
             output_writer.writerow(['decay_episode', self.decay_episode])
             output_writer.writerow(['decay_value', self.decay_value])
             output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
-            output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal)])
+            output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal_policy)])
+            output_writer.writerow(['optimal_path', "-".join(str(pat) for pat in optimal_path)])
 
             if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                 output_writer.writerow(['lambda', self.lam])
@@ -417,7 +422,8 @@ class ReinforcementLearningAlgorithm(object):
                         header[0] = 'E'  # for correct output structure
 
                         with open(output_E_filename, "w") as output_E_file:
-                            output_E_writer = csv.writer(output_E_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
+                            output_E_writer = csv.writer(output_E_file, delimiter=',', quotechar='"',
+                                                         quoting=csv.QUOTE_NONE)
                             output_E_writer.writerow(header)
                             for index, stat in enumerate(states):
                                 row = [stat]
@@ -541,20 +547,21 @@ def main():
         # for eps in [0.3, 0.6, 0.9]:
         #     for alp in [0.005, 0.05, 0.5]:
         #         for gam in [0.45, 0.75, 0.95]:
-        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=5,
-                                       num_actions_to_use=37,
-                                       seconds_to_wait=0.1,
-                                       epsilon=0.6,
-                                       alpha=0.05,
-                                       gamma=0.95,
-                                       use_old_matrix=True,
-                                       date_old_matrix='2020_11_03_00_20_12',
-                                       decay_value=0.1,
-                                       show_graphs=True,
-                                       follow_policy=True,
-                                       follow_partial_policy=False,
-                                       follow_policy_every_tot_episodes=30,
-                                       algorithm='sarsa').run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
+        for algo in ['sarsa', 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
+            for i in range(0, 5):
+                print("INDEX", i, "- ALGORITHM", algo)
+                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
+                                               num_actions_to_use=37,
+                                               seconds_to_wait=0.1,
+                                               epsilon=0.6,
+                                               alpha=0.05,
+                                               gamma=0.95,
+                                               # decay_value=0.1,
+                                               show_graphs=False,
+                                               follow_policy=False,
+                                               follow_partial_policy=False,
+                                               follow_policy_every_tot_episodes=30,
+                                               algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
 
         print("############# Finish RL algorithm #############")
 

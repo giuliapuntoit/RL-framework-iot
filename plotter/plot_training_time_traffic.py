@@ -1,11 +1,10 @@
-import os
-
-import fastplot
 import numpy as np
 import csv
+import matplotlib
 import matplotlib.pyplot
+import matplotlib.font_manager
 
-from config import GlobalVar
+# matplotlib.pyplot.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 
 
 class PlotTrainingTimeTraffic(object):
@@ -19,7 +18,7 @@ class PlotTrainingTimeTraffic(object):
         file_algo = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"]
 
         for index, fa in enumerate(file_algo):
-            with open(fa + ".csv", 'r') as csv_file:
+            with open("0_" + fa + ".csv", 'r') as csv_file:
                 reader = csv.reader(csv_file, delimiter=',')
                 next(reader, None)
                 for row in reader:
