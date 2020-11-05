@@ -300,7 +300,7 @@ class ReinforcementLearningAlgorithm(object):
             reward_per_episode = 0
             # exploration reduces every 50 episodes
             if (episode + 1) % self.decay_episode == 0:  # configurable parameter
-                self.epsilon = self.epsilon - self.decay_value  # * self.epsilon  # could be another configurable parameter, decay of epsilon
+                self.epsilon = self.epsilon - self.decay_value * self.epsilon  # could be another configurable parameter, decay of epsilon
                 if self.epsilon < 0.3:
                     self.epsilon = 0.3
                     self.decay_value = 0
@@ -556,7 +556,6 @@ def main():
                                                epsilon=0.6,
                                                alpha=0.05,
                                                gamma=0.95,
-                                               # decay_value=0.1,
                                                show_graphs=False,
                                                follow_policy=False,
                                                follow_partial_policy=False,
