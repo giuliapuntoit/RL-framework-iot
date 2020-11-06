@@ -1,14 +1,12 @@
 import pprint
-
 import nmap
 import ipaddress
 import time
-
-# instantiate a PortScanner object
 from discovery.discovery_report import DiscoveryReport
 
 
 def analyze_lan():
+    # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
 
     # scan_range = scanner.scan(hosts="192.168.1.1 192.168.1.212 192.168.1.212")
@@ -17,15 +15,13 @@ def analyze_lan():
 
     # print(scan_range['scan'])
 
-    # grep yeelink or shelly
-    # target is the respective IP
-
     # I am assuming I already know protocol ports
     yeelight_port = 1982
     shelly_port = 80
 
     devices = []
 
+    # Look for Yeelight and Shelly devices
     for ip in ipaddress.IPv4Network('192.168.1.0/24'):
         hostname = scan_range['scan'][str(ip)]['hostnames'][0]['name']
         if "yeelink" in hostname:

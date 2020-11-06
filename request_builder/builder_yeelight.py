@@ -5,15 +5,18 @@ import random
 import pprint
 import json
 
+# builder_yeelight is a broker script that calls dict_yeelight
+# It manages the answer and returns it to the calling script
 
-# randomizing method selected
 
 class ServeYeelight(object):
+    # Enable access to the dictionary and constructs command
+    # Builds the selected Yeelight command and sends it back as a json command
+
     def __init__(self, id_lamp=0, method_chosen_index=-1, select_all_props=False):
         self.method_chosen_index = method_chosen_index
         self.id = id_lamp
         self.select_all_props = select_all_props
-        # print("Using serve yeelight.")
 
     def run(self):
 
@@ -21,11 +24,10 @@ class ServeYeelight(object):
             # length of methods is 37
             self.method_chosen_index = random.randint(0, 37 - 1)
 
+        # Retrive the method_chosen_index-th command from Yeelight dictionary
         method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
 
-        # print(str(method_selected))
-
-        # print("Parsing method selected")
+        # Parsing selected method
         method_name = method_selected["name"]
         method_min_params = int(method_selected["min_params"])
         method_max_params = int(method_selected["max_params"])
@@ -33,28 +35,27 @@ class ServeYeelight(object):
 
         params = []
         cnt = 0
-        # For now we ignore optional parameters
+        # We ignore optional parameters
         if method_max_params == -1:
             n = random.randint(1, len(method_params_list) - 1)
             if self.select_all_props:
-                # print("Selecting specific props")
-                sample_params_list = [('power', ""),  # values on off
-                                      ('bright', 0),  # range 1 100
-                                      ('rgb', 0),     # range 1 16777215
-                                      ('ct', 0),      # range 1700 6500 (k)
-                                      ('name', ""),  # values set in set_name command
-                                      ('hue', 0),  # range 0 359
-                                      ('sat', 0),  # range 0 100
+                # Returns the properties needed to get the current state of the bulb
+                sample_params_list = [('power', ""),    # values on off
+                                      ('bright', 0),    # range 1 100
+                                      ('rgb', 0),       # range 1 16777215
+                                      ('ct', 0),        # range 1700 6500 (k)
+                                      ('name', ""),     # values set in set_name command
+                                      ('hue', 0),       # range 0 359
+                                      ('sat', 0),       # range 0 100
                                       ]
             else:
+                # Pick a random number of properties from the available ones
                 sample_params_list = random.sample(method_params_list, n)
-            # print(sample_params_list)
             for (key, value) in sample_params_list:
                 params.append(key)
         else:
             for (key, value) in method_params_list:
-                # print("Key " + str(key))
-                # print("Value " + str(value))
+                # Assign (random) values to parameters
                 if cnt >= method_min_params:
                     break
                 n = random.randint(0, 20)
@@ -64,7 +65,7 @@ class ServeYeelight(object):
                     if (2 * n + 1) % 2 == 0:
                         value = "smooth"
                     else:
-                        value = "sudden"  # per ora entra sempre qua, sto semplificando il problema
+                        value = "sudden"  # For now, to simplify thing the effect is always "sudden"
                 elif key == "prop":
                     if n % 3 == 0:
                         value = "bright"
@@ -93,34 +94,34 @@ class ServeYeelight(object):
                     elif key == "ct_value":
                         value = random.randint(1700,6500)
                     else:
-                        value = random.randint(0, 100)  # valori random, da capire a che servono TODO
+                        value = random.randint(0, 100)  # Random values
                 else:
-                    value = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))
+                    value = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))  # Random string
                 params.append(value)
                 cnt += 1
 
+        # Build the command structure
         command = {"id": self.id,  # id_pair
                    "method": method_name,  # method_pair
                    "params": params,  # params_pair
                    }
 
-        # Check json command inside file
+        # Save json command inside external file
         # with open("data_file.json", "w") as write_file:
         #     json.dump(command, write_file)
 
         return json.dumps(command)
 
     def get_all_properties(self):
+        # Returns the name of all properties
+
         self.method_chosen_index = 0
         method_selected = DictYeelight(method_requested=self.method_chosen_index).run()
-
-        # print(str(method_selected))
         method_params_list = method_selected["params_list"]
 
         params = []
         for (key, value) in method_params_list:
             params.append(key)
-
         return params
 
 

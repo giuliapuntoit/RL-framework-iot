@@ -1,21 +1,19 @@
 import pprint
 import json
 
-# Control Protocol
+# Yeelight Control Protocol
 
 # COMMAND message {id_pair, method_pair, params_pair}
 # id_pair is        "id":<number>
 # method_pair is    "method":"<method>"
 # params_pair is    "params":["<param1>","<param2>", <numeric_param3>]
 # <param1> is       "property":<property_value>
-import sys
 
 
 class DictYeelight(object):
 
     def __init__(self, method_requested=2):
         self.method_requested = method_requested
-        # print("Using dictionary yeelight.")
 
     def run(self):
         properties = [('power', ""),  # values on off
@@ -43,11 +41,9 @@ class DictYeelight(object):
                       ('active_mode', 0),  # values 0 1
                       ]
 
-        # how to define values for each property? Maybe not necessary
-        # sarebbe bello definire per ogni property il tipo (int string ecc)
-        # how can i enforce a type?
-        # for now:      0   ->  int
-        #               ""  ->  string
+        # For now, enforcing type as:
+        #   0   ->  int
+        #   ""  ->  string
 
         methods = []
         methods.extend(({"name": "get_prop",
@@ -102,7 +98,7 @@ class DictYeelight(object):
                              ('mode', 0),  # int
                          ],
                          },
-                        {"name": "set_power",  # OFF TODO non il miglior modo per distinguerli ma vediamo se funziona
+                        {"name": "set_power",  # OFF
                          "min_params": 3,
                          "max_params": 4,  # mode is optional
                          "params_list": [
@@ -328,34 +324,18 @@ class DictYeelight(object):
                          ]},
                         ))
 
-        # max_params = -1 means N -> non mi piace molto come scelta
+        # max_params = -1 means N
 
-        # i nomi dei parametri non coincidono con i nomi delle proprietà
-        # anzi ce ne sono anche di piu (vedi duration)
-
+        # Default method selected value
         method_selected = 2
 
         if 0 <= self.method_requested < len(methods):
             method_selected = self.method_requested
 
-        # if number set as first parameter take that, otherwise default is 2 (?)
-
-        # method_selected = 2
-        #
-        # if len(sys.argv) == 2:
-        #     if 0 <= int(sys.argv[1]) < len(methods):
-        #         method_selected = int(sys.argv[1])
-
-        # print("Method selected is number: " + str(method_selected))
-        # print("Total methods is " + str(len(methods)))
         return methods[method_selected]
 
 
 if __name__ == '__main__':
     method_returned = DictYeelight().run()
-
     # Useful information
     print("Method is " + str(method_returned))
-
-# serve_yeelight e' uno script intermedio che chiama dict_yeelight,
-# elabora la risposta e poi la ritorna a request_yeelight/learning_yeelight

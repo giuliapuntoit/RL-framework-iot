@@ -8,6 +8,7 @@ import matplotlib.font_manager
 
 
 class PlotTrainingTimeTraffic(object):
+    # Plot the training measures: training time and traffic generated during the learning process
     def __init__(self):
         pass
 

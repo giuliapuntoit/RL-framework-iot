@@ -1,7 +1,6 @@
 import json
 import os
 import struct
-
 import numpy as np
 import csv
 import time
@@ -11,14 +10,14 @@ import socket
 import fcntl
 from config import GlobalVar
 
-# First, I should call put the transition to states and computation of reward inside external methods
-# to call them from here, not to re-write them!
+# Follow the best policy found by a learning process
 
 # Q will be read from output_Q_data.csv
 # Retrieve actions and state from output_Q_data.csv
 # Statistics to compute Q will be read from output_parameters_data.csv
 
 # Identify which RL algorithm was used and use it
+
 from device_communication.api_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props
 from request_builder.builder_yeelight import ServeYeelight
@@ -73,12 +72,6 @@ class RunOutputQParameters(object):
             print("Q MATRIX:")
             print(Q)
 
-        # TODO:
-        # del tipo, runnare lo script con certi valori e verificare che il risultato sia quello scritto nei test
-        # ad esempio certi valori di parametri, questa esatta lunghezza e questi esatti stati e azioni
-        # il risultato deve essere coerente con ciò che mi aspetto
-        # cosicche' cambiando parametri posso aspettarmi un risultato giusto
-
         if len(states) != len(Q) or len(actions) != len(Q[0]) or np.isnan(np.sum(Q)):
             print("Wrong file format: wrong Q dimensions or nan values present")
             exit(2)
@@ -89,7 +82,6 @@ class RunOutputQParameters(object):
 
         if self.show_retrieved_info:
             print("USED PARAMETERS:\n\t", parameters)  # For now the are all strings
-            # I should check values using tests not prints!!!
 
         if parameters['num_actions_to_use'] is not None and len(actions) != int(parameters['num_actions_to_use']):
             print("Different number of actions used")
@@ -123,13 +115,13 @@ class RunOutputQParameters(object):
         if self.show_retrieved_info:
             print("RL ALGORITHM:\n\t", parameters['algorithm_used'])
             print("POSSIBLE OPTIMAL POLICY:\n\t", optimal_policy)
-            # I should check values using tests not prints!!!
-            # TODO I should save the states in order to know which path I followed
 
         # time start
         start_time = time.time()
+
         # ### FOLLOW POLICY ###
-        # Then I can follow the found optimal policy:
+
+        # Follow the found best policy:
         if self.show_retrieved_info:
             print("------------------------------------------")
             print("FOLLOW POLICY")
@@ -193,8 +185,6 @@ class RunOutputQParameters(object):
             print("\t\tNot optimal policy found with reward:", final_reward)
             return False, dict_results
 
-        # First, connecting to the device, initialization, something like this:
-
 
 if __name__ == '__main__':
     # Socket setup
@@ -208,14 +198,14 @@ if __name__ == '__main__':
     mreq = struct.pack("4sl", socket.inet_aton(GlobalVar.MCAST_GRP), socket.INADDR_ANY)
     GlobalVar.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
-    # first discover the lamp and Connect to the lamp
-    # start the bulb detection thread
+    # First discover the lamp and connect to the lamp
+    # Start the bulb detection thread
     detection_thread = Thread(target=bulbs_detection_loop)
     detection_thread.start()
-    # give detection thread some time to collect bulb info
+    # Give detection thread some time to collect bulb info
     sleep(10)
 
-    # show discovered lamps
+    # Show discovered lamps
     display_bulbs()
 
     print(GlobalVar.bulb_idx2ip)
@@ -226,6 +216,7 @@ if __name__ == '__main__':
     if len(GlobalVar.bulb_idx2ip) == 0:
         print("Bulb list is empty.")
     else:
+        # If some bulbs were found inside the network do something
         display_bulbs()
         idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
 
@@ -236,7 +227,7 @@ if __name__ == '__main__':
 
         RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_30_02_10_16").run()
 
-    # goal achieved, tell detection thread to quit and wait
+    # Goal achieved, tell detection thread to quit and wait
     RUNNING = False
     detection_thread.join()
-    # done
+    # Done

@@ -6,6 +6,8 @@ import pylab as pl
 
 from config import GlobalVar
 
+# Functions for plotting the moving average for multiple runs and multiple configurations of params
+
 
 def plot_single_configuration_multiple_runs(date_array, param):
     param_value = ""
@@ -70,7 +72,7 @@ def plot_single_configuration_multiple_runs(date_array, param):
 
     # color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
-    window_size = 10
+    window_size = 20
 
     # Compute the smoothed moving average
     weights = np.repeat(1.0, window_size) / window_size
@@ -125,7 +127,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
                                            moving_average_rewards_target,
                                            moving_average_timesteps_target):
     # 3 colors for params
-    color = ('#A66066', '#F2A172', '#D9B779', '#59463F')
+    color = ('#A66066', '#F2A172', '#858C4A')
 
     for i in range(0, len(param_values_target)):
         pl.plot(episodes_target[i], moving_average_rewards_target[i][0:np.array(episodes_target[i]).shape[0]],
@@ -134,7 +136,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     pl.xlabel('Episodes')
     pl.ylabel('Reward')
     pl.legend(loc='lower right')
-    pl.title('Moving average of reward over episodes for', algorithm)
+    pl.title('Moving average of reward over episodes for ' + algorithm)
     pl.grid(True)
     plt.savefig('mavg_reward_params.png')
     plt.show()
@@ -146,7 +148,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     pl.xlabel('Episodes')
     pl.ylabel('Number of steps')
     pl.legend(loc='upper right')
-    pl.title('Moving average of number of steps over episodes')
+    pl.title('Moving average of number of steps over episodes for ' + algorithm)
     pl.grid(True)
     plt.savefig('mavg_timesteps_params.png')
     plt.show()
@@ -155,9 +157,10 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
 def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg_rew, avg_steps, n_rew, n_steps,
                                                   std_dev_rew, std_dev_steps):
     fig, ax = plt.subplots()
-    col = ax.bar([param + "=" + param_values[0], param + "=" + param_values[1], param + "=" + param_values[2]], avg_rew,
+    col = ax.bar([param + "=" + param_values[0], param + "=" + param_values[1], param + "=" + param_values[2]],
+                 avg_rew,
                  align='center',
-                 yerr=std_dev_rew, color=('#A66066', '#F2A172', '#D9B779', '#59463F'))
+                 color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Avg reward value')
@@ -170,7 +173,7 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     fig, ax = plt.subplots()
     col = ax.bar([param + "=" + param_values[0], param + "=" + param_values[1], param + "=" + param_values[2]],
                  avg_steps, align='center',
-                 yerr=std_dev_steps, color=('#A66066', '#F2A172', '#D9B779', '#59463F'))
+                 color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Avg steps value')
@@ -181,8 +184,8 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     plt.savefig('avg_steps_for_' + param + '.png')
 
     fig, ax = plt.subplots()
-    col = ax.bar([param + "=" + param_values[0], param + "=" + param_values[1], param + "=" + param_values[2]],
-                 n_rewards, align='center', color=('#A66066', '#F2A172', '#D9B779', '#59463F'))
+    col = ax.bar([param + "=3" + param_values[0], param + "=6" + param_values[1], param + "=9" + param_values[2]],
+                 n_rewards, align='center', color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Number of rewards upon avg')
@@ -193,8 +196,9 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     plt.savefig('n_rewards_for_' + param + '.png')
 
     fig, ax = plt.subplots()
-    col = ax.bar([param + "=" + param_values[0], param + "=" + param_values[1], param + "=" + param_values[2]], n_steps,
-                 align='center', color=('#A66066', '#F2A172', '#D9B779', '#59463F'))
+    col = ax.bar([param + "=3" + param_values[0], param + "=6" + param_values[1], param + "=9" + param_values[2]],
+                 n_steps,
+                 align='center', color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Number of steps below avg')
@@ -223,23 +227,27 @@ if __name__ == '__main__':
     # Same fixed algorithm
     algo = "sarsa"
     print("ALGO SHOULD BE", algo, "FOR ALL RESULTS")
-    first_value_param = ['2020_11_05_06_47_59',
-                         '2020_11_05_07_33_31',
-                         '2020_11_05_08_04_47',
-                         '2020_11_05_08_48_46',
-                         '2020_11_05_09_35_46', ]
+    # epsilon = 0.3
+    first_value_param = ['2020_11_05_17_58_34',
+                         '2020_11_05_18_31_24',
+                         '2020_11_05_19_06_15',
+                         '2020_11_05_19_40_47',
+                         '2020_11_05_20_15_14', ]
 
-    second_value_param = ['2020_11_05_10_24_34',
-                          '2020_11_05_11_05_37',
-                          '2020_11_05_11_48_23',
-                          '2020_11_05_12_33_03',
-                          '2020_11_05_13_16_54', ]
+    # epsilon = 0.6
+    second_value_param = ['2020_11_05_03_27_46',
+                          '2020_11_05_04_07_23',
+                          '2020_11_05_04_48_59',
+                          '2020_11_05_05_30_35',
+                          '2020_11_05_06_10_02', ]
 
-    third_value_param = ['2020_11_05_13_54_50',
-                         '2020_11_05_14_37_02',
-                         '2020_11_05_15_10_00',
-                         '2020_11_05_15_49_28',
-                         '2020_11_05_16_27_15', ]
+    # epsilon = 0.9
+    third_value_param = ['2020_11_05_20_56_56',
+                         '2020_11_05_21_49_31',
+                         '2020_11_05_22_42_34',
+                         '2020_11_05_23_33_47',
+                         '2020_11_06_00_21_57',
+                         ]
 
     p, ep, ma, mats, ar, at, nr, nt, sdr, sdt = plot_single_configuration_multiple_runs(date_array=first_value_param,
                                                                                         param=changing_param)

@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import csv
-
 from config import GlobalVar
 
 
 class PlotOutputData(object):
+    # Plot results from a single run
     def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', separate_plots=False):
         if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
             self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S

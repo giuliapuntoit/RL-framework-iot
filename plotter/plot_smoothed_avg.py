@@ -6,6 +6,8 @@ import pylab as pl
 
 from config import GlobalVar
 
+# Functions for plotting the moving average for multiple runs and multiple algorithms
+
 
 def plot_single_algo_single_run(date_to_retrieve):
     x = []
@@ -140,7 +142,7 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
     # ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
     color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
-    window_size = 10
+    window_size = 20
 
     # calculate the smoothed moving average
     weights = np.repeat(1.0, window_size) / window_size
@@ -170,7 +172,7 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
 
     pl.xlabel('Episodes')
     pl.ylabel('Number of steps')
-    pl.legend(loc='lower right')
+    pl.legend(loc='upper right')
     pl.title('Steps for ' + algorithm + ' algorithm over episodes')
     pl.grid(True)
     plt.savefig('all_timesteps_plot.png')
@@ -211,7 +213,7 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
 if __name__ == '__main__':
     # I could pass a list of dates, then do the average of these dates
     # Then put multiple lines inside 1 multiline plot
-    plot_single_algo_single_run(date_to_retrieve='2020_11_02_18_42_09')
+    plot_single_algo_single_run(date_to_retrieve='2020_11_05_03_27_46')
     algos = []
     episodes = []
     moving_avgs_rewards = []
@@ -243,30 +245,6 @@ if __name__ == '__main__':
         '2020_11_05_15_10_00',
         '2020_11_05_15_49_28',
         '2020_11_05_16_27_15', ]
-
-    # sarsa = ['2020_11_04_21_41_26',
-    #          '2020_11_04_21_54_34',
-    #          '2020_11_04_22_06_05',
-    #          '2020_11_04_22_19_05',
-    #          '2020_11_04_22_30_16']
-    #
-    # sarsa_lambda = ['2020_11_04_22_40_03',
-    #                 '2020_11_04_22_54_42',
-    #                 '2020_11_04_23_08_01',
-    #                 '2020_11_04_23_19_47',
-    #                 '2020_11_04_23_29_09']
-    #
-    # qlearning = ['2020_11_04_23_44_01',
-    #              '2020_11_04_23_55_34',
-    #              '2020_11_05_00_08_03',
-    #              '2020_11_05_00_19_35',
-    #              '2020_11_05_00_31_08']
-    #
-    # qlearning_lambda = ['2020_11_05_00_41_57',
-    #                     '2020_11_05_00_53_43',
-    #                     '2020_11_05_01_03_24',
-    #                     '2020_11_05_01_14_54',
-    #                     '2020_11_05_01_24_42']
 
     # SARSA
     al, ep, ma, mats = plot_single_algo_multiple_runs(date_array=sarsa, algorithm="sarsa")

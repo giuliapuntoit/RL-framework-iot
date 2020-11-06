@@ -4,7 +4,6 @@ import csv
 
 from config import GlobalVar
 
-
 class GetTrainingTimeTraffic(object):
     def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', target_output="algorithm.csv"):
         if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':

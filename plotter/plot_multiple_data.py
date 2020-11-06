@@ -1,14 +1,13 @@
 import csv
 import matplotlib.pyplot as plt
 import pandas as pd
-import tkinter
 import numpy as np
 import fastplot
-
 from config import GlobalVar
 
-
 class PlotOutputData(object):
+    # Plot reward and timesteps over episodes for multiple executions
+    # Deprecated!
     def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', algos=[], paths=[], params=[], separate_plots=False):
         if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
             self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S
@@ -222,5 +221,3 @@ if __name__ == '__main__':
     params = ['2020_10_28_03_54_08', '2020_10_28_16_13_06', '2020_10_29_06_50_02']
     PlotOutputData(date_to_retrieve='2020_10_28_14_49_55', algos=algos, paths=paths, params=params,
                    separate_plots=False).run()
-
-# TODO anche per decidere l'algoritmo potrei usare una enum (1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda)

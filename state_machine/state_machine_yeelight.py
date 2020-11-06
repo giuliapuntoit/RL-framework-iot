@@ -6,10 +6,11 @@ from time import sleep
 
 
 def get_states():
+    # Returns an array containing all the states for a specified path
+
     states = []
     if GlobalVar.path == 1:
         # PATH 1
-        # Mi invento questi stati: lampadina parte da accesa, poi accendo, cambio colore, spengo
         states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
                   "6_invalid"]
 
@@ -21,7 +22,9 @@ def get_states():
 
     elif GlobalVar.path == 3:
         # PATH 3
-        # start from 0_off_start and from color set to 255 (blue), to check lamp visually
+        # If you want to visually check the optimal path related to this path,
+        # start from 0_off_start and from rgb value set to 255 (blue)
+        # in order to check that the lamp does not change the rgb value
         states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
                   "6_invalid", "7_name", "8_on_name", "9_on_name_rgb", "10_on_name_bright", "11_on_name_rgb_bright",
                   "12_ct", "13_ct_bright", "14_rgb_ct", "15_rgb_bright_ct", "16_off_middle", "17_on_middle",
@@ -33,43 +36,56 @@ def get_states():
 
 
 def get_optimal_policy():
+    # Returns an array containing an optimal policy for a specified path
+
     optimal_policy = []
     if GlobalVar.path == 1:
         # PATH 1
-        optimal_policy = [5, 2, 4, 6]  # optimal policy
+        optimal_policy = [5, 2, 4, 6]
 
     elif GlobalVar.path == 2:
         # PATH 2
-        optimal_policy = [5, 17, 4, 6]  # optimal policy
+        optimal_policy = [5, 17, 4, 6]
 
     elif GlobalVar.path == 3:
         # PATH 3
-        optimal_policy = [5, 1, 4, 6, 5, 1, 6]  # optimal policy
+        optimal_policy = [5, 1, 4, 6, 5, 1, 6]
+
     return optimal_policy
 
 
 def get_optimal_path():
+    # Return an array containing the optimal path
+
     optimal_path = []
     if GlobalVar.path == 1:
         # PATH 1
-        optimal_path = [0, 1, 2, 4, 5]  # optimal path
+        optimal_path = [0, 1, 2, 4, 5]
 
     elif GlobalVar.path == 2:
         # PATH 2
-        optimal_path = [0, 1, 8, 10, 5]  # optimal path
+        optimal_path = [0, 1, 8, 10, 5]
 
     elif GlobalVar.path == 3:
         # PATH 3
-        optimal_path = [0, 1, 12, 13, 16, 17, 18, 5]  # optimal path
+        optimal_path = [0, 1, 12, 13, 16, 17, 18, 5]
+
     return optimal_path
 
 
 def compute_next_state_from_props(id_lamp, current_state, old_props_values):
+    # Given the current state, send a request to the yeelight device
+    # to get the current property values. From that information, based on the selected
+    # path, it computes and returns the next state
+
     next_state = current_state
+
+    # Get the json command for asking the desired properties
     json_command = ServeYeelight(id_lamp=id_lamp, method_chosen_index=0, select_all_props=True).run()
     # props_names = ServeYeelight(id_lamp=id_lamp).get_all_properties()
 
-    props_values = operate_on_bulb_props(id_lamp, json_command)  # should contain an array of properties
+    # Send the json command to the yeelight device
+    props_values = operate_on_bulb_props(id_lamp, json_command)
 
     if not props_values:
         print("\t\tSomething went wrong from get_prop: keeping the current state")
@@ -77,6 +93,7 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
 
     sleep(0.5)
 
+    # Indexes of properties:
     power_index = 0
     bright_index = 1
     rgb_index = 2
@@ -88,13 +105,13 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     if GlobalVar.path == 1:
         # PATH 1
         # 0 1 2 4 5
-        if props_values[power_index] == 'off':  # prima colonna e' il power
+        if props_values[power_index] == 'off':
             if current_state == 0 or current_state == 6:
                 next_state = 0
             else:
                 next_state = 5  # end state
         elif props_values[power_index] == 'on':
-            if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
+            if current_state == 0:  # if the device was previously off it turns to on
                 next_state = 1
             else:
                 if old_props_values:
@@ -112,7 +129,7 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     elif GlobalVar.path == 2:
         # PATH 2
         # 0 1 8 10 5
-        if props_values[power_index] == 'off':  # prima colonna e' il power
+        if props_values[power_index] == 'off':
             if old_props_values and props_values[name_index] != old_props_values[name_index] and current_state == 0:
                 next_state = 7
             elif current_state == 0 or current_state == 6:
@@ -121,7 +138,7 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
                 next_state = 5  # end state
         elif props_values[power_index] == 'on':
             name_modified = (old_props_values and props_values[name_index] != old_props_values[name_index])
-            if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
+            if current_state == 0:
                 next_state = 1
             elif current_state == 7:  # name already modified
                 next_state = 8
@@ -158,19 +175,19 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     elif GlobalVar.path == 3:
         # PATH 3
         # 0 1 12 13 16 17 18 5
-        if props_values[power_index] == 'off':  # prima colonna e' il power
+        if props_values[power_index] == 'off':
             if current_state == 0 or current_state == 6:
-                next_state = 0
-            elif current_state in [1, 2, 3, 4, 12, 13, 14, 15, 16]:
+                next_state = 0  # Turn to initial off state
+            elif current_state in [1, 2, 3, 4, 12, 13, 14, 15, 16]:  # Turn to intermediate off state
                 next_state = 16
             else:
-                next_state = 5  # end state
+                next_state = 5  # Turn to final off state
         elif props_values[power_index] == 'on':
             if old_props_values:
                 bright_modified = (props_values[bright_index] != old_props_values[bright_index])
                 rgb_modified = (props_values[rgb_index] != old_props_values[rgb_index])
                 ct_modified = (props_values[ct_index] != old_props_values[ct_index])
-                if current_state == 0:  # se precedentemente era spenta passo allo stato acceso
+                if current_state == 0:
                     next_state = 1
                 elif current_state == 16:
                     next_state = 17
@@ -218,12 +235,15 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
 
 
 def compute_reward_from_states(current_state, next_state):
-    # This assumes that the path goes 0 1 2 4 5
+    # Compute the reward given by the transition from current_state to next_state
+    # The reward depends on the path that the learning process is trying to learn
+
     reward_from_props = 0
+
+    # Reward is given only to the last step, based on the path followed from the start to the end
 
     if GlobalVar.path == 1:
         # PATH 1
-        # Reward from passing through other states:
         if current_state == 0 and next_state == 1:
             reward_from_props = 1  # per on
         elif current_state == 1 and next_state == 3:
@@ -234,7 +254,7 @@ def compute_reward_from_states(current_state, next_state):
             reward_from_props = 4  # per rgb bright
         elif current_state == 2 and next_state == 4:
             reward_from_props = 5  # per rgb bright
-        elif current_state == 4 and next_state == 5:  # Just the last step
+        elif current_state == 4 and next_state == 5:  # Last step
             reward_from_props = 200
             GlobalVar.reward += reward_from_props
             tmp = GlobalVar.reward
@@ -297,6 +317,3 @@ def compute_reward_from_states(current_state, next_state):
         GlobalVar.reward += reward_from_props
         return 0
     return reward_from_props
-
-# TODO sistema commenti ovunque
-# TODO metti commenti davanti a ogni metodo
