@@ -184,7 +184,8 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
     color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
     for i in range(0, len(algorithms_target)):
-        pl.plot(episodes_target[i], moving_average_rewards_target[i][0:np.array(episodes_target[i]).shape[0]], label=algorithms_target[i], color=color[i])
+        pl.plot(episodes_target[i], moving_average_rewards_target[i][0:np.array(episodes_target[i]).shape[0]],
+                label=algorithms_target[i], color=color[i])
 
     pl.xlabel('Episodes')
     pl.ylabel('Reward')
@@ -195,7 +196,8 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
     plt.show()
 
     for i in range(0, len(algorithms_target)):
-        pl.plot(episodes_target[i], moving_average_timesteps_target[i][0:np.array(episodes_target[i]).shape[0]], label=algorithms_target[i], color=color[i])
+        pl.plot(episodes_target[i], moving_average_timesteps_target[i][0:np.array(episodes_target[i]).shape[0]],
+                label=algorithms_target[i], color=color[i])
 
     pl.xlabel('Episodes')
     pl.ylabel('Number of steps')
@@ -215,29 +217,56 @@ if __name__ == '__main__':
     moving_avgs_rewards = []
     moving_avgs_timesteps = []
 
-    sarsa = ['2020_11_04_21_41_26',
-             '2020_11_04_21_54_34',
-             '2020_11_04_22_06_05',
-             '2020_11_04_22_19_05',
-             '2020_11_04_22_30_16']
+    sarsa = ['2020_11_05_03_27_46',
+             '2020_11_05_04_07_23',
+             '2020_11_05_04_48_59',
+             '2020_11_05_05_30_35',
+             '2020_11_05_06_10_02', ]
 
-    sarsa_lambda = ['2020_11_04_22_40_03',
-                    '2020_11_04_22_54_42',
-                    '2020_11_04_23_08_01',
-                    '2020_11_04_23_19_47',
-                    '2020_11_04_23_29_09']
+    sarsa_lambda = [
+        '2020_11_05_06_47_59',
+        '2020_11_05_07_33_31',
+        '2020_11_05_08_04_47',
+        '2020_11_05_08_48_46',
+        '2020_11_05_09_35_46', ]
 
-    qlearning = ['2020_11_04_23_44_01',
-                 '2020_11_04_23_55_34',
-                 '2020_11_05_00_08_03',
-                 '2020_11_05_00_19_35',
-                 '2020_11_05_00_31_08']
+    qlearning = [
+        '2020_11_05_10_24_34',
+        '2020_11_05_11_05_37',
+        '2020_11_05_11_48_23',
+        '2020_11_05_12_33_03',
+        '2020_11_05_13_16_54', ]
 
-    qlearning_lambda = ['2020_11_05_00_41_57',
-                        '2020_11_05_00_53_43',
-                        '2020_11_05_01_03_24',
-                        '2020_11_05_01_14_54',
-                        '2020_11_05_01_24_42']
+    qlearning_lambda = [
+        '2020_11_05_13_54_50',
+        '2020_11_05_14_37_02',
+        '2020_11_05_15_10_00',
+        '2020_11_05_15_49_28',
+        '2020_11_05_16_27_15', ]
+
+    # sarsa = ['2020_11_04_21_41_26',
+    #          '2020_11_04_21_54_34',
+    #          '2020_11_04_22_06_05',
+    #          '2020_11_04_22_19_05',
+    #          '2020_11_04_22_30_16']
+    #
+    # sarsa_lambda = ['2020_11_04_22_40_03',
+    #                 '2020_11_04_22_54_42',
+    #                 '2020_11_04_23_08_01',
+    #                 '2020_11_04_23_19_47',
+    #                 '2020_11_04_23_29_09']
+    #
+    # qlearning = ['2020_11_04_23_44_01',
+    #              '2020_11_04_23_55_34',
+    #              '2020_11_05_00_08_03',
+    #              '2020_11_05_00_19_35',
+    #              '2020_11_05_00_31_08']
+    #
+    # qlearning_lambda = ['2020_11_05_00_41_57',
+    #                     '2020_11_05_00_53_43',
+    #                     '2020_11_05_01_03_24',
+    #                     '2020_11_05_01_14_54',
+    #                     '2020_11_05_01_24_42']
 
     # SARSA
     al, ep, ma, mats = plot_single_algo_multiple_runs(date_array=sarsa, algorithm="sarsa")
@@ -264,7 +293,7 @@ if __name__ == '__main__':
     moving_avgs_timesteps.append(mats)
 
     # Q(lambda)
-    al, ep, ma, mats = plot_single_algo_multiple_runs(date_array=qlearning_lambda,  algorithm="qlearning_lambda")
+    al, ep, ma, mats = plot_single_algo_multiple_runs(date_array=qlearning_lambda, algorithm="qlearning_lambda")
     algos.append(al)
     episodes.append(ep)
     moving_avgs_rewards.append(ma)

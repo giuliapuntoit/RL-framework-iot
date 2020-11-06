@@ -191,6 +191,7 @@ class ReinforcementLearningAlgorithm(object):
             output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
             output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal_policy)])
             output_writer.writerow(['optimal_path', "-".join(str(pat) for pat in optimal_path)])
+            output_writer.writerow(['path', GlobalVar.path])
 
             if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                 output_writer.writerow(['lambda', self.lam])
@@ -561,7 +562,7 @@ def main():
                                                follow_partial_policy=False,
                                                follow_policy_every_tot_episodes=30,
                                                algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
-
+                sleep(45)
         print("############# Finish RL algorithm #############")
 
     # Goal achieved, tell detection thread to quit and wait
