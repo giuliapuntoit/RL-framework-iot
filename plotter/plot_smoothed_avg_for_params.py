@@ -79,15 +79,15 @@ def plot_single_configuration_multiple_runs(date_array, param):
     yMA = np.convolve(df_final_avg_over_n_runs['y1'], weights, 'full')
     yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'full')
 
-    # Compute also the global avg reward and the number of rewards >= average
-    # Compute also the global avg timesteps and the number of rewards <= average
+    # Compute also the global avg reward and the number of rewards >= average in percentage
+    # Compute also the global avg timesteps and the number of rewards <= average in percentage
     global_avg_reward = np.mean(y_final_reward)
     global_std_dev_reward = np.std(y_final_reward)
     global_avg_timesteps = np.mean(y_final_timesteps)
     global_std_dev_timesteps = np.std(y_final_timesteps)
 
-    global_n_reward = sum(i >= global_avg_reward for i in y_final_reward)
-    global_n_timesteps = sum(i <= global_avg_timesteps for i in y_final_timesteps)
+    global_n_reward = sum(i >= global_avg_reward for i in y_final_reward)*100/float(len(y_final_reward))
+    global_n_timesteps = sum(i <= global_avg_timesteps for i in y_final_timesteps)*100/float(len(y_final_timesteps))
 
     # plot results
     # pl.plot(df_single_run['x'], df_single_run['y1'], label='single run', color=color[0])  # single line
@@ -184,25 +184,25 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     plt.savefig('avg_steps_for_' + param + '.png')
 
     fig, ax = plt.subplots()
-    col = ax.bar([param + "=3" + param_values[0], param + "=6" + param_values[1], param + "=9" + param_values[2]],
+    col = ax.bar([param + "=" + param_values[0], param + "=" + param_values[1], param + "=" + param_values[2]],
                  n_rewards, align='center', color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Number of rewards upon avg')
-    ax.set_title('Number of rewards over avg for different configurations of ' + param)
+    ax.set_ylabel('Percentage of rewards upon avg (%)')
+    ax.set_title('Percentage of rewards over avg for different configurations of ' + param)
 
     fig.tight_layout()
 
     plt.savefig('n_rewards_for_' + param + '.png')
 
     fig, ax = plt.subplots()
-    col = ax.bar([param + "=3" + param_values[0], param + "=6" + param_values[1], param + "=9" + param_values[2]],
+    col = ax.bar([param + "=" + param_values[0], param + "=" + param_values[1], param + "=" + param_values[2]],
                  n_steps,
                  align='center', color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Number of steps below avg')
-    ax.set_title('Number of steps below avg for different configurations of ' + param)
+    ax.set_ylabel('Percentage of steps below avg (%)')
+    ax.set_title('Percentage of steps below avg for different configurations of ' + param)
 
     fig.tight_layout()
 
