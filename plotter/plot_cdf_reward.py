@@ -6,6 +6,7 @@ import pylab as pl
 
 from config import GlobalVar
 
+
 # Functions for plotting the CDF of the reward
 
 def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
@@ -30,12 +31,14 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
         directory = GlobalVar.directory + 'output/output_csv'
         filename = 'output_' + algorithm + '_' + dat + '.csv'
 
+        x = []
+        y_avg_reward_for_one_episode = []
         with open(directory + '/' + filename, 'r') as csv_file:
             reader = csv.reader(csv_file, delimiter=',')
             next(reader, None)
             for row in reader:
                 x.append(int(row[0]))
-                y_avg_reward_for_one_episode.append(float(row[1])/float(row[3]))
+                y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
         x_all.append(x)
         y_all_avg_rewards.append(y_avg_reward_for_one_episode)
 
@@ -54,18 +57,20 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
 
     # ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
     color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
+    i = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"].index(algorithm)
 
     # plot results
     pl.plot(df_final_avg_over_n_runs['x'], df_final_avg_over_n_runs['y1'],
-            label="avg over " + str(len(date_array)) + " run", color=color[1])  # avg line
+            label="avg over " + str(len(date_array)) + " run", color=color[i])  # avg line
 
     pl.xlabel('Episodes')
-    pl.ylabel('Avg reward per episode')
+    pl.ylabel('Avg reward obtained per episode')
     pl.legend(loc='lower right')
     pl.title('Reward for ' + algorithm + ' algorithm over episodes')
     pl.grid(True)
     plt.savefig('avg_reward_plot_multiple_runs.png')
     plt.show()
+    plt.close()
 
     return algorithm, x_all[0], y_final_avg_rewards
 
@@ -76,14 +81,15 @@ def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew):
     for i in range(0, len(algorithms_target)):
         # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
         # First sorting the array
-        plt.hist(np.sort(avg_rew[i]), density=True, cumulative=True, label='CDF-'+algorithms_target[i], histtype='step', alpha=0.8, color=color[i])
+        plt.hist(np.sort(avg_rew[i]), density=True, cumulative=True, label='CDF-' + algorithms_target[i],
+                 histtype='step', alpha=0.8, color=color[i])
 
-    plt.xlabel('Episodes')
-    plt.ylabel('Reward')
+    plt.xlabel('Reward')
+    plt.ylabel('CDF')
     plt.legend(loc='lower right')
-    plt.title('Avg reward over episodes')
+    plt.title('CDF of avg reward in one episode')
     plt.grid(True)
-    plt.savefig('avg_rewards_multiple_algo.png')
+    plt.savefig('cdf_rewards_multiple_algo.png')
     plt.show()
 
 
@@ -129,21 +135,22 @@ if __name__ == '__main__':
     avg_rewards.append(avgr)
 
     # SARSA(lambda)
-    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa, algorithm="sarsa_lambda")
+    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa_lambda, algorithm="sarsa_lambda")
 
     algos.append(al)
     episodes.append(ep)
     avg_rewards.append(avgr)
 
     # Q-learning
-    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa, algorithm="qlearning")
+    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=qlearning, algorithm="qlearning")
 
     algos.append(al)
     episodes.append(ep)
     avg_rewards.append(avgr)
 
     # Q(lambda)
-    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa, algorithm="qlearning_lambda")
+    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=qlearning_lambda,
+                                                                algorithm="qlearning_lambda")
 
     algos.append(al)
     episodes.append(ep)
