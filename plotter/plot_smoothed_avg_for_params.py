@@ -143,7 +143,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
 
     for i in range(0, len(param_values_target)):
         pl.plot(episodes_target[i], moving_average_timesteps_target[i][0:np.array(episodes_target[i]).shape[0]],
-                label=param_values_target[i], color=color[i])
+                label=param + "=" + param_values_target[i], color=color[i])
 
     pl.xlabel('Episodes')
     pl.ylabel('Number of steps')
