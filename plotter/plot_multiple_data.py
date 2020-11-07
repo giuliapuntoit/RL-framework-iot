@@ -5,6 +5,7 @@ import numpy as np
 import fastplot
 from config import GlobalVar
 
+
 class PlotOutputData(object):
     # Plot reward and timesteps over episodes for multiple executions
     # Deprecated!
@@ -170,14 +171,14 @@ class PlotOutputData(object):
 
         data = pd.DataFrame(np.matrix(timesteps).transpose(),
                             index=episodes[0],
-                            columns=['0.3', '0.6', '0.9'],)
+                            columns=['0.3', '0.6', '0.9'], )
         fastplot.plot(data, GlobalVar.directory + 'plot/0_epsilon_bars_timesteps.png', mode='bars_multi', style='latex',
                       ylabel='Timesteps', legend=True, ylim=(0, 30), legend_ncol=3,
                       legend_args={'markerfirst': True})
 
         data = pd.DataFrame(np.matrix(rewards).transpose(),
                             index=episodes[0],
-                            columns=['0.3', '0.6', '0.9'],)
+                            columns=['0.3', '0.6', '0.9'], )
         fastplot.plot(data, GlobalVar.directory + 'plot/0_epsilon_bars_rew.png', mode='bars_multi', style='latex',
                       ylabel='Timesteps', legend=True, legend_ncol=3,
                       legend_args={'markerfirst': True})

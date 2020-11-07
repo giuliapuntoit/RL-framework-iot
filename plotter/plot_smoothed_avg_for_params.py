@@ -72,12 +72,12 @@ def plot_single_configuration_multiple_runs(date_array, param):
 
     # color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
-    window_size = 20
+    window_size = 10
 
     # Compute the smoothed moving average
     weights = np.repeat(1.0, window_size) / window_size
-    yMA = np.convolve(df_final_avg_over_n_runs['y1'], weights, 'full')
-    yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'full')
+    yMA = np.convolve(df_final_avg_over_n_runs['y1'], weights, 'valid')
+    yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'valid')
 
     # Compute also the global avg reward and the number of rewards >= average in percentage
     # Compute also the global avg timesteps and the number of rewards <= average in percentage
@@ -130,7 +130,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     color = ('#A66066', '#F2A172', '#858C4A')
 
     for i in range(0, len(param_values_target)):
-        pl.plot(episodes_target[i], moving_average_rewards_target[i][0:np.array(episodes_target[i]).shape[0]],
+        pl.plot(episodes_target[i][np.array(episodes_target[i]).shape[0]-np.array(moving_average_rewards_target[i]).shape[0]:], moving_average_rewards_target[i],
                 label=param + "=" + param_values_target[i], color=color[i])
 
     pl.xlabel('Episodes')
@@ -142,7 +142,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     plt.show()
 
     for i in range(0, len(param_values_target)):
-        pl.plot(episodes_target[i], moving_average_timesteps_target[i][0:np.array(episodes_target[i]).shape[0]],
+        pl.plot(episodes_target[i][np.array(episodes_target[i]).shape[0]-np.array(moving_average_timesteps_target[i]).shape[0]:], moving_average_timesteps_target[i],
                 label=param + "=" + param_values_target[i], color=color[i])
 
     pl.xlabel('Episodes')

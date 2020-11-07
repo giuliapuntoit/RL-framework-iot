@@ -56,18 +56,18 @@ def plot_single_algo_single_run(date_to_retrieve):
 
     plt.show()
 
-    window_size = 30
+    window_size = 10
 
     # calculate the smoothed moving average
     weights = np.repeat(1.0, window_size) / window_size
-    yMA = np.convolve(y_reward, weights, 'full')
+    yMA = np.convolve(y_reward, weights, 'valid')
     # plot results
-    pl.plot(x, yMA[0:np.array(x).shape[0]], 'r', label='MA')
+    pl.plot(x[np.array(x).shape[0]-yMA.shape[0]:], yMA, 'r', label='MA')
     pl.plot(x, df['y1'], label='data')
     pl.xlabel('Time')
     pl.ylabel('y')
     pl.legend(loc='lower right')
-    pl.title('Moving Average with window size = 30')
+    pl.title('Moving Average with window size = ' + str(window_size))
     pl.grid(True)
     pl.show()
 
@@ -142,16 +142,17 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
     # ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
     color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
-    window_size = 20
+    window_size = 10
 
     # calculate the smoothed moving average
     weights = np.repeat(1.0, window_size) / window_size
-    yMA = np.convolve(df_final_avg_over_n_runs['y1'], weights, 'full')
+    yMA = np.convolve(df_final_avg_over_n_runs['y1'], weights, 'valid')
+
     # plot results
     pl.plot(df_single_run['x'], df_single_run['y1'], label='single run', color=color[0])  # single line
     pl.plot(df_final_avg_over_n_runs['x'], df_final_avg_over_n_runs['y1'],
             label="avg over " + str(len(date_array)) + " run", color=color[1])  # avg line
-    pl.plot(df_final_avg_over_n_runs['x'], yMA[0:np.array(df_final_avg_over_n_runs['x']).shape[0]], 'r',
+    pl.plot(df_final_avg_over_n_runs['x'][np.array(df_final_avg_over_n_runs['x']).shape[0]-yMA.shape[0]:], yMA, 'r',
             label='moving average')  # moving avg line
 
     pl.xlabel('Episodes')
@@ -162,12 +163,13 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
     plt.savefig('all_reward_plot.png')
     plt.show()
 
-    yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'full')
+    yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'valid')
+
     # plot results
     pl.plot(df_single_run['x'], df_single_run['y2'], label='single run', color=color[0])  # single line
     pl.plot(df_final_avg_over_n_runs['x'], df_final_avg_over_n_runs['y2'],
             label="avg over " + str(len(date_array)) + " run", color=color[1])  # avg line
-    pl.plot(df_final_avg_over_n_runs['x'], yMA_timesteps[0:np.array(df_final_avg_over_n_runs['x']).shape[0]], 'r',
+    pl.plot(df_final_avg_over_n_runs['x'][np.array(df_final_avg_over_n_runs['x']).shape[0]-yMA_timesteps.shape[0]:], yMA_timesteps, 'r',
             label='moving average')  # moving avg line
 
     pl.xlabel('Episodes')
@@ -186,7 +188,7 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
     color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
     for i in range(0, len(algorithms_target)):
-        pl.plot(episodes_target[i], moving_average_rewards_target[i][0:np.array(episodes_target[i]).shape[0]],
+        pl.plot(episodes_target[i][np.array(episodes_target[i]).shape[0]-np.array(moving_average_rewards_target[i]).shape[0]:], moving_average_rewards_target[i],
                 label=algorithms_target[i], color=color[i])
 
     pl.xlabel('Episodes')
@@ -198,7 +200,7 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
     plt.show()
 
     for i in range(0, len(algorithms_target)):
-        pl.plot(episodes_target[i], moving_average_timesteps_target[i][0:np.array(episodes_target[i]).shape[0]],
+        pl.plot(episodes_target[i][np.array(episodes_target[i]).shape[0]-np.array(moving_average_timesteps_target[i]).shape[0]:], moving_average_timesteps_target[i],
                 label=algorithms_target[i], color=color[i])
 
     pl.xlabel('Episodes')
