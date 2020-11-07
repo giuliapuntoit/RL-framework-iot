@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import fastplot
 import csv
 import numpy as np
 import pandas as pd
@@ -47,16 +46,16 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     for i in range(0, len(x_all)):
         # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
         # First sorting the array
-        plt.hist(np.sort(y_all_avg_rewards[i]), density=True, cumulative=True, label='CDF-run ' + str(i), histtype='step', alpha=0.8)
+        plt.hist(np.sort(y_all_avg_rewards[i]), density=True, cumulative=True, label='CDF-run ' + str(i), bins=1000, histtype='step', alpha=0.8)
         # data.append(("run"+str(i), y_all_avg_rewards[i]))
     # fastplot.plot(data, 'CDF_PROVA.png', mode='CDF_multi', xlabel='Reward for algorithm ' + algorithm, legend=True,)
 
     plt.xlabel('Reward')
-    plt.ylabel('CDF')
+    plt.ylabel('CDF (Episode)')
     plt.legend(loc='lower right')
-    plt.title('CDF of avg reward in one episode')
+    plt.title('CDF of reward obtained in 1 episode for ' + algorithm)
     plt.grid(True)
-    plt.savefig('cdf_rewards_PROVA.png')
+    plt.savefig('cdf_rewards_multiple_run_' + algorithm + '.png')
     plt.show()
 
     # compute average over multiple runs
@@ -98,13 +97,13 @@ def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew):
     for i in range(0, len(algorithms_target)):
         # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
         # First sorting the array
-        plt.hist(np.sort(avg_rew[i]), density=True, cumulative=True, label='CDF-' + algorithms_target[i],
+        plt.hist(np.sort(avg_rew[i]), density=True, cumulative=True, label='CDF-' + algorithms_target[i], bins=1000,
                  histtype='step', alpha=0.8, color=color[i])
 
     plt.xlabel('Reward')
-    plt.ylabel('CDF')
+    plt.ylabel('CDF (Episode)')
     plt.legend(loc='lower right')
-    plt.title('CDF of avg reward in one episode')
+    plt.title('CDF of reward obtained in 1 episode')
     plt.grid(True)
     plt.savefig('cdf_rewards_multiple_algo.png')
     plt.show()
