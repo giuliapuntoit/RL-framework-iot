@@ -3,11 +3,18 @@ import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
+from matplotlib import patches
 
 from config import GlobalVar
 
 
+def fix_hist_step_vertical_line_at_end(ax):
+    ax_polygons = [poly for poly in ax.get_children() if isinstance(poly, patches.Polygon)]
+    for poly in ax_polygons:
+        poly.set_xy(poly.get_xy()[:-1])
+
 # Functions for plotting the CDF of the reward
+
 
 def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     x_all = []
@@ -43,10 +50,13 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
         y_all_avg_rewards.append(y_avg_reward_for_one_episode)
 
     data = []
+    fig, ax = plt.subplots()
     for i in range(0, len(x_all)):
         # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
         # First sorting the array
         plt.hist(np.sort(y_all_avg_rewards[i]), density=True, cumulative=True, label='CDF-run ' + str(i), bins=1000, histtype='step', alpha=0.8)
+        fix_hist_step_vertical_line_at_end(ax)
+
         # data.append(("run"+str(i), y_all_avg_rewards[i]))
     # fastplot.plot(data, 'CDF_PROVA.png', mode='CDF_multi', xlabel='Reward for algorithm ' + algorithm, legend=True,)
 
@@ -54,6 +64,7 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     plt.ylabel('CDF (Episode)')
     plt.legend(loc='lower right')
     plt.title('CDF of reward obtained in 1 episode for ' + algorithm)
+    plt.ylim(0, 1.0)
     plt.grid(True)
     plt.savefig('cdf_rewards_multiple_run_' + algorithm + '.png')
     plt.show()
@@ -94,17 +105,21 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
 def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew):
     color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
+    fig, ax = plt.subplots()
+
     for i in range(0, len(algorithms_target)):
         # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
         # First sorting the array
         plt.hist(np.sort(avg_rew[i]), density=True, cumulative=True, label='CDF-' + algorithms_target[i], bins=1000,
                  histtype='step', alpha=0.8, color=color[i])
+        fix_hist_step_vertical_line_at_end(ax)
 
     plt.xlabel('Reward')
     plt.ylabel('CDF (Episode)')
     plt.legend(loc='lower right')
     plt.title('CDF of reward obtained in 1 episode')
     plt.grid(True)
+    plt.ylim(0, 1.0)
     plt.savefig('cdf_rewards_multiple_algo.png')
     plt.show()
 
