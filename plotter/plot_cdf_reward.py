@@ -45,7 +45,9 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
             next(reader, None)
             for row in reader:
                 x.append(int(row[0]))
-                y_avg_reward_for_one_episode.append(float(row[1]))  # / float(row[3]))
+                # TO COMPUTE OVER NUMBER OF COMMANDS
+                # OTHERWISE REMOVE DIVISION BY ROW 3
+                y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
         x_all.append(x)
         y_all_avg_rewards.append(y_avg_reward_for_one_episode)
 
@@ -61,9 +63,9 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     # fastplot.plot(data, 'CDF_PROVA.png', mode='CDF_multi', xlabel='Reward for algorithm ' + algorithm, legend=True,)
 
     plt.xlabel('Reward')
-    plt.ylabel('CDF (Episode)')
+    plt.ylabel('CDF (Command)')
     plt.legend(loc='lower right')
-    plt.title('CDF of reward obtained in 1 episode for ' + algorithm)
+    plt.title('CDF of avg reward obtained in for 1 command in 1 episode for ' + algorithm)
     plt.ylim(0, 1.0)
     plt.grid(True)
     plt.savefig('cdf_rewards_multiple_run_' + algorithm + '.png')

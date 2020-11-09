@@ -121,6 +121,8 @@ def handle_response(data):
         elif 'error' in json_received and json_received['error'] is not None:
             print("\t\t\tRESPONSE: error ->", json_received['error'])
             reward_from_response = -10
+            if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
+                sleep(60)
         else:
             print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
             reward_from_response = -20  # non è colpa di nessuno?
@@ -141,6 +143,8 @@ def handle_response_no_reward(data):
             print("\t\t\tRESPONSE: result ->", json_received['result'])
         elif 'error' in json_received and json_received['error'] is not None:
             print("\t\t\tRESPONSE: error ->", json_received['error'])
+            if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
+                sleep(60)
         else:
             print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
     else:
@@ -151,7 +155,7 @@ def handle_response_props(data):
     # Handle the response given by the bulb when asking for properties of the device
 
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-    # print("Json received is", + json_received)
+    # print("[DEBUG] Json received", json_received)
 
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
@@ -159,6 +163,8 @@ def handle_response_props(data):
             return json_received['result']  # List of values for properties
         elif 'error' in json_received and json_received['error'] is not None:
             print("\t\t\tRESPONSE: error ->", json_received['error'])
+            if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
+                sleep(60)
             return json_received['error']
         else:
             print("\t\t\tRESPONSE: No result or error found in answer")

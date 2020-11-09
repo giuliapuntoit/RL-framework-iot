@@ -498,7 +498,8 @@ class ReinforcementLearningAlgorithm(object):
             RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=current_date.strftime('%Y_%m_%d_%H_%M_%S')).run()
 
 
-def main():
+def main(discovery_report=None):
+    print("Received discovery report:", discovery_report)
     # Socket setup
     GlobalVar.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     fcntl.fcntl(GlobalVar.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
@@ -518,11 +519,6 @@ def main():
     detection_thread.start()
     # Give detection thread some time to collect bulb info
     sleep(10)
-
-    # Show discovered lamps
-    display_bulbs()
-    print(GlobalVar.bulb_idx2ip)
-
     max_wait = 0
     while len(GlobalVar.bulb_idx2ip) == 0 and max_wait < 10:
         # Wait for 10 seconds to see if some bulb is present
@@ -532,11 +528,16 @@ def main():
     if len(GlobalVar.bulb_idx2ip) == 0:
         print("Bulb list is empty.")
     else:
-        # If some bulb was found, take first bulb
+        # If some bulb was found, take first bulb or the one specified as argument
         display_bulbs()
+        print(GlobalVar.bulb_idx2ip)
         global idLamp
-        idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
-
+        if discovery_report is None:
+            idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
+            print("No discovery report: id lamp", idLamp)
+        elif discovery_report['ip'] and discovery_report['ip'] in GlobalVar.bulb_idx2ip.values():
+            idLamp = list(GlobalVar.bulb_idx2ip.keys())[list(GlobalVar.bulb_idx2ip.values()).index(discovery_report['ip'])]
+            print("Discovery report found: id lamp", idLamp)
         print("Waiting 5 seconds before using RL algorithm")
         sleep(5)
 
@@ -550,7 +551,7 @@ def main():
         #     for alp in [0.005, 0.05, 0.5]:
         #         for gam in [0.45, 0.75, 0.95]:
         algo = 'sarsa'  #, 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
-        for eps in [0.3, 0.9]:
+        for eps in [0.1, 0.2, 0.4, 0.5]:
             for i in range(0, 5):
                 print("INDEX", i, "- ALGORITHM", algo, "- EPSILON", eps)
                 ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,

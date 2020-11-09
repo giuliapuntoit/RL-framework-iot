@@ -6,3 +6,10 @@ class DiscoveryReport(object):
         self.timestamp = timestamp
         self.ip = ip
         self.port = port
+
+    def as_dict(self):
+        return {'result': self.result,
+                'protocol': self.protocol,
+                'timestamp': self.timestamp,
+                'ip': self.ip,
+                'port': self.port}

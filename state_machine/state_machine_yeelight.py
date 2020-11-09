@@ -87,7 +87,7 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     # Send the json command to the yeelight device
     props_values = operate_on_bulb_props(id_lamp, json_command)
 
-    if not props_values:
+    if not props_values or len(props_values) < 7:
         print("\t\tSomething went wrong from get_prop: keeping the current state")
         return current_state, old_props_values
 
