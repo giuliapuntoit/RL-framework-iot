@@ -550,8 +550,8 @@ def main(discovery_report=None):
         # for eps in [0.3, 0.6, 0.9]:
         #     for alp in [0.005, 0.05, 0.5]:
         #         for gam in [0.45, 0.75, 0.95]:
-        algo = 'sarsa'  #, 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
-        for eps in [0.1, 0.2, 0.4, 0.5]:
+        algo = 'qlearning'  #, 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
+        for eps in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.9]:
             for i in range(0, 5):
                 print("INDEX", i, "- ALGORITHM", algo, "- EPSILON", eps)
                 ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
