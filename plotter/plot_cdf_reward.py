@@ -13,6 +13,7 @@ def fix_hist_step_vertical_line_at_end(ax):
     for poly in ax_polygons:
         poly.set_xy(poly.get_xy()[:-1])
 
+
 # Functions for plotting the CDF of the reward
 
 
@@ -56,16 +57,17 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     for i in range(0, len(x_all)):
         # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
         # First sorting the array
-        plt.hist(np.sort(y_all_avg_rewards[i]), density=True, cumulative=True, label='CDF-run ' + str(i), bins=1000, histtype='step', alpha=0.8)
+        plt.hist(np.sort(y_all_avg_rewards[i]), density=True, cumulative=True, label='CDF-run ' + str(i), bins=1000,
+                 histtype='step', alpha=0.8)
         fix_hist_step_vertical_line_at_end(ax)
 
         # data.append(("run"+str(i), y_all_avg_rewards[i]))
     # fastplot.plot(data, 'CDF_PROVA.png', mode='CDF_multi', xlabel='Reward for algorithm ' + algorithm, legend=True,)
 
     plt.xlabel('Reward')
-    plt.ylabel('CDF (Command)')
+    plt.ylabel('CDF (Episode)')
     plt.legend(loc='lower right')
-    plt.title('CDF of avg reward obtained in for 1 command in 1 episode for ' + algorithm)
+    plt.title('CDF of avg reward per sent command ' + algorithm)
     plt.ylim(0, 1.0)
     plt.grid(True)
     plt.savefig('cdf_rewards_multiple_run_' + algorithm + '.png')
@@ -101,7 +103,7 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     plt.show()
     plt.close()
 
-    return algorithm, x_all[0], y_final_avg_rewards
+    return algorithm, x_all[0], y_final_avg_rewards, y_all_avg_rewards
 
 
 def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew):
@@ -119,7 +121,7 @@ def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew):
     plt.xlabel('Reward')
     plt.ylabel('CDF (Episode)')
     plt.legend(loc='lower right')
-    plt.title('CDF of reward obtained in 1 episode')
+    plt.title('CDF of avg reward per sent command')
     plt.grid(True)
     plt.ylim(0, 1.0)
     plt.savefig('cdf_rewards_multiple_algo.png')
@@ -161,33 +163,53 @@ if __name__ == '__main__':
         '2020_11_05_16_27_15', ]
 
     # SARSA
-    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa, algorithm="sarsa")
+    al, ep, avgr, all_avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa, algorithm="sarsa")
 
     algos.append(al)
     episodes.append(ep)
-    avg_rewards.append(avgr)
+    tmp_arr = []
+    for arr in all_avgr:
+        tmp_arr = np.concatenate((np.array(tmp_arr), np.array(arr)))
+        print(tmp_arr)
+    avg_rewards.append(tmp_arr)
 
     # SARSA(lambda)
-    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa_lambda, algorithm="sarsa_lambda")
+    al, ep, avgr, all_avgr = compute_avg_reward_single_algo_multiple_runs(date_array=sarsa_lambda,
+                                                                          algorithm="sarsa_lambda")
 
     algos.append(al)
     episodes.append(ep)
-    avg_rewards.append(avgr)
+    # avg_rewards.append(avgr)
+    tmp_arr = []
+    for arr in all_avgr:
+        tmp_arr = np.concatenate((np.array(tmp_arr), np.array(arr)))
+        print(tmp_arr)
+    avg_rewards.append(tmp_arr)
 
     # Q-learning
-    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=qlearning, algorithm="qlearning")
+    al, ep, avgr, all_avgr = compute_avg_reward_single_algo_multiple_runs(date_array=qlearning, algorithm="qlearning")
 
     algos.append(al)
     episodes.append(ep)
-    avg_rewards.append(avgr)
+    # avg_rewards.append(avgr)
+    tmp_arr = []
+    for arr in all_avgr:
+        tmp_arr = np.concatenate((np.array(tmp_arr), np.array(arr)))
+        print(tmp_arr)
+    avg_rewards.append(tmp_arr)
 
     # Q(lambda)
-    al, ep, avgr = compute_avg_reward_single_algo_multiple_runs(date_array=qlearning_lambda,
-                                                                algorithm="qlearning_lambda")
+    al, ep, avgr, all_avgr = compute_avg_reward_single_algo_multiple_runs(date_array=qlearning_lambda,
+                                                                          algorithm="qlearning_lambda")
 
     algos.append(al)
     episodes.append(ep)
-    avg_rewards.append(avgr)
+    # avg_rewards.append(avgr)
+    tmp_arr = []
+    for arr in all_avgr:
+        tmp_arr = np.concatenate((np.array(tmp_arr), np.array(arr)))
+        print(tmp_arr)
+    avg_rewards.append(tmp_arr)
 
     plot_cdf_reward_multiple_algo(algos, episodes, avg_rewards)
 
