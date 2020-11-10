@@ -160,7 +160,7 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
     pl.legend(loc='lower right')
     pl.title('Reward for ' + algorithm + ' algorithm over episodes')
     pl.grid(True)
-    plt.savefig('all_reward_plot' + algorithm + '.png')
+    plt.savefig('all_reward_plot_' + algorithm + '.png')
     plt.show()
 
     yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'valid')
@@ -177,7 +177,7 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
     pl.legend(loc='upper right')
     pl.title('Steps for ' + algorithm + ' algorithm over episodes')
     pl.grid(True)
-    plt.savefig('all_timesteps_plot' + algorithm + '.png')
+    plt.savefig('all_timesteps_plot_' + algorithm + '.png')
     plt.show()
 
     return algorithm, x, yMA, yMA_timesteps
