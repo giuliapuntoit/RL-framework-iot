@@ -550,16 +550,18 @@ def main(discovery_report=None):
         # for eps in [0.3, 0.6, 0.9]:
         #     for alp in [0.005, 0.05, 0.5]:
         #         for gam in [0.45, 0.75, 0.95]:
-        algo = 'qlearning'  #, 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
-        for eps in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.9]:
-            for i in range(0, 5):
-                print("INDEX", i, "- ALGORITHM", algo, "- EPSILON", eps)
-                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
+        # algo = 'qlearning_lambda'  # , 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
+        # for al in [0.5, 0.2, 0.1, 0.05, 0.02, 0.01, 0.005]:  # alpha values
+        for algo in ["sarsa_lambda"]:  # , "sarsa_lambda"]:  # lambda 0 is the same as plain sarsa and qlearning
+            for i in range(0, 10):
+                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path)
+                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=200,
                                                num_actions_to_use=37,
                                                seconds_to_wait=0.1,
-                                               epsilon=eps,
-                                               alpha=0.05,
-                                               gamma=0.95,
+                                               epsilon=0.2,  # already tuned
+                                               alpha=0.1,  # already tuned
+                                               gamma=0.75,  # already tuned
+                                               lam=0.5,  # 0.5 lambda
                                                show_graphs=False,
                                                follow_policy=False,
                                                follow_partial_policy=False,
@@ -569,7 +571,7 @@ def main(discovery_report=None):
         print("############# Finish RL algorithm #############")
 
     # Goal achieved, tell detection thread to quit and wait
-    RUNNING = False  # non credo serva di nuovo
+    RUNNING = False  # non credo serva di nuovo, sarebbe global var comunque
     detection_thread.join()
     # Done
 

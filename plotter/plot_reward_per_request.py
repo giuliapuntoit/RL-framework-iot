@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pylab as pl
+plt.rcParams["font.family"] = "Times New Roman"
 
 from config import GlobalVar
 

@@ -3,11 +3,15 @@ import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
+plt.rcParams["font.family"] = "Times New Roman"
 
 from config import GlobalVar
 
 
 # Functions for plotting the moving average for multiple runs and multiple configurations of params
+
+target_dir = "../plot/tuning_"
+complete_target_dir = ""
 
 
 def plot_single_configuration_multiple_runs(date_array, param):
@@ -141,7 +145,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     pl.legend(loc='lower right')
     pl.title('Moving average of reward over episodes for ' + algorithm)
     pl.grid(True)
-    plt.savefig('mavg_reward_params.png')
+    plt.savefig(complete_target_dir + 'mavg_reward_params.png')
     plt.show()
 
     for i in range(0, len(param_values_target)):
@@ -155,7 +159,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     pl.legend(loc='upper right')
     pl.title('Moving average of number of steps over episodes for ' + algorithm)
     pl.grid(True)
-    plt.savefig('mavg_timesteps_params.png')
+    plt.savefig(complete_target_dir + 'mavg_timesteps_params.png')
     plt.show()
 
 
@@ -173,7 +177,7 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
 
     fig.tight_layout()
 
-    plt.savefig('avg_rewards_for_' + param + '.png')
+    plt.savefig(complete_target_dir + 'avg_rewards_for_' + param + '.png')
 
     fig, ax = plt.subplots()
     col = ax.bar(param_values,
@@ -186,7 +190,7 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
 
     fig.tight_layout()
 
-    plt.savefig('avg_steps_for_' + param + '.png')
+    plt.savefig(complete_target_dir + 'avg_steps_for_' + param + '.png')
 
     fig, ax = plt.subplots()
     col = ax.bar(param_values,
@@ -198,7 +202,7 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
 
     fig.tight_layout()
 
-    plt.savefig('n_rewards_for_' + param + '.png')
+    plt.savefig(complete_target_dir + 'n_rewards_for_' + param + '.png')
 
     fig, ax = plt.subplots()
     col = ax.bar(param_values,
@@ -211,7 +215,7 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
 
     fig.tight_layout()
 
-    plt.savefig('n_steps_for_' + param + '.png')
+    plt.savefig(complete_target_dir + 'n_steps_for_' + param + '.png')
 
 
 if __name__ == '__main__':
@@ -227,64 +231,50 @@ if __name__ == '__main__':
     n_timesteps = []
     std_dev_rewards = []
     std_dev_timesteps = []
-    # Changing 3 values of epsilon for example
-    changing_param = "epsilon"
-    # Same fixed algorithm
-    algo = "sarsa"
+
+    changing_param = "lambda"
+    algo = "sarsa_lambda"
+    complete_target_dir = target_dir + changing_param + "/" + algo + "/"
     print("ALGO SHOULD BE", algo, "FOR ALL RESULTS")
-
-    value_of_epsilon = [
-        [  # epsilon = 0.1
-            '2020_11_08_14_08_49',
-            '2020_11_08_14_40_36',
-            '2020_11_08_15_36_50',
-            '2020_11_08_16_19_34',
-            '2020_11_08_16_56_28'
-        ],
-        [  # epsilon = 0.2
-            '2020_11_08_17_32_08',
-            '2020_11_08_18_04_39',
-            '2020_11_08_18_44_32',
-            '2020_11_08_19_17_39',
-            '2020_11_08_19_49_40',
-        ],
-        [  # epsilon = 0.3
-            '2020_11_05_17_58_34',
-            '2020_11_05_18_31_24',
-            '2020_11_05_19_06_15',
-            '2020_11_05_19_40_47',
-            '2020_11_05_20_15_14',
-        ],
-        [  # epsilon = 0.4
-            '2020_11_08_20_22_36',
-            '2020_11_08_21_00_37',
-            '2020_11_08_21_40_44',
-            '2020_11_08_22_20_25',
-            '2020_11_08_22_53_20',
-        ],
-        [  # epsilon = 0.5
-            '2020_11_08_23_29_48',
-            '2020_11_09_00_10_48',
-            '2020_11_09_00_50_41',
-            '2020_11_09_01_29_48',
-            '2020_11_09_02_12_32',
-        ],
-        [  # epsilon = 0.6
-            '2020_11_05_03_27_46',
-            '2020_11_05_04_07_23',
-            '2020_11_05_04_48_59',
-            '2020_11_05_05_30_35',
-            '2020_11_05_06_10_02',
-        ],
-        [  # epsilon = 0.9
-            '2020_11_05_20_56_56',
-            '2020_11_05_21_49_31',
-            '2020_11_05_22_42_34',
-            '2020_11_05_23_33_47',
-            '2020_11_06_00_21_57',
-        ]]
-
-    for val in value_of_epsilon:
+    value_of_lambda = [
+    [  # lambda = 0
+        '2020_11_16_01_11_21',
+        '2020_11_16_01_42_18',
+        '2020_11_16_02_13_10',
+        '2020_11_16_02_46_26',
+        '2020_11_16_03_19_58', ],
+    [  # lambda = 0.5
+        '2020_11_16_03_49_30',
+        '2020_11_16_04_20_40',
+        '2020_11_16_04_50_52',
+        '2020_11_16_05_19_47',
+        '2020_11_16_05_48_35', ],
+    [  # lambda = 0.8
+        '2020_11_16_06_23_01',
+        '2020_11_16_06_56_41',
+        '2020_11_16_07_27_59',
+        '2020_11_16_07_54_40',
+        '2020_11_16_08_31_02', ],
+    [  # lambda = 0.9
+        '2020_11_16_09_00_46',
+        '2020_11_16_09_37_10',
+        '2020_11_16_10_10_24',
+        '2020_11_16_10_44_49',
+        '2020_11_16_11_14_23', ],
+    [  # lambda = 0.95
+        '2020_11_16_11_46_49',
+        '2020_11_16_12_26_48',
+        '2020_11_16_13_05_14',
+        '2020_11_16_13_49_15',
+        '2020_11_16_14_21_50', ],
+    [  # lambda = 1
+        '2020_11_16_14_56_06',
+        '2020_11_16_15_30_21',
+        '2020_11_16_16_03_15',
+        '2020_11_16_16_39_18',
+        '2020_11_16_17_07_38', ]
+]
+    for val in value_of_lambda:
         p, ep, ma, mats, ar, at, nr, nt, sdr, sdt = plot_single_configuration_multiple_runs(date_array=val,
                                                                                             param=changing_param)
         changing_param_values.append(p)

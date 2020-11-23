@@ -3,6 +3,7 @@ import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
+plt.rcParams["font.family"] = "Times New Roman"
 
 from config import GlobalVar
 
@@ -282,3 +283,4 @@ if __name__ == '__main__':
     plot_multiple_algo_moving_avg(algos, episodes, moving_avgs_rewards, moving_avgs_timesteps)
 
 # 1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda
+# TODO i should rename this script as moving average not smoothed!

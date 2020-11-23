@@ -220,5 +220,5 @@ if __name__ == '__main__':
                   '2020_10_29_23_59_49',
                   '2020_10_30_00_40_49', ]
     params = ['2020_10_28_03_54_08', '2020_10_28_16_13_06', '2020_10_29_06_50_02']
-    PlotOutputData(date_to_retrieve='2020_10_28_14_49_55', algos=algos, paths=paths, params=params,
+    PlotOutputData(date_to_retrieve='2020_10_28_03_54_08', algos=algos, paths=paths, params=params,
                    separate_plots=False).run()

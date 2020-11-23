@@ -9,5 +9,5 @@ class GlobalVar(object):
     scan_socket = None
     timeout = 5
     reward = 0
-    path = 2
+    path = 3  # parto da path 3 per sarsa
     directory = "../"

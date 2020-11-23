@@ -3,6 +3,7 @@ import csv
 import matplotlib
 import matplotlib.pyplot
 import matplotlib.font_manager
+matplotlib.pyplot.rcParams["font.family"] = "Times New Roman"
 
 # matplotlib.pyplot.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 

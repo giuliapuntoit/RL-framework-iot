@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pylab as pl
 from matplotlib import patches
+plt.rcParams["font.family"] = "Times New Roman"
 
 from config import GlobalVar
 

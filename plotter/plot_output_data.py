@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import csv
 from config import GlobalVar
+plt.rcParams["font.family"] = "Times New Roman"
 
 
 class PlotOutputData(object):
