@@ -32,8 +32,12 @@ class PlotTrainingTimeTraffic(object):
         std_dev_times = [np.std(times[0]), np.std(times[1]), np.std(times[2]),
                          np.std(times[3])]
         fig, ax = matplotlib.pyplot.subplots()
-        col = ax.bar(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"], avg_times, align='center',
-                     yerr=std_dev_times, color=('#77FF82', '#47CC99', '#239DBA', '#006586'))
+        # col = ax.bar(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"], avg_times, align='center',
+        #              yerr=std_dev_times)
+
+        col = ax.boxplot(times)  # , ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
+
+        ax.set_xticklabels(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
         ax.set_ylabel('Time (s)')
@@ -48,8 +52,14 @@ class PlotTrainingTimeTraffic(object):
         std_dev_traffic = [np.std(traffic[0]), np.std(traffic[1]), np.std(traffic[2]),
                            np.std(traffic[3])]
         fig, ax = matplotlib.pyplot.subplots()
-        col = ax.bar(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"], avg_traffic, align='center',
-                     yerr=std_dev_traffic, color=('#77FF82', '#47CC99', '#239DBA', '#006586'))
+        # COLUMN BAR GRAPH
+        # col = ax.bar(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"], avg_traffic, align='center',
+        #              yerr=std_dev_traffic)  # color=('#77FF82', '#47CC99', '#239DBA', '#006586'))
+
+        # BOXPLOT GRAPH
+        col = ax.boxplot(traffic)  # , ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
+
+        ax.set_xticklabels(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
         ax.set_ylabel('Number of sent commands')

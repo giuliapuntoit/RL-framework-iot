@@ -218,6 +218,44 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     plt.savefig(complete_target_dir + 'n_steps_for_' + param + '.png')
 
 
+def boxplot_multiple_configurations_rewards_timesteps_last_episodes(algor, param, values_of_param, last_20_rewards, last_20_timesteps):
+    fig, ax = plt.subplots()
+
+    # non sto più facendo una media, sto mettendo tutti i punti del reward medio
+    # last 20 episodes rewards of 5 run -> 100 punti per box
+    # [    run 1     run 2   run 3   run 4    run 5
+    #     [ep 90]    ...     ...
+    #     [ep 91]
+    #     ...
+    #     [ep 100]
+    # ]
+    col = ax.boxplot(last_20_rewards)
+
+    ax.set_xticklabels(values_of_param)
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Avg reward')
+    ax.set_title('Avg reward in 5 runs of last 20 episodes per config of ' + param + ' for algo ' + algor)
+
+    fig.tight_layout()
+
+    plt.savefig('boxplot_param_reward_last_20.png')
+
+    fig, ax = plt.subplots()
+
+    col = ax.boxplot(last_20_timesteps)  # , ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
+
+    ax.set_xticklabels(values_of_param)
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Avg time steps')
+    ax.set_title('Avg time steps in 5 runs of last 20 episodes per config of ' + param + ' for algo ' + algor)
+
+    fig.tight_layout()
+
+    plt.savefig('boxplot_param_timestep_last_20.png')
+
+
 if __name__ == '__main__':
     # I could pass a list of dates, then do the average of these dates
     # Then put multiple lines inside 1 multiline plot
@@ -231,6 +269,9 @@ if __name__ == '__main__':
     n_timesteps = []
     std_dev_rewards = []
     std_dev_timesteps = []
+
+    boxplot_last_rewards = []
+    boxplot_last_timesteps = []
 
     changing_param = "lambda"
     algo = "sarsa_lambda"
@@ -281,6 +322,12 @@ if __name__ == '__main__':
         episodes.append(ep)
         moving_avgs_rewards.append(ma)
         moving_avgs_timesteps.append(mats)
+
+        # voglio gli ultimi 20 avg reward degli ultimi 20 episodi e 5 run
+        # TODO
+        boxplot_last_rewards.append()
+        boxplot_last_timesteps.append()
+
         avg_rewards.append(ar)
         avg_timesteps.append(at)
         n_rewards.append(nr)
@@ -294,3 +341,5 @@ if __name__ == '__main__':
     plot_multiple_configuration_rewards_timesteps(algo, changing_param, changing_param_values, avg_rewards,
                                                   avg_timesteps, n_rewards, n_timesteps, std_dev_rewards,
                                                   std_dev_timesteps)
+
+    boxplot_multiple_configurations_rewards_timesteps_last_episodes(algo, changing_param, changing_param_values, boxplot_last_rewards, boxplot_last_timesteps)

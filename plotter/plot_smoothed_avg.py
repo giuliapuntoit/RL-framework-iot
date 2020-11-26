@@ -64,7 +64,7 @@ def plot_single_algo_single_run(date_to_retrieve):
     yMA = np.convolve(y_reward, weights, 'valid')
     # plot results
     pl.plot(x[np.array(x).shape[0]-yMA.shape[0]:], yMA, 'r', label='MA')
-    pl.plot(x, df['y1'], label='data')
+    pl.plot(x, df['y1'], 'y--', label='data')
     pl.xlabel('Time')
     pl.ylabel('y')
     pl.legend(loc='lower right')
@@ -150,16 +150,16 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
     yMA = np.convolve(df_final_avg_over_n_runs['y1'], weights, 'valid')
 
     # plot results
-    pl.plot(df_single_run['x'], df_single_run['y1'], label='single run', color=color[0])  # single line
-    pl.plot(df_final_avg_over_n_runs['x'], df_final_avg_over_n_runs['y1'],
-            label="avg over " + str(len(date_array)) + " run", color=color[1])  # avg line
+    pl.plot(df_single_run['x'], df_single_run['y1'], ':', label='1 run', color="grey")  # single line
+    pl.plot(df_final_avg_over_n_runs['x'], df_final_avg_over_n_runs['y1'], 'k',
+            label=str(len(date_array)) + " runs avg")  # avg line
     pl.plot(df_final_avg_over_n_runs['x'][np.array(df_final_avg_over_n_runs['x']).shape[0]-yMA.shape[0]:], yMA, 'r',
-            label='moving average')  # moving avg line
+            label=str(len(date_array)) + ' runs moving avg')  # moving avg line
 
     pl.xlabel('Episodes')
-    pl.ylabel('Reward')
+    pl.ylabel('Final reward')
     pl.legend(loc='lower right')
-    pl.title('Reward for ' + algorithm + ' algorithm over episodes')
+    pl.title('Final reward for ' + algorithm + ' algorithm over episodes')
     pl.grid(True)
     plt.savefig('all_reward_plot_' + algorithm + '.png')
     plt.show()
@@ -167,16 +167,16 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None):
     yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'valid')
 
     # plot results
-    pl.plot(df_single_run['x'], df_single_run['y2'], label='single run', color=color[0])  # single line
-    pl.plot(df_final_avg_over_n_runs['x'], df_final_avg_over_n_runs['y2'],
-            label="avg over " + str(len(date_array)) + " run", color=color[1])  # avg line
+    pl.plot(df_single_run['x'], df_single_run['y2'], ':', label='1 run', color="grey")  # single line
+    pl.plot(df_final_avg_over_n_runs['x'], df_final_avg_over_n_runs['y2'], 'k',
+            label=str(len(date_array)) + " runs avg")  # avg line
     pl.plot(df_final_avg_over_n_runs['x'][np.array(df_final_avg_over_n_runs['x']).shape[0]-yMA_timesteps.shape[0]:], yMA_timesteps, 'r',
-            label='moving average')  # moving avg line
+            label=str(len(date_array)) + ' runs moving avg')  # moving avg line
 
     pl.xlabel('Episodes')
-    pl.ylabel('Number of steps')
+    pl.ylabel('Time steps')
     pl.legend(loc='upper right')
-    pl.title('Steps for ' + algorithm + ' algorithm over episodes')
+    pl.title('Time steps for ' + algorithm + ' algorithm over episodes')
     pl.grid(True)
     plt.savefig('all_timesteps_plot_' + algorithm + '.png')
     plt.show()
@@ -190,24 +190,24 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
 
     for i in range(0, len(algorithms_target)):
         pl.plot(episodes_target[i][np.array(episodes_target[i]).shape[0]-np.array(moving_average_rewards_target[i]).shape[0]:], moving_average_rewards_target[i],
-                label=algorithms_target[i], color=color[i])
+                label=algorithms_target[i])
 
     pl.xlabel('Episodes')
-    pl.ylabel('Reward')
+    pl.ylabel('Final reward')
     pl.legend(loc='lower right')
-    pl.title('Moving average of reward over episodes')
+    pl.title('Moving average of final reward over episodes')
     pl.grid(True)
     plt.savefig('mavg_reward_plot.png')
     plt.show()
 
     for i in range(0, len(algorithms_target)):
         pl.plot(episodes_target[i][np.array(episodes_target[i]).shape[0]-np.array(moving_average_timesteps_target[i]).shape[0]:], moving_average_timesteps_target[i],
-                label=algorithms_target[i], color=color[i])
+                label=algorithms_target[i])
 
     pl.xlabel('Episodes')
-    pl.ylabel('Number of steps')
+    pl.ylabel('Time steps')
     pl.legend(loc='upper right')
-    pl.title('Moving average of number of steps over episodes')
+    pl.title('Moving average of number of time steps over episodes')
     pl.grid(True)
     plt.savefig('mavg_timesteps_plot.png')
     plt.show()

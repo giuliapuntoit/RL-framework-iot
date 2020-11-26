@@ -552,7 +552,7 @@ def main(discovery_report=None):
         #         for gam in [0.45, 0.75, 0.95]:
         # algo = 'qlearning_lambda'  # , 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
         # for al in [0.5, 0.2, 0.1, 0.05, 0.02, 0.01, 0.005]:  # alpha values
-        for algo in ["sarsa_lambda"]:  # , "sarsa_lambda"]:  # lambda 0 is the same as plain sarsa and qlearning
+        for algo in ["sarsa", "sarsa_lambda"]:  # , "sarsa_lambda"]:  # lambda 0 is the same as plain sarsa and qlearning
             for i in range(0, 10):
                 print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path)
                 ReinforcementLearningAlgorithm(max_steps=100, total_episodes=200,
@@ -561,7 +561,7 @@ def main(discovery_report=None):
                                                epsilon=0.2,  # already tuned
                                                alpha=0.1,  # already tuned
                                                gamma=0.75,  # already tuned
-                                               lam=0.5,  # 0.5 lambda
+                                               lam=0.5,  # already tuned
                                                show_graphs=False,
                                                follow_policy=False,
                                                follow_partial_policy=False,
