@@ -4,6 +4,8 @@ import matplotlib
 import matplotlib.pyplot
 import matplotlib.font_manager
 matplotlib.pyplot.rcParams["font.family"] = "Times New Roman"
+matplotlib.pyplot.rcParams['font.size'] = 20
+
 
 # matplotlib.pyplot.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 
@@ -13,14 +15,20 @@ class PlotTrainingTimeTraffic(object):
     def __init__(self):
         pass
 
-    def run(self):
+    def run(self, path=None):
         times = [[], [], [], []]
         traffic = [[], [], [], []]
+
+        output_dir = "./"
+        starter = "0"
+        if path in [1, 2, 3]:
+            starter = "path" + str(path)
+            output_dir = "../plot/path" + str(path) + "/"
 
         file_algo = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"]
 
         for index, fa in enumerate(file_algo):
-            with open("0_" + fa + ".csv", 'r') as csv_file:
+            with open(starter + "_" + fa + ".csv", 'r') as csv_file:
                 reader = csv.reader(csv_file, delimiter=',')
                 next(reader, None)
                 for row in reader:
@@ -41,11 +49,14 @@ class PlotTrainingTimeTraffic(object):
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
         ax.set_ylabel('Time (s)')
-        ax.set_title('Training time per algorithm')
+        # ax.set_title('Training time per algorithm')
+
+        matplotlib.pyplot.grid(True, color='gray', linestyle='dashed')
 
         fig.tight_layout()
 
-        matplotlib.pyplot.savefig('training_times.png')
+        matplotlib.pyplot.savefig(output_dir + 'training_times.png')
+        matplotlib.pyplot.show()
 
         avg_traffic = [np.mean(traffic[0]), np.mean(traffic[1]), np.mean(traffic[2]),
                        np.mean(traffic[3])]
@@ -62,14 +73,15 @@ class PlotTrainingTimeTraffic(object):
         ax.set_xticklabels(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
-        ax.set_ylabel('Number of sent commands')
-        ax.set_title('Traffic generated per algorithm')
+        ax.set_ylabel('Number of commands sent')
+        # ax.set_title('Traffic generated per algorithm')
 
-        # TODO mettici anche la media come scritto in tesi
+        matplotlib.pyplot.grid(True, color='gray', linestyle='dashed')
 
         fig.tight_layout()
 
-        matplotlib.pyplot.savefig('training_traffic.png')
+        matplotlib.pyplot.savefig(output_dir + 'training_traffic.png')
+        matplotlib.pyplot.show()
 
 
 if __name__ == '__main__':
@@ -79,5 +91,11 @@ if __name__ == '__main__':
     # date | 123           |           150
     # As input file I need only the log file
     PlotTrainingTimeTraffic().run()
+
+    PlotTrainingTimeTraffic().run(path=1)
+
+    PlotTrainingTimeTraffic().run(path=2)
+
+    PlotTrainingTimeTraffic().run(path=3)
 
 # 1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda
