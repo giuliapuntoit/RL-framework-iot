@@ -65,6 +65,8 @@ class PlotTrainingTimeTraffic(object):
         ax.set_ylabel('Number of sent commands')
         ax.set_title('Traffic generated per algorithm')
 
+        # TODO mettici anche la media come scritto in tesi
+
         fig.tight_layout()
 
         matplotlib.pyplot.savefig('training_traffic.png')

@@ -3,15 +3,34 @@ import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
+from matplotlib.font_manager import FontProperties
+
 plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams['font.size'] = 20
+
+fontP = FontProperties()
+fontP.set_size('x-small')
+n_cols = 2
 
 from config import GlobalVar
-
 
 # Functions for plotting the moving average for multiple runs and multiple configurations of params
 
 target_dir = "../plot/tuning_"
 complete_target_dir = ""
+
+
+def return_greek_letter(par):
+    if par == "epsilon":
+        return "ε"
+    elif par == "alpha":
+        return "α"
+    elif par == "gamma":
+        return "γ"
+    elif par == "lambda":
+        return "λ"
+    else:
+        return "invalid"
 
 
 def plot_single_configuration_multiple_runs(date_array, param):
@@ -135,30 +154,44 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     # color = ('#A66066', '#F2A172', '#858C4A')
 
     for i in range(0, len(param_values_target)):
-        pl.plot(episodes_target[i][
-                np.array(episodes_target[i]).shape[0] - np.array(moving_average_rewards_target[i]).shape[0]:],
-                moving_average_rewards_target[i],
-                label=param + "=" + param_values_target[i], )  # color=color[i])
+        if i == 0 and param == "lambda":
+            pl.plot(episodes_target[i][
+                    np.array(episodes_target[i]).shape[0] - np.array(moving_average_rewards_target[i]).shape[0]:],
+                    moving_average_rewards_target[i],
+                    label=return_greek_letter(param) + r'$=$' + param_values_target[i], )
+        else:
+            pl.plot(episodes_target[i][
+                    np.array(episodes_target[i]).shape[0] - np.array(moving_average_rewards_target[i]).shape[0]:],
+                    moving_average_rewards_target[i],
+                    label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )  # color=color[i])
 
-    pl.xlabel('Episodes')
-    pl.ylabel('Reward')
-    pl.legend(loc='lower right')
-    pl.title('Moving average of reward over episodes for ' + algorithm)
-    pl.grid(True)
+    pl.xlabel('Episode')
+    pl.ylabel('Final reward')
+    pl.legend(loc='lower right', prop=fontP, ncol=n_cols)
+    # pl.title('Moving average of reward over episodes for ' + algorithm)
+    pl.grid(True, color='gray', linestyle='dashed')
+    pl.tight_layout()
     plt.savefig(complete_target_dir + 'mavg_reward_params.png')
     plt.show()
 
     for i in range(0, len(param_values_target)):
-        pl.plot(episodes_target[i][
+        if i == 0 and param == "lambda":
+            pl.plot(episodes_target[i][
+                    np.array(episodes_target[i]).shape[0] - np.array(moving_average_timesteps_target[i]).shape[0]:],
+                    moving_average_timesteps_target[i],
+                    label=return_greek_letter(param) + r'$=$' + param_values_target[i], )  # color=color[i])
+        else:
+            pl.plot(episodes_target[i][
                 np.array(episodes_target[i]).shape[0] - np.array(moving_average_timesteps_target[i]).shape[0]:],
                 moving_average_timesteps_target[i],
-                label=param + "=" + param_values_target[i], )  # color=color[i])
+                label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )
 
-    pl.xlabel('Episodes')
-    pl.ylabel('Number of steps')
-    pl.legend(loc='upper right')
-    pl.title('Moving average of number of steps over episodes for ' + algorithm)
-    pl.grid(True)
+    pl.xlabel('Episode')
+    pl.ylabel('Number of time steps')
+    pl.legend(loc='upper right', prop=fontP, ncol=n_cols)
+    # pl.title('Moving average of number of steps over episodes for ' + algorithm)
+    pl.grid(True, color='gray', linestyle='dashed')
+    pl.tight_layout()
     plt.savefig(complete_target_dir + 'mavg_timesteps_params.png')
     plt.show()
 
@@ -166,27 +199,44 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
 def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg_rew, avg_steps, n_rew, n_steps,
                                                   std_dev_rew, std_dev_steps):
     fig, ax = plt.subplots()
-    col = ax.bar(param_values,
+    param_labels = []
+    cnt = 0
+    for i in param_values:
+        if cnt == 0 and param == "lambda":
+            param_labels.append(return_greek_letter(param)+"="+i)
+            cnt += 1
+        else:
+            param_labels.append(return_greek_letter(param)+"="+i.lstrip('0'))
+    col = ax.bar(param_labels,
                  avg_rew,
                  align='center')
     # color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Avg reward value')
-    ax.set_title('Avg reward for different configurations of ' + param)
+    ax.set_ylabel('Avg reward for episode')
+    # ax.set_title('Avg reward for different configurations of ' + param)
+    plt.axhline(0, color='black', lw=.3)
 
     fig.tight_layout()
 
     plt.savefig(complete_target_dir + 'avg_rewards_for_' + param + '.png')
 
     fig, ax = plt.subplots()
-    col = ax.bar(param_values,
+    param_labels = []
+    cnt = 0
+    for i in param_values:
+        if cnt == 0 and param == "lambda":
+            param_labels.append(return_greek_letter(param)+"="+i)
+            cnt += 1
+        else:
+            param_labels.append(return_greek_letter(param)+"="+i.lstrip('0'))
+    col = ax.bar(param_labels,
                  avg_steps, align='center', )
     # color=('#A66066', '#F2A172', '#858C4A'))
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Avg steps value')
-    ax.set_title('Avg steps for different configurations of ' + param)
+    ax.set_ylabel('Avg time steps for episode')
+    # ax.set_title('Avg steps for different configurations of ' + param)
 
     fig.tight_layout()
 
@@ -218,7 +268,8 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     plt.savefig(complete_target_dir + 'n_steps_for_' + param + '.png')
 
 
-def boxplot_multiple_configurations_rewards_timesteps_last_episodes(algor, param, values_of_param, last_20_rewards, last_20_timesteps):
+def boxplot_multiple_configurations_rewards_timesteps_last_episodes(algor, param, values_of_param, last_20_rewards,
+                                                                    last_20_timesteps):
     fig, ax = plt.subplots()
 
     # non sto più facendo una media, sto mettendo tutti i punti del reward medio
@@ -274,47 +325,48 @@ if __name__ == '__main__':
     boxplot_last_timesteps = []
 
     changing_param = "lambda"
-    algo = "sarsa_lambda"
+    algo = "qlearning_lambda"
     complete_target_dir = target_dir + changing_param + "/" + algo + "/"
     print("ALGO SHOULD BE", algo, "FOR ALL RESULTS")
     value_of_lambda = [
     [  # lambda = 0
-        '2020_11_16_01_11_21',
-        '2020_11_16_01_42_18',
-        '2020_11_16_02_13_10',
-        '2020_11_16_02_46_26',
-        '2020_11_16_03_19_58', ],
+        '2020_11_16_23_53_58',
+        '2020_11_17_00_27_31',
+        '2020_11_17_01_01_36',
+        '2020_11_17_01_35_22',
+        '2020_11_17_02_12_33', ],
     [  # lambda = 0.5
-        '2020_11_16_03_49_30',
-        '2020_11_16_04_20_40',
-        '2020_11_16_04_50_52',
-        '2020_11_16_05_19_47',
-        '2020_11_16_05_48_35', ],
+        '2020_11_17_02_44_04',
+        '2020_11_17_03_17_07',
+        '2020_11_17_03_51_42',
+        '2020_11_17_04_20_24',
+        '2020_11_17_04_48_57', ],
     [  # lambda = 0.8
-        '2020_11_16_06_23_01',
-        '2020_11_16_06_56_41',
-        '2020_11_16_07_27_59',
-        '2020_11_16_07_54_40',
-        '2020_11_16_08_31_02', ],
+        '2020_11_17_05_18_07',
+        '2020_11_17_05_48_54',
+        '2020_11_17_06_24_03',
+        '2020_11_17_06_58_12',
+        '2020_11_17_07_37_25', ],
     [  # lambda = 0.9
-        '2020_11_16_09_00_46',
-        '2020_11_16_09_37_10',
-        '2020_11_16_10_10_24',
-        '2020_11_16_10_44_49',
-        '2020_11_16_11_14_23', ],
+        '2020_11_17_08_08_31',
+        '2020_11_17_08_40_43',
+        '2020_11_17_09_13_38',
+        '2020_11_17_09_43_49',
+        '2020_11_17_10_14_11', ],
     [  # lambda = 0.95
-        '2020_11_16_11_46_49',
-        '2020_11_16_12_26_48',
-        '2020_11_16_13_05_14',
-        '2020_11_16_13_49_15',
-        '2020_11_16_14_21_50', ],
-    [  # lambda = 1
-        '2020_11_16_14_56_06',
-        '2020_11_16_15_30_21',
-        '2020_11_16_16_03_15',
-        '2020_11_16_16_39_18',
-        '2020_11_16_17_07_38', ]
+        '2020_11_17_10_47_41',
+        '2020_11_17_11_28_52',
+        '2020_11_17_12_08_07',
+        '2020_11_17_12_41_57',
+        '2020_11_17_13_13_09', ],
+    # [  # lambda = 1
+    #     '2020_11_17_13_46_58',
+    #     '2020_11_17_14_21_33',
+    #     '2020_11_17_14_50_15',
+    #     '2020_11_17_15_19_52',
+    #     '2020_11_17_15_51_33', ]
 ]
+
     for val in value_of_lambda:
         p, ep, ma, mats, ar, at, nr, nt, sdr, sdt = plot_single_configuration_multiple_runs(date_array=val,
                                                                                             param=changing_param)
@@ -325,8 +377,8 @@ if __name__ == '__main__':
 
         # voglio gli ultimi 20 avg reward degli ultimi 20 episodi e 5 run
         # TODO
-        boxplot_last_rewards.append()
-        boxplot_last_timesteps.append()
+        # boxplot_last_rewards.append()
+        # boxplot_last_timesteps.append()
 
         avg_rewards.append(ar)
         avg_timesteps.append(at)
@@ -342,4 +394,4 @@ if __name__ == '__main__':
                                                   avg_timesteps, n_rewards, n_timesteps, std_dev_rewards,
                                                   std_dev_timesteps)
 
-    boxplot_multiple_configurations_rewards_timesteps_last_episodes(algo, changing_param, changing_param_values, boxplot_last_rewards, boxplot_last_timesteps)
+    # boxplot_multiple_configurations_rewards_timesteps_last_episodes(algo, changing_param, changing_param_values, boxplot_last_rewards, boxplot_last_timesteps)

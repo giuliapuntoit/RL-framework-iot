@@ -24,7 +24,7 @@ def analyze_lan():
     # Look for Yeelight and Shelly devices
     for ip in ipaddress.IPv4Network('192.168.1.0/24'):
         hostname = scan_range['scan'][str(ip)]['hostnames'][0]['name']
-        if "yeelink" in hostname:
+        if "yeelink" in hostname or "yeelight" in hostname:
             target_yeelight = str(ip)
             print("\tDEVICE: Found yeelight at", target_yeelight)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_yeelight], protocol="yeelight",

@@ -124,7 +124,6 @@ if __name__ == '__main__':
     plot_reward_per_request_single_run(date_to_retrieve=qlearning[4], show_graphs=True, color_index=2, algorithm=algos[2])
     plot_reward_per_request_single_run(date_to_retrieve=qlearning_lambda[0], show_graphs=True, color_index=3, algorithm=algos[3])
 
-
     plot_reward_per_request_multiple_run(sarsa, algos[0])
     plot_reward_per_request_multiple_run(sarsa_lambda, algos[1])
     plot_reward_per_request_multiple_run(qlearning, algos[2])
