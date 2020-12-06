@@ -16,7 +16,7 @@ from config import GlobalVar
 
 # Functions for plotting the moving average for multiple runs and multiple configurations of params
 
-target_dir = "../plot/tuning_"
+target_dir = "../plot/robustness/"
 complete_target_dir = ""
 
 
@@ -68,10 +68,18 @@ def plot_single_configuration_multiple_runs(date_array, param):
                 y_reward.append(int(row[1]))
                 y_cum_reward.append(int(row[2]))
                 y_timesteps.append(int(row[3]))
+
+        # TODO remove this check only for robustness
+        if len(x) > 100:
+            x = x[0:100]
+            y_reward = y_reward[0:100]
+            y_cum_reward = y_cum_reward[0:100]
+            y_timesteps = y_timesteps[0:100]
         x_all.append(x)
         y_all_reward.append(y_reward)
         y_all_cum_reward.append(y_cum_reward)
         y_all_timesteps.append(y_timesteps)
+
 
     # compute average over multiple runs
     y_final_reward = []
@@ -182,9 +190,9 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
                     label=return_greek_letter(param) + r'$=$' + param_values_target[i], )  # color=color[i])
         else:
             pl.plot(episodes_target[i][
-                np.array(episodes_target[i]).shape[0] - np.array(moving_average_timesteps_target[i]).shape[0]:],
-                moving_average_timesteps_target[i],
-                label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )
+                    np.array(episodes_target[i]).shape[0] - np.array(moving_average_timesteps_target[i]).shape[0]:],
+                    moving_average_timesteps_target[i],
+                    label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )
 
     pl.xlabel('Episode')
     pl.ylabel('Number of time steps')
@@ -203,10 +211,10 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     cnt = 0
     for i in param_values:
         if cnt == 0 and param == "lambda":
-            param_labels.append(return_greek_letter(param)+"="+i)
+            param_labels.append(return_greek_letter(param) + "=" + i)
             cnt += 1
         else:
-            param_labels.append(return_greek_letter(param)+"="+i.lstrip('0'))
+            param_labels.append(return_greek_letter(param) + "=" + i.lstrip('0'))
     col = ax.bar(param_labels,
                  avg_rew,
                  align='center')
@@ -226,10 +234,10 @@ def plot_multiple_configuration_rewards_timesteps(algo, param, param_values, avg
     cnt = 0
     for i in param_values:
         if cnt == 0 and param == "lambda":
-            param_labels.append(return_greek_letter(param)+"="+i)
+            param_labels.append(return_greek_letter(param) + "=" + i)
             cnt += 1
         else:
-            param_labels.append(return_greek_letter(param)+"="+i.lstrip('0'))
+            param_labels.append(return_greek_letter(param) + "=" + i.lstrip('0'))
     col = ax.bar(param_labels,
                  avg_steps, align='center', )
     # color=('#A66066', '#F2A172', '#858C4A'))
@@ -324,50 +332,32 @@ if __name__ == '__main__':
     boxplot_last_rewards = []
     boxplot_last_timesteps = []
 
-    changing_param = "lambda"
-    algo = "qlearning_lambda"
+    changing_param = "gamma"
+    algo = "qlearning"
     complete_target_dir = target_dir + changing_param + "/" + algo + "/"
     print("ALGO SHOULD BE", algo, "FOR ALL RESULTS")
-    value_of_lambda = [
-    [  # lambda = 0
-        '2020_11_16_23_53_58',
-        '2020_11_17_00_27_31',
-        '2020_11_17_01_01_36',
-        '2020_11_17_01_35_22',
-        '2020_11_17_02_12_33', ],
-    [  # lambda = 0.5
-        '2020_11_17_02_44_04',
-        '2020_11_17_03_17_07',
-        '2020_11_17_03_51_42',
-        '2020_11_17_04_20_24',
-        '2020_11_17_04_48_57', ],
-    [  # lambda = 0.8
-        '2020_11_17_05_18_07',
-        '2020_11_17_05_48_54',
-        '2020_11_17_06_24_03',
-        '2020_11_17_06_58_12',
-        '2020_11_17_07_37_25', ],
-    [  # lambda = 0.9
-        '2020_11_17_08_08_31',
-        '2020_11_17_08_40_43',
-        '2020_11_17_09_13_38',
-        '2020_11_17_09_43_49',
-        '2020_11_17_10_14_11', ],
-    [  # lambda = 0.95
-        '2020_11_17_10_47_41',
-        '2020_11_17_11_28_52',
-        '2020_11_17_12_08_07',
-        '2020_11_17_12_41_57',
-        '2020_11_17_13_13_09', ],
-    # [  # lambda = 1
-    #     '2020_11_17_13_46_58',
-    #     '2020_11_17_14_21_33',
-    #     '2020_11_17_14_50_15',
-    #     '2020_11_17_15_19_52',
-    #     '2020_11_17_15_51_33', ]
-]
+    value_of_gamma = [[
+        # gam=0.35
+        '2020_12_02_11_40_06',
+        '2020_12_02_12_52_42',
+        '2020_12_02_13_52_01',
+        '2020_12_02_14_57_50',
+        '2020_12_02_15_50_34',],
+        [  # eps = 0.2   alp = 0.1   gam = 0.55
+        '2020_11_20_19_55_08',
+        '2020_11_20_21_25_32',
+        '2020_11_20_22_52_02',
+        '2020_11_21_00_14_24',
+        '2020_11_21_01_42_09',],[
+        # gam = 0.75
+        '2020_12_02_16_58_01',
+        '2020_12_02_17_50_35',
+        '2020_12_02_18_51_47',
+        '2020_12_02_20_10_51',
+        '2020_12_02_21_07_42',]
+    ]
 
-    for val in value_of_lambda:
+    for val in value_of_gamma:
         p, ep, ma, mats, ar, at, nr, nt, sdr, sdt = plot_single_configuration_multiple_runs(date_array=val,
                                                                                             param=changing_param)
         changing_param_values.append(p)

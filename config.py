@@ -9,5 +9,5 @@ class GlobalVar(object):
     scan_socket = None
     timeout = 5
     reward = 0
-    path = 1
+    path = 3
     directory = "../"

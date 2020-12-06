@@ -545,23 +545,60 @@ def main(discovery_report=None):
         GlobalVar.RUNNING = False
 
         print("\n############# Starting RL algorithm path", GlobalVar.path, "#############")
-        # Check if after 20 episodes it's able to follow the policy
-        # Collecting data for future graphs
-        # for eps in [0.3, 0.6, 0.9]:
-        #     for alp in [0.005, 0.05, 0.5]:
-        #         for gam in [0.45, 0.75, 0.95]:
-        # algo = 'qlearning_lambda'  # , 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
-        # for al in [0.5, 0.2, 0.1, 0.05, 0.02, 0.01, 0.005]:  # alpha values
-        for algo in ["sarsa", "sarsa_lambda"]:  # , "sarsa_lambda"]:  # lambda 0 is the same as plain sarsa and qlearning
-            for i in range(0, 10):
-                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path)
-                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=200,
+        # Dopo il tuning il Q-learning ha i parametri migliori per il path 2:
+        # Ora 100 episodi di tuning per epsilon, alpha, gamma +.1 -.1 (9 run)
+        algo = 'qlearning'  # , 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
+        eps = 0.2
+        alp = 0.1
+        gam = 0.55
+        for eps in [0.1, 0.3]:
+        # for alp in [0.05, 0.2]:
+        # for gam in [0.35, 0.75]:
+            for i in range(0, 5):
+                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
+                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
                                                num_actions_to_use=37,
                                                seconds_to_wait=0.1,
-                                               epsilon=0.2,  # already tuned
-                                               alpha=0.1,  # already tuned
-                                               gamma=0.75,  # already tuned
-                                               lam=0.5,  # already tuned
+                                               epsilon=eps,  # already tuned
+                                               alpha=alp,  # already tuned
+                                               gamma=gam,  # already tuned
+                                               show_graphs=False,
+                                               follow_policy=False,
+                                               follow_partial_policy=False,
+                                               follow_policy_every_tot_episodes=30,
+                                               algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
+                sleep(45)
+        eps = 0.2
+        alp = 0.1
+        gam = 0.55
+        for alp in [0.05, 0.2]:
+            for i in range(0, 5):
+                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
+                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
+                                               num_actions_to_use=37,
+                                               seconds_to_wait=0.1,
+                                               epsilon=eps,  # already tuned
+                                               alpha=alp,  # already tuned
+                                               gamma=gam,  # already tuned
+                                               show_graphs=False,
+                                               follow_policy=False,
+                                               follow_partial_policy=False,
+                                               follow_policy_every_tot_episodes=30,
+                                               algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
+                sleep(45)
+
+        eps = 0.2
+        alp = 0.1
+        gam = 0.55
+        for gam in [0.35, 0.75]:
+            for i in range(0, 5):
+                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
+                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
+                                               num_actions_to_use=37,
+                                               seconds_to_wait=0.1,
+                                               epsilon=eps,  # already tuned
+                                               alpha=alp,  # already tuned
+                                               gamma=gam,  # already tuned
                                                show_graphs=False,
                                                follow_policy=False,
                                                follow_partial_policy=False,
