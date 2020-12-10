@@ -69,7 +69,7 @@ Inside ``output`` directory:
 
 Complete structure of the project is modelled like this:
 
-
+![Complete structure as by design](https://github.com/giuliapuntoit/RL-framework-iot/images/workflow-yeelight.png)
 
 
 1.  Before starting, in the ``config.py`` some general information is present, for example the root directory in which saving output files or the state-machine and the goal that the RL agent should learn.
