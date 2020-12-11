@@ -7,6 +7,6 @@ venv/
 output/
 plot/
 *.json
-*.png
 *.csv
 plotter/date_for_graphs.py
+plotter/*.png
