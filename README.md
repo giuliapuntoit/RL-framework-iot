@@ -37,7 +37,7 @@ We start implementing our framework targeting an actual IoT protocol: the **Yeel
 
 After installing all needed dependencies, The project can be run from the ``__main__.py`` script or from the ``learning_yeelight`` script.
 
-### Structure
+### Structure
 
 General structure of directories:
 
@@ -70,8 +70,7 @@ Inside ``output`` directory:
 
 Complete structure of the project is modelled like this:
 
-![Complete structure as by design](https://github.com/giuliapuntoit/RL-framework-iot/blob/master/images/workflow-yeelight.png)
-
+<p align="center"><img src="https://github.com/giuliapuntoit/RL-framework-iot/blob/master/images/workflow-yeelight.png" height="800"></p>
 
 1.  Before starting, in the ``config.py`` some general information is present, for example the root directory in which saving output files or the state-machine and the goal that the RL agent should learn. Path defined for the Yeelight protocol are showed inside the ``images`` directory.
 2. When the framework starts, it is managed by the ``__main__.py`` script. This script first activates the Discoverer.
