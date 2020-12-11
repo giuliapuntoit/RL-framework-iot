@@ -49,6 +49,7 @@ General structure of directories:
 * ``state_machine`` contains methods with state machine for RL and for computation of reward
 * ``plotter`` contains script for plotting results
 * ``sample`` contains some toy scripts to communicate to individual devices (Yeelight and Hue devices)
+* ``images`` contains images for readme purposes
 
 The project can be run from the ``__main__.py`` to have also a discovery part or from the ``learning_yeelight`` script to used Yeelight devices inside the network.
 
@@ -69,10 +70,10 @@ Inside ``output`` directory:
 
 Complete structure of the project is modelled like this:
 
-![Complete structure as by design](https://github.com/giuliapuntoit/RL-framework-iot/images/workflow-yeelight.png)
+![Complete structure as by design](https://github.com/giuliapuntoit/RL-framework-iot/blob/master/images/workflow-yeelight.png)
 
 
-1.  Before starting, in the ``config.py`` some general information is present, for example the root directory in which saving output files or the state-machine and the goal that the RL agent should learn.
+1.  Before starting, in the ``config.py`` some general information is present, for example the root directory in which saving output files or the state-machine and the goal that the RL agent should learn. Path defined for the Yeelight protocol are showed inside the ``images`` directory.
 2. When the framework starts, it is managed by the ``__main__.py`` script. This script first activates the Discoverer.
 3. After analyzing the local network, the Discoverer returns to the main script all reports created after the found devices.
 4. The main script receives these reports and calls the Learning module, passing to it also the Discovery Report for the Yeelight bulb found inside the LAN.
