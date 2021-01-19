@@ -31,6 +31,7 @@ LOG.setLevel(logging.DEBUG)
 for handler in LOG.handlers:
     LOG.removeHandler(handler)
 
+
 class _AnsiColorizer(object):
     """
     A colorizer is an object that loosely wraps around a stream, allowing

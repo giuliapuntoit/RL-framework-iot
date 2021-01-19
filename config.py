@@ -11,3 +11,5 @@ class GlobalVar(object):
     reward = 0
     path = 2
     directory = "../"
+
+    # TODO qua potrei customizzare i parametri per tutti? tipo epsilon algorithm etc?
