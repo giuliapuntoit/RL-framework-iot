@@ -128,6 +128,10 @@ Also, output files can be used by the **Plotter** module to present graphically 
 
 **Note**: for now the Learning process for Yeelight can also be executed directly, without using the main script. When this is the case, the Learning module performs a Yeelight specific discovery phase, accessing methods inside the API Yeelight script specific for this purpose. After information about Yeelight devices are retrieved, the Learning process works exactly as explained previously. *This feature will be removed soon.*
 
+#### Plots (screenshots)
+
+TODO focus on plots, which plots and how to generate them.
+
 
 ## Demo
 
@@ -137,8 +141,8 @@ A short demo of the working of the Learning process, showed through the console 
 
 Main features include:
 
-* Support to 4 RL algortihms, that can selected inside the ``learning_yeelight.py``script
-* Block the learning process and restart it from the Q matrix computed before, giving as id the date of the previous execution
+* Support to 4 RL algortihms, that can selected inside the ``learning_yeelight.py`` script.
+* Block the learning process and restart it from the Q matrix computed before, giving as id the date of the previous execution.
 
 ## Tests
 
