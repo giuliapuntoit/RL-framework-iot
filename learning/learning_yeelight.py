@@ -13,6 +13,7 @@ import struct
 from threading import Thread
 from time import sleep
 
+
 from plotter.plot_output_data import PlotOutputData
 from learning.run_output_Q_parameters import RunOutputQParameters
 from request_builder.builder_yeelight import ServeYeelight
@@ -21,6 +22,80 @@ from state_machine.state_machine_yeelight import compute_reward_from_states, com
     get_optimal_policy, get_optimal_path
 
 from config import GlobalVar
+
+import logging
+import sys
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+LOG = logging.getLogger()
+LOG.setLevel(logging.DEBUG)
+for handler in LOG.handlers:
+    LOG.removeHandler(handler)
+
+class _AnsiColorizer(object):
+    """
+    A colorizer is an object that loosely wraps around a stream, allowing
+    callers to write text to the stream in a particular color.
+
+    Colorizer classes must implement C{supported()} and C{write(text, color)}.
+    """
+    _colors = dict(black=30, red=31, green=32, yellow=33,
+                   blue=34, magenta=35, cyan=36, white=37)
+
+    def __init__(self, stream):
+        self.stream = stream
+
+    @classmethod
+    def supported(cls, stream=sys.stdout):
+        """
+        A class method that returns True if the current platform supports
+        coloring terminal output using this method. Returns False otherwise.
+        """
+        if not stream.isatty():
+            return False  # auto color only on TTYs
+        try:
+            import curses
+        except ImportError:
+            return False
+        else:
+            try:
+                try:
+                    return curses.tigetnum("colors") > 2
+                except curses.error:
+                    curses.setupterm()
+                    return curses.tigetnum("colors") > 2
+            except:
+                raise
+                # guess false in case of error
+                return False
+
+    def write(self, text, color):
+        """
+        Write the given text to the stream in the given color.
+
+        @param text: Text to be written to the stream.
+
+        @param color: A string label for a color. e.g. 'red', 'white'.
+        """
+        color = self._colors[color]
+        self.stream.write('\x1b[%s;1m%s\x1b[0m' % (color, text))
+
+
+class ColorHandler(logging.StreamHandler):
+    def __init__(self, stream=sys.stderr):
+        super(ColorHandler, self).__init__(_AnsiColorizer(stream))
+
+    def emit(self, record):
+        msg_colors = {
+            logging.DEBUG: "green",
+            logging.INFO: "blue",
+            logging.WARNING: "yellow",
+            logging.ERROR: "red"
+        }
+
+        color = msg_colors.get(record.levelno, "green")
+        self.stream.write(record.msg + "\n", color)
+
+LOG.addHandler(ColorHandler())
 
 # Global variables for bulb connection
 GlobalVar.detected_bulbs = {}
@@ -272,7 +347,6 @@ class ReinforcementLearningAlgorithm(object):
                 output_writer = csv.writer(partial_output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                 output_writer.writerow(
                     ['CurrentEpisode', 'Timesteps', 'ObtainedReward', 'Time', 'PolicySelected', 'StatesPassed'])
-
         count_actions = 0
         # Starting the learning process
         for episode in range(self.total_episodes):
@@ -292,12 +366,12 @@ class ReinforcementLearningAlgorithm(object):
                 sleep(self.seconds_to_wait)
 
             # Turn off the lamp
-            print("\t\tREQUEST: Setting power off")
+            # print("\t\tREQUEST: Setting power off") TODO
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             count_actions += 1
             sleep(self.seconds_to_wait)
             state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
-            print("\tSTARTING FROM STATE", states[state1])
+            # print("\tSTARTING FROM STATE", states[state1]) TODO
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -318,17 +392,22 @@ class ReinforcementLearningAlgorithm(object):
 
                 # Perform an action on the bulb sending a command
                 json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
-                print("\t\tREQUEST:", str(json_string))
+                # print("\t\tREQUEST:", str(json_string)) TODO
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 count_actions += 1
                 sleep(self.seconds_to_wait)
 
                 state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
-                print("\tFROM STATE", states[state1], "TO STATE", states[state2])
+                # print("\tFROM STATE", states[state1], "TO STATE", states[state2]) TODO
 
                 reward_from_states = compute_reward_from_states(state1, state2)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
-                print("[DEBUG] TMP REWARD:", tmp_reward)
+                if tmp_reward >= 0:
+                    LOG.debug("\t\tREWARD: " + str(tmp_reward))
+                else:
+                    LOG.error("\t\tREWARD: " + str(tmp_reward))
+                # print("[DEBUG] TMP REWARD:", tmp_reward)
+                sleep(0.1)
 
                 if state2 == 5:
                     done = True
@@ -393,7 +472,12 @@ class ReinforcementLearningAlgorithm(object):
             with open(output_filename, mode="a") as output_file:
                 output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                 output_writer.writerow([episode, reward_per_episode, cumulative_reward, t - 1])  # Episode or episode+1?
-            print("\tREWARD OF THE EPISODE:", reward_per_episode)
+            if reward_per_episode >= 0:
+                LOG.debug("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
+            else:
+                LOG.error("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
+            sleep(0.1)
+            # print("\tREWARD OF THE EPISODE:", reward_per_episode)
 
             if self.follow_partial_policy:
                 if (episode + 1) % self.follow_policy_every_tot_episodes == 0:
@@ -551,60 +635,18 @@ def main(discovery_report=None):
         eps = 0.2
         alp = 0.1
         gam = 0.55
-        for eps in [0.1, 0.3]:
-        # for alp in [0.05, 0.2]:
-        # for gam in [0.35, 0.75]:
-            for i in range(0, 5):
-                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
-                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
-                                               num_actions_to_use=37,
-                                               seconds_to_wait=0.1,
-                                               epsilon=eps,  # already tuned
-                                               alpha=alp,  # already tuned
-                                               gamma=gam,  # already tuned
-                                               show_graphs=False,
-                                               follow_policy=False,
-                                               follow_partial_policy=False,
-                                               follow_policy_every_tot_episodes=30,
-                                               algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
-                sleep(45)
-        eps = 0.2
-        alp = 0.1
-        gam = 0.55
-        for alp in [0.05, 0.2]:
-            for i in range(0, 5):
-                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
-                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
-                                               num_actions_to_use=37,
-                                               seconds_to_wait=0.1,
-                                               epsilon=eps,  # already tuned
-                                               alpha=alp,  # already tuned
-                                               gamma=gam,  # already tuned
-                                               show_graphs=False,
-                                               follow_policy=False,
-                                               follow_partial_policy=False,
-                                               follow_policy_every_tot_episodes=30,
-                                               algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
-                sleep(45)
-
-        eps = 0.2
-        alp = 0.1
-        gam = 0.55
-        for gam in [0.35, 0.75]:
-            for i in range(0, 5):
-                print("INDEX", i, "- ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
-                ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
-                                               num_actions_to_use=37,
-                                               seconds_to_wait=0.1,
-                                               epsilon=eps,  # already tuned
-                                               alpha=alp,  # already tuned
-                                               gamma=gam,  # already tuned
-                                               show_graphs=False,
-                                               follow_policy=False,
-                                               follow_partial_policy=False,
-                                               follow_policy_every_tot_episodes=30,
-                                               algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
-                sleep(45)
+        print("ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
+        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
+                                       num_actions_to_use=37,
+                                       seconds_to_wait=0.1,
+                                       epsilon=eps,  # already tuned
+                                       alpha=alp,  # already tuned
+                                       gamma=gam,  # already tuned
+                                       show_graphs=False,
+                                       follow_policy=False,
+                                       follow_partial_policy=False,
+                                       follow_policy_every_tot_episodes=30,
+                                       algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
         print("############# Finish RL algorithm #############")
 
     # Goal achieved, tell detection thread to quit and wait

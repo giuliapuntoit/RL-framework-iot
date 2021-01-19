@@ -116,18 +116,18 @@ def handle_response(data):
     # print(json_received)
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            print("\t\t\tRESPONSE: result ->", json_received['result'])
+            # print("\t\t\tRESPONSE: result ->", json_received['result']) TODO
             reward_from_response = 0
         elif 'error' in json_received and json_received['error'] is not None:
-            print("\t\t\tRESPONSE: error ->", json_received['error'])
+            # print("\t\t\tRESPONSE: error ->", json_received['error']) TODO
             reward_from_response = -10
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
         else:
-            print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
+            # print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer") TODO
             reward_from_response = -20  # non è colpa di nessuno?
     else:
-        print("\t\t\tRESPONSE: Bad format response")
+        # print("\t\t\tRESPONSE: Bad format response") TODO
         reward_from_response = -20  # non è colpa di nessuno?
     return reward_from_response
 
@@ -140,15 +140,18 @@ def handle_response_no_reward(data):
 
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            print("\t\t\tRESPONSE: result ->", json_received['result'])
+            # print("\t\t\tRESPONSE: result ->", json_received['result']) TODO
+            pass
         elif 'error' in json_received and json_received['error'] is not None:
-            print("\t\t\tRESPONSE: error ->", json_received['error'])
+            # print("\t\t\tRESPONSE: error ->", json_received['error']) TODO
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
         else:
-            print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
+            # print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer") TODO
+            pass
     else:
-        print("\t\t\tRESPONSE: Bad format response")
+        # print("\t\t\tRESPONSE: Bad format response") TODO
+        pass
 
 
 def handle_response_props(data):
@@ -159,17 +162,19 @@ def handle_response_props(data):
 
     if 'id' in json_received and json_received['id'] == GlobalVar.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            print("\t\t\tRESPONSE: result ->", json_received['result'])
+            # print("\t\t\tRESPONSE: result ->", json_received['result']) TODO
             return json_received['result']  # List of values for properties
         elif 'error' in json_received and json_received['error'] is not None:
-            print("\t\t\tRESPONSE: error ->", json_received['error'])
+            # print("\t\t\tRESPONSE: error ->", json_received['error']) TODO
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
             return json_received['error']
         else:
-            print("\t\t\tRESPONSE: No result or error found in answer")
+            # print("\t\t\tRESPONSE: No result or error found in answer") TODO
+            pass
     else:
-        print("\t\t\tRESPONSE: Bad format response")
+        # print("\t\t\tRESPONSE: Bad format response") TODO
+        pass
     # If any error was found in the response or there is no response an empty array is returned
     return []
 
@@ -220,13 +225,13 @@ def operate_on_bulb(idx, method, params):
         handle_response_no_reward(data)  # I do not want to compute reward when I manually turn off the lamp
         tcp_socket.close()
     except Exception as e:
-        print("\t\t\tUnexpected error:", e)
-
+        # print("\t\t\tUnexpected error:", e) TODO
+        pass
 
 def operate_on_bulb_props(id_lamp, json_string):
     # Send a request for the properties of the bulb, handling the response properly
     # Return the property values of the current state of the bulb
-    print("\t\tREQUEST FOR PROPS:", json_string)
+    # print("\t\tREQUEST FOR PROPS:", json_string) TODO
     if id_lamp not in GlobalVar.bulb_idx2ip:
         print("error: invalid bulb idx")
         return []
@@ -245,7 +250,7 @@ def operate_on_bulb_props(id_lamp, json_string):
         tcp_socket.close()
         return props
     except Exception as e:
-        print("\t\t\tUnexpected error:", e)
+        # print("\t\t\tUnexpected error:", e) TODO
         return []
 
 
@@ -272,5 +277,5 @@ def operate_on_bulb_json(id_lamp, json_string):
         tcp_socket.close()
         return reward_from_response
     except Exception as e:
-        print("\t\t\tUnexpected error:", e)
+        # print("\t\t\tUnexpected error:", e) TODO
         return -10
