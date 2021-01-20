@@ -70,11 +70,11 @@ def plot_single_configuration_multiple_runs(date_array, param):
                 y_timesteps.append(int(row[3]))
 
         # TODO remove this check only for robustness
-        if len(x) > 100:
-            x = x[0:100]
-            y_reward = y_reward[0:100]
-            y_cum_reward = y_cum_reward[0:100]
-            y_timesteps = y_timesteps[0:100]
+        # if len(x) > 100:
+        #     x = x[0:100]
+        #     y_reward = y_reward[0:100]
+        #     y_cum_reward = y_cum_reward[0:100]
+        #     y_timesteps = y_timesteps[0:100]
         x_all.append(x)
         y_all_reward.append(y_reward)
         y_all_cum_reward.append(y_cum_reward)
