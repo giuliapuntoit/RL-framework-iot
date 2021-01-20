@@ -98,6 +98,6 @@ class PlotOutputData(object):
 
 
 if __name__ == '__main__':
-    PlotOutputData(date_to_retrieve='2020_11_02_18_42_09', separate_plots=False).run()
+    PlotOutputData(date_to_retrieve='2020_11_21_11_09_13', separate_plots=False).run()
 
 # 1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda

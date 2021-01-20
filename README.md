@@ -105,7 +105,7 @@ More in details, inside ``output`` directory:
 
 The complete workflow is modelled in the following way:
 
-<p align="center"><img src="https://github.com/giuliapuntoit/RL-framework-iot/blob/master/images/workflow-yeelight.png" height="800"></p>
+<p align="center"><img src="./images/workflow-yeelight.png" height="800"></p>
 
 
 Here there is an in-depth description of the previous figure:
@@ -133,6 +133,8 @@ Also, output files can be used by the **Plotter** module to present graphically 
 TODO focus on plots, which plots and how to generate them.
 
 
+
+
 ## Demo
 
 A short demo of the working of the Learning process, showed through the console and an animated plot can be seen in [demo](https://drive.google.com/file/d/1vNQbgy6AtDedNQ9U6nRPkNA36Z8X2tYQ/view?usp=sharing).
@@ -141,7 +143,8 @@ A short demo of the working of the Learning process, showed through the console 
 
 Main features include:
 
-* Support to 4 RL algortihms, that can selected inside the ``learning_yeelight.py`` script.
+* Support to 4 RL algorithms, that can selected inside the ``learning_yeelight.py`` script.
+* Collect all necessary data to generate plots for comparing performance among different configurations.
 * Block the learning process and restart it from the Q matrix computed before, giving as id the date of the previous execution.
 
 ## Tests
