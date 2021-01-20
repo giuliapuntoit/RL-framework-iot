@@ -11,11 +11,11 @@ fontP = FontProperties()
 fontP.set_size('x-small')
 n_cols = 1
 
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 
 def plot_reward_per_request_single_run(date_to_retrieve='YY_mm_dd_HH_MM_SS', show_graphs=True, color_index=0, algorithm="sarsa"):
-    directory = GlobalVar.directory + 'output/log/'
+    directory = FrameworkConfiguration.directory + 'output/log/'
     log_file = directory + 'log_' + date_to_retrieve + '.log'
 
     print(log_file)

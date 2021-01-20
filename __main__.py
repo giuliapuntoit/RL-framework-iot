@@ -1,7 +1,7 @@
 
 from threading import Thread
 
-from config import GlobalVar
+from config import FrameworkConfiguration
 from discovery import network_analyzer
 from learning import learning_yeelight
 
@@ -19,7 +19,7 @@ if __name__ == '__main__':
         # Should launch a thread for each device, with a maximum number of threads available
         # Until now, this is done only for yeelight devices
         if dev.protocol == "yeelight":
-            GlobalVar.directory = "./"
+            FrameworkConfiguration.directory = "./"
             tmp_th = Thread(target=learning_yeelight.main, args=(dev.as_dict(), ))
             tmp_th.start()
             tmp_th.join()  # Useless this thread for now

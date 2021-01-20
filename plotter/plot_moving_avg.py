@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -38,7 +38,7 @@ def plot_single_algo_single_run(date_to_retrieve):
     y_cum_reward = []
     y_timesteps = []
 
-    directory = GlobalVar.directory + 'output/output_Q_parameters'
+    directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
     file_parameters = 'output_parameters_' + date_to_retrieve + '.csv'
 
     with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -49,7 +49,7 @@ def plot_single_algo_single_run(date_to_retrieve):
     print("RL ALGORITHM:", algorithm)
     print("PLOTTING GRAPHS...")
 
-    directory = GlobalVar.directory + 'output/output_csv'
+    directory = FrameworkConfiguration.directory + 'output/output_csv'
     filename = 'output_' + algorithm + '_' + date_to_retrieve + '.csv'
 
     with open(directory + '/' + filename, 'r') as csv_file:
@@ -114,7 +114,7 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
     # retrieve data for all dates
     for dat in date_array:
         if algorithm is None:
-            directory = GlobalVar.directory + 'output/output_Q_parameters'
+            directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
             file_parameters = 'output_parameters_' + dat + '.csv'
 
             with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -124,7 +124,7 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
             algorithm = parameters['algorithm_used']
         print("RL ALGORITHM:", algorithm)
 
-        directory = GlobalVar.directory + 'output/output_csv'
+        directory = FrameworkConfiguration.directory + 'output/output_csv'
         filename = 'output_' + algorithm + '_' + dat + '.csv'
 
         x = []
@@ -230,7 +230,7 @@ def plot_single_algo_multiple_runs_for_avg_bars(date_array, algorithm=None):
     # retrieve data for all dates
     for dat in date_array:
         if algorithm is None:
-            directory = GlobalVar.directory + 'output/output_Q_parameters'
+            directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
             file_parameters = 'output_parameters_' + dat + '.csv'
 
             with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -240,7 +240,7 @@ def plot_single_algo_multiple_runs_for_avg_bars(date_array, algorithm=None):
             algorithm = parameters['algorithm_used']
         print("RL ALGORITHM:", algorithm)
 
-        directory = GlobalVar.directory + 'output/output_csv'
+        directory = FrameworkConfiguration.directory + 'output/output_csv'
         filename = 'output_' + algorithm + '_' + dat + '.csv'
 
         x = []

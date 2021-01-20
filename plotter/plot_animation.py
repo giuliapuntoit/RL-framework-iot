@@ -4,14 +4,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import  FuncAnimation
 
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 target_output_dir = './'
 
 
 def get_reward_for_episode(curr_date="2020_12_15_00_19_48", algorithm="qlearning"):
     if algorithm is None:
-        directory = GlobalVar.directory + 'output/output_Q_parameters'
+        directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
         file_parameters = 'output_parameters_' + curr_date + '.csv'
 
         with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -21,7 +21,7 @@ def get_reward_for_episode(curr_date="2020_12_15_00_19_48", algorithm="qlearning
         algorithm = parameters['algorithm_used']
     print("RL ALGORITHM:", algorithm)
 
-    directory = GlobalVar.directory + 'output/output_csv'
+    directory = FrameworkConfiguration.directory + 'output/output_csv'
     filename = 'output_' + algorithm + '_' + curr_date + '.csv'
 
     x = []

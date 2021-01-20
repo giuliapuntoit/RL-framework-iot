@@ -5,7 +5,7 @@ import pandas as pd
 import pylab as pl
 from matplotlib import patches
 from matplotlib.font_manager import FontProperties
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 from plotter.plot_moving_avg import print_cute_algo_name
 
@@ -37,7 +37,7 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     # retrieve data for all dates
     for dat in date_array:
         if algorithm is None:
-            directory = GlobalVar.directory + 'output/output_Q_parameters'
+            directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
             file_parameters = 'output_parameters_' + dat + '.csv'
 
             with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -47,7 +47,7 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
             algorithm = parameters['algorithm_used']
         print("RL ALGORITHM:", algorithm)
 
-        directory = GlobalVar.directory + 'output/output_csv'
+        directory = FrameworkConfiguration.directory + 'output/output_csv'
         filename = 'output_' + algorithm + '_' + dat + '.csv'
 
         x = []

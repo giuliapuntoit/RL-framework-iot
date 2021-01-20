@@ -12,7 +12,7 @@ fontP = FontProperties()
 fontP.set_size('x-small')
 n_cols = 2
 
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 # Functions for plotting the moving average for multiple runs and multiple configurations of params
 
@@ -42,7 +42,7 @@ def plot_single_configuration_multiple_runs(date_array, param):
 
     # retrieve data for all dates
     for dat in date_array:
-        directory = GlobalVar.directory + 'output/output_Q_parameters'
+        directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
         file_parameters = 'output_parameters_' + dat + '.csv'
 
         with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -53,7 +53,7 @@ def plot_single_configuration_multiple_runs(date_array, param):
         print("RL ALGORITHM:", algorithm)
         param_value = parameters[param]
 
-        directory = GlobalVar.directory + 'output/output_csv'
+        directory = FrameworkConfiguration.directory + 'output/output_csv'
         filename = 'output_' + algorithm + '_' + dat + '.csv'
 
         x = []

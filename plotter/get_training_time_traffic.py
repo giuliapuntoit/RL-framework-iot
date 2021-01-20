@@ -2,7 +2,7 @@ import os
 import numpy as np
 import csv
 
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 
 class GetTrainingTimeTraffic(object):
@@ -16,7 +16,7 @@ class GetTrainingTimeTraffic(object):
 
     def run(self):
 
-        directory = GlobalVar.directory + 'output/log/'
+        directory = FrameworkConfiguration.directory + 'output/log/'
         log_file = directory + 'log_' + self.date_to_retrieve + '.log'
 
         print(log_file)

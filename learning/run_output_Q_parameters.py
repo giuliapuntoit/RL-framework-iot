@@ -8,7 +8,7 @@ from threading import Thread
 from time import sleep
 import socket
 import fcntl
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 # Follow the best policy found by a learning process
 
@@ -34,7 +34,7 @@ class RunOutputQParameters(object):
             exit(1)
 
     def run(self):
-        directory = GlobalVar.directory + 'output/output_Q_parameters'
+        directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
         file_Q = 'output_Q_' + self.date_to_retrieve + '.csv'
         file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
@@ -188,15 +188,15 @@ class RunOutputQParameters(object):
 
 if __name__ == '__main__':
     # Socket setup
-    GlobalVar.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    fcntl.fcntl(GlobalVar.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    GlobalVar.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    GlobalVar.listen_socket.bind(("", 1982))
-    fcntl.fcntl(GlobalVar.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+    FrameworkConfiguration.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    fcntl.fcntl(FrameworkConfiguration.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+    FrameworkConfiguration.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    FrameworkConfiguration.listen_socket.bind(("", 1982))
+    fcntl.fcntl(FrameworkConfiguration.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
     # GlobalVar.scan_socket.settimeout(GlobalVar.timeout)  # set 2 seconds of timeout
     # GlobalVar.listen_socket.settimeout(GlobalVar.timeout)
-    mreq = struct.pack("4sl", socket.inet_aton(GlobalVar.MCAST_GRP), socket.INADDR_ANY)
-    GlobalVar.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    mreq = struct.pack("4sl", socket.inet_aton(FrameworkConfiguration.MCAST_GRP), socket.INADDR_ANY)
+    FrameworkConfiguration.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
     # First discover the lamp and connect to the lamp
     # Start the bulb detection thread
@@ -208,22 +208,22 @@ if __name__ == '__main__':
     # Show discovered lamps
     display_bulbs()
 
-    print(GlobalVar.bulb_idx2ip)
+    print(FrameworkConfiguration.bulb_idx2ip)
     max_wait = 0
-    while len(GlobalVar.bulb_idx2ip) == 0 and max_wait < 10:
+    while len(FrameworkConfiguration.bulb_idx2ip) == 0 and max_wait < 10:
         sleep(1)
         max_wait += 1
-    if len(GlobalVar.bulb_idx2ip) == 0:
+    if len(FrameworkConfiguration.bulb_idx2ip) == 0:
         print("Bulb list is empty.")
     else:
         # If some bulbs were found inside the network do something
         display_bulbs()
-        idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
+        idLamp = list(FrameworkConfiguration.bulb_idx2ip.keys())[0]
 
         print("Waiting 5 seconds before verifying optimal policy")
         sleep(5)
 
-        GlobalVar.RUNNING = False
+        FrameworkConfiguration.RUNNING = False
 
         RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_30_02_10_16").run()
 
