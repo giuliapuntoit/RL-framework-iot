@@ -1,3 +1,6 @@
+"""
+    Main script that starts the framework
+"""
 
 from threading import Thread
 

@@ -1,7 +1,6 @@
-import pprint
-import json
-
-# Yeelight Control Protocol
+"""
+    Class containing the dictionary for the Yeelight protocol
+"""
 
 # COMMAND message {id_pair, method_pair, params_pair}
 # id_pair is        "id":<number>

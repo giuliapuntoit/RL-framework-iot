@@ -1,4 +1,7 @@
-# Prendi stati da qui
+"""
+    Script to define all information about state-machines, defined states, paths and reward definition
+"""
+
 from device_communication.api_yeelight import operate_on_bulb_props
 from config import FrameworkConfiguration
 from request_builder.builder_yeelight import ServeYeelight

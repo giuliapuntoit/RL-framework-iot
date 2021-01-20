@@ -1,5 +1,10 @@
+"""
+    Support classes for coloring the console output
+"""
+
 import logging
 import sys
+
 
 class _AnsiColorizer(object):
     """
@@ -43,7 +48,6 @@ class _AnsiColorizer(object):
         Write the given text to the stream in the given color.
 
         @param text: Text to be written to the stream.
-
         @param color: A string label for a color. e.g. 'red', 'white'.
         """
         color = self._colors[color]

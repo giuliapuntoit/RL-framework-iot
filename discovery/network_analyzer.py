@@ -1,3 +1,7 @@
+"""
+    Script for analyzing LAN to find IoT devices
+"""
+
 import pprint
 import nmap
 import ipaddress
