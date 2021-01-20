@@ -1,3 +1,7 @@
+"""
+    Script for plotting the moving average of the reward and timesteps over episodes for different params configurations
+"""
+
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
@@ -79,7 +83,6 @@ def plot_single_configuration_multiple_runs(date_array, param):
         y_all_reward.append(y_reward)
         y_all_cum_reward.append(y_cum_reward)
         y_all_timesteps.append(y_timesteps)
-
 
     # compute average over multiple runs
     y_final_reward = []
@@ -364,12 +367,6 @@ if __name__ == '__main__':
         episodes.append(ep)
         moving_avgs_rewards.append(ma)
         moving_avgs_timesteps.append(mats)
-
-        # voglio gli ultimi 20 avg reward degli ultimi 20 episodi e 5 run
-        # TODO
-        # boxplot_last_rewards.append()
-        # boxplot_last_timesteps.append()
-
         avg_rewards.append(ar)
         avg_timesteps.append(at)
         n_rewards.append(nr)
@@ -383,5 +380,3 @@ if __name__ == '__main__':
     plot_multiple_configuration_rewards_timesteps(algo, changing_param, changing_param_values, avg_rewards,
                                                   avg_timesteps, n_rewards, n_timesteps, std_dev_rewards,
                                                   std_dev_timesteps)
-
-    # boxplot_multiple_configurations_rewards_timesteps_last_episodes(algo, changing_param, changing_param_values, boxplot_last_rewards, boxplot_last_timesteps)

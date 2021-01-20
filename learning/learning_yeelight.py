@@ -1,3 +1,7 @@
+"""
+    Class that plays the Reinforcement Learning agent
+"""
+
 #!/usr/bin/python
 import csv
 import numpy as np
@@ -73,8 +77,10 @@ class ReinforcementLearningAlgorithm(object):
         else:
             self.use_old_matrix = False
 
-    # Function to choose the next action, same for all algorithms
     def choose_action(self, state, Qmatrix):
+        """
+        Function to choose the next action, same for all algorithms
+        """
         # Here I should choose the method
         if np.random.uniform(0, 1) < self.epsilon:
             # print("\t\tSelect the action randomly")
@@ -88,16 +94,18 @@ class ReinforcementLearningAlgorithm(object):
         # action is an index
         return action
 
-    # SARSA
-    # Function to learn the Q-value
     def update_sarsa(self, state, state2, reward, action, action2, Qmatrix):
+        """
+        SARSA function to learn the Q-value
+        """
         predict = Qmatrix[state, action]
         target = reward + self.gamma * Qmatrix[state2, action2]
         Qmatrix[state, action] = Qmatrix[state, action] + self.alpha * (target - predict)
 
-    # SARSA(lambda)
-    # Function to update the Q-value matrix and the Eligibility matrix
     def update_sarsa_lambda(self, state, state2, reward, action, action2, len_states, len_actions, Qmatrix, Ematrix):
+        """
+        SARSA(lambda) function to update the Q-value matrix and the Eligibility matrix
+        """
         predict = Qmatrix[state, action]
         target = reward + self.gamma * Qmatrix[state2, action2]
         delta = target - predict
@@ -108,10 +116,11 @@ class ReinforcementLearningAlgorithm(object):
                 Qmatrix[s, a] = Qmatrix[s, a] + self.alpha * delta * Ematrix[s, a]
                 Ematrix[s, a] = self.gamma * self.lam * Ematrix[s, a]
 
-    # Qlearning(lambda) (Watkins's Q(lambda) algorithm)
-    # Function to update the Q-value matrix and the Eligibility matrix
     def update_qlearning_lambda(self, state, state2, reward, action, action2, len_states, len_actions, Qmatrix,
                                 Ematrix):
+        """
+        Q-learning(lambda) (Watkins's Q(lambda) algorithm) function to update the Q-value matrix and the Eligibility matrix
+        """
         predict = Qmatrix[state, action]
         maxQ = np.amax(Qmatrix[state2, :])  # Find maximum value for the new state Q(s', a*)
         maxIndex = np.argmax(Qmatrix[state2, :])  # Find index of the maximum value a*
@@ -127,15 +136,19 @@ class ReinforcementLearningAlgorithm(object):
                 else:
                     Ematrix[s, a] = 0
 
-    # Q-learning
-    # Function to learn the Q-value
     def update_qlearning(self, state, state2, reward, action, Qmatrix):
+        """
+        # Q-learning function to learn the Q-value
+        """
         predict = Qmatrix[state, action]
         maxQ = np.amax(Qmatrix[state2, :])  # Find maximum value for the new state
         target = reward + self.gamma * maxQ
         Qmatrix[state, action] = Qmatrix[state, action] + self.alpha * (target - predict)
 
     def run(self):
+        """
+        Run RL algorithm
+        """
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
         # Obtain data about states, path and policy
@@ -288,12 +301,14 @@ class ReinforcementLearningAlgorithm(object):
                 sleep(self.seconds_to_wait)
 
             # Turn off the lamp
-            # print("\t\tREQUEST: Setting power off") TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\tREQUEST: Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             count_actions += 1
             sleep(self.seconds_to_wait)
             state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
-            # print("\tSTARTING FROM STATE", states[state1]) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\tSTARTING FROM STATE", states[state1])
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -314,13 +329,15 @@ class ReinforcementLearningAlgorithm(object):
 
                 # Perform an action on the bulb sending a command
                 json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
-                # print("\t\tREQUEST:", str(json_string)) TODO
+                if FrameworkConfiguration.DEBUG:
+                    print("\t\tREQUEST:", str(json_string))
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 count_actions += 1
                 sleep(self.seconds_to_wait)
 
                 state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
-                # print("\tFROM STATE", states[state1], "TO STATE", states[state2]) TODO
+                if FrameworkConfiguration.DEBUG:
+                    print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
                 reward_from_states = compute_reward_from_states(state1, state2)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more

@@ -1,3 +1,7 @@
+"""
+    This script contains API functions for sending commands and receiving responses from a Yeelight device
+"""
+
 import errno
 import json
 import sys
@@ -8,10 +12,10 @@ import re
 from config import FrameworkConfiguration
 
 
-# The following are API functions for sending commands and receiving responses from a Yeelight device
-
 def send_search_broadcast():
-    # Multicast search request to all hosts in LAN, do not wait for response
+    """
+    Multicast search request to all hosts in LAN, do not wait for response
+    """
     print("send_search_broadcast running")
     multicase_address = (FrameworkConfiguration.MCAST_GRP, 1982)
     msg = "M-SEARCH * HTTP/1.1\r\n"
@@ -22,7 +26,9 @@ def send_search_broadcast():
 
 
 def bulbs_detection_loop():
-    # A standalone thread broadcasting search request and listening on all responses
+    """
+    A standalone thread broadcasting search request and listening on all responses
+    """
     print("bulbs_detection_loop running")
     search_interval = 30000
     read_interval = 100
@@ -65,7 +71,9 @@ def bulbs_detection_loop():
 
 
 def get_param_value(data, param):
-    # Match line of 'param = value'
+    """
+    Match line of 'param = value'
+    """
     param_re = re.compile(param + ":\s*([ -~]*)")  # Match all printable characters
     match = param_re.search(data.decode())
     if match is not None:
@@ -74,7 +82,9 @@ def get_param_value(data, param):
 
 
 def get_support_value(data):
-    # Match line of 'support = value'
+    """
+    Match line of 'support = value'
+    """
     support_re = re.compile("support" + ":\s*([ -~]*)")  # Match all printable characters
     match = support_re.search(data.decode())
     if match is not None:
@@ -83,9 +93,10 @@ def get_support_value(data):
 
 
 def handle_search_response(data):
-    # Parse search response and extract all interested data
-    # If new bulb is found, insert it into dictionary of managed bulbs
-
+    """
+    Parse search response and extract all interested data
+    If new bulb is found, insert it into dictionary of managed bulbs
+    """
     location_re = re.compile("Location.*yeelight[^0-9]*([0-9]{1,3}(\.[0-9]{1,3}){3}):([0-9]*)")
     match = location_re.search(data.decode())
     if match is None:
@@ -114,77 +125,90 @@ def handle_search_response(data):
 
 
 def handle_response(data):
-    # Handle the response given by the bulb, assigning some reward based on the correct response
-
+    """
+    Handle the response given by the bulb, assigning some reward based on the correct response
+    """
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-    # print(json_received)
     if 'id' in json_received and json_received['id'] == FrameworkConfiguration.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            # print("\t\t\tRESPONSE: result ->", json_received['result']) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: result ->", json_received['result'])
             reward_from_response = 0
         elif 'error' in json_received and json_received['error'] is not None:
-            # print("\t\t\tRESPONSE: error ->", json_received['error']) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: error ->", json_received['error'])
             reward_from_response = -10
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
         else:
-            # print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer") TODO
-            reward_from_response = -20  # non è colpa di nessuno?
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
+            reward_from_response = -20
     else:
-        # print("\t\t\tRESPONSE: Bad format response") TODO
-        reward_from_response = -20  # non è colpa di nessuno?
+        if FrameworkConfiguration.DEBUG:
+            print("\t\t\tRESPONSE: Bad format response")
+        reward_from_response = -20
     return reward_from_response
 
 
 def handle_response_no_reward(data):
-    # Handle the response given by the bulb, when returning a reward is not required
-
+    """
+    Handle the response given by the bulb, when returning a reward is not required
+    """
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-    # print(json_received)
 
     if 'id' in json_received and json_received['id'] == FrameworkConfiguration.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            # print("\t\t\tRESPONSE: result ->", json_received['result']) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: result ->", json_received['result'])
             pass
         elif 'error' in json_received and json_received['error'] is not None:
-            # print("\t\t\tRESPONSE: error ->", json_received['error']) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: error ->", json_received['error'])
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
         else:
-            # print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer") TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
             pass
     else:
-        # print("\t\t\tRESPONSE: Bad format response") TODO
+        if FrameworkConfiguration.DEBUG:
+            print("\t\t\tRESPONSE: Bad format response")
         pass
 
 
 def handle_response_props(data):
-    # Handle the response given by the bulb when asking for properties of the device
-
+    """
+    Handle the response given by the bulb when asking for properties of the device
+    """
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-    # print("[DEBUG] Json received", json_received)
-
     if 'id' in json_received and json_received['id'] == FrameworkConfiguration.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
-            # print("\t\t\tRESPONSE: result ->", json_received['result']) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: result ->", json_received['result'])
             return json_received['result']  # List of values for properties
         elif 'error' in json_received and json_received['error'] is not None:
-            # print("\t\t\tRESPONSE: error ->", json_received['error']) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: error ->", json_received['error'])
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
             return json_received['error']
         else:
-            # print("\t\t\tRESPONSE: No result or error found in answer") TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\t\tRESPONSE: No result or error found in answer")
             pass
     else:
-        # print("\t\t\tRESPONSE: Bad format response") TODO
+        if FrameworkConfiguration.DEBUG:
+            print("\t\t\tRESPONSE: Bad format response")
         pass
     # If any error was found in the response or there is no response an empty array is returned
     return []
 
 
 def display_bulb(idx):
-    # Display a bulb found in the network
+    """
+    Display a bulb found in the network
+    """
     if idx not in FrameworkConfiguration.bulb_idx2ip:
         print("error: invalid bulb idx")
         return
@@ -200,16 +224,20 @@ def display_bulb(idx):
 
 
 def display_bulbs():
-    # Display all bulbs found in the network
+    """
+    Display all bulbs found in the network
+    """
     print(str(len(FrameworkConfiguration.detected_bulbs)) + " managed bulbs")
     for i in range(1, len(FrameworkConfiguration.detected_bulbs) + 1):
         display_bulb(i)
 
 
 def operate_on_bulb(idx, method, params):
-    # Operate on bulb; no guarantee of success.
-    # Input data 'params' must be a compiled into one string.
-    # E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
+    """
+    Operate on bulb; no guarantee of success
+    :param params: Input data 'params' must be a compiled into one string
+                   E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
+    """
 
     if idx not in FrameworkConfiguration.bulb_idx2ip:
         print("error: invalid bulb idx")
@@ -220,6 +248,7 @@ def operate_on_bulb(idx, method, params):
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.settimeout(FrameworkConfiguration.timeout)
+
         # print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
         msg = "{\"id\":" + str(FrameworkConfiguration.current_command_id) + ",\"method\":\""
@@ -229,13 +258,18 @@ def operate_on_bulb(idx, method, params):
         handle_response_no_reward(data)  # I do not want to compute reward when I manually turn off the lamp
         tcp_socket.close()
     except Exception as e:
-        # print("\t\t\tUnexpected error:", e) TODO
+        if FrameworkConfiguration.DEBUG:
+            print("\t\t\tUnexpected error:", e)
         pass
 
+
 def operate_on_bulb_props(id_lamp, json_string):
-    # Send a request for the properties of the bulb, handling the response properly
-    # Return the property values of the current state of the bulb
-    # print("\t\tREQUEST FOR PROPS:", json_string) TODO
+    """
+    Send a request for the properties of the bulb, handling the response properly
+    :return Return the property values of the current state of the bulb
+    """
+    if FrameworkConfiguration.DEBUG:
+        print("\t\tREQUEST FOR PROPS:", json_string)
     if id_lamp not in FrameworkConfiguration.bulb_idx2ip:
         print("error: invalid bulb idx")
         return []
@@ -254,14 +288,19 @@ def operate_on_bulb_props(id_lamp, json_string):
         tcp_socket.close()
         return props
     except Exception as e:
-        # print("\t\t\tUnexpected error:", e) TODO
+        if FrameworkConfiguration.DEBUG:
+            print("\t\t\tUnexpected error:", e)
         return []
 
 
 def operate_on_bulb_json(id_lamp, json_string):
-    # Operate on bulb; no guarantee of success.
-    # Send a command already formatted inside a json
-    # Return the reward returned by the response given to this sent command
+    """
+    Operate on bulb; no guarantee of success
+    Send a command already formatted inside a json
+    :param id_lamp:
+    :param json_string: command already formatted inside a json
+    :return: Return the reward returned by the response given to this sent command
+    """
 
     if id_lamp not in FrameworkConfiguration.bulb_idx2ip:
         print("error: invalid bulb idx")
@@ -281,5 +320,6 @@ def operate_on_bulb_json(id_lamp, json_string):
         tcp_socket.close()
         return reward_from_response
     except Exception as e:
-        # print("\t\t\tUnexpected error:", e) TODO
+        if FrameworkConfiguration.DEBUG:
+            print("\t\t\tUnexpected error:", e)
         return -10

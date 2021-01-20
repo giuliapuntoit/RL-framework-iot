@@ -42,3 +42,5 @@ class FrameworkConfiguration(object):  # change name, tipo configuration params 
     # General info
     seconds_to_wait = 4.0
     num_actions_to_use = 37
+
+    DEBUG = False

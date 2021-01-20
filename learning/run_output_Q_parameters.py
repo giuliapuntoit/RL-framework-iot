@@ -1,4 +1,7 @@
-import json
+"""
+    Class to follow the best policy found by a learning process
+"""
+
 import os
 import struct
 import numpy as np
@@ -9,8 +12,6 @@ from time import sleep
 import socket
 import fcntl
 from config import FrameworkConfiguration
-
-# Follow the best policy found by a learning process
 
 # Q will be read from output_Q_data.csv
 # Retrieve actions and state from output_Q_data.csv
@@ -231,3 +232,5 @@ if __name__ == '__main__':
     RUNNING = False
     detection_thread.join()
     # Done
+
+# TODO qua lo fa con una lamp a caso il run? Dovrei mandare il report?
