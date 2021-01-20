@@ -27,7 +27,7 @@ Here we want to interact with such devices, by learning their protocols in an au
 * **state** of an IoT device: represented by some properties specific to that device.
 * **state-machine** of a protocol: multiple series of states linked by one or more sequences of commands. These commands can be exchanged through that protocol to complete a predefined task.
 * **task**: identified as a **path** inside the state-machine. The sequence of commands could change the **state** of the IoT device following a certain path - i.e., completing a task - inside the state-machine.
-* RL algorithms iterate over 2 nested loops: the outer loop iterating over episodes and the inner loop iterating over time steps t.
+* RL algorithms iterate over 2 nested loops: the outer loop iterating over **episodes** and the inner loop iterating over **time steps** t.
 
 ### Current work
 
