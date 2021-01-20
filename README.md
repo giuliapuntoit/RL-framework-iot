@@ -42,6 +42,13 @@ We start developing our framework:
 
 ## How to use?
 
+This project has been developed with Python 3.7. 
+To use it, you need to first install all necessary Python packages with command:
+
+```
+pip install .
+```
+
 After installing all needed dependencies, the project can be executed directly running the ``__main__.py`` script or the ``learning_yeelight`` script.
 
 ### Structure
