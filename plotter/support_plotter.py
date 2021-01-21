@@ -51,7 +51,7 @@ def build_output_dir_from_path(output_dir, path):
 
 
 def build_output_dir_for_params(output_dir, changing_param, algo):
-    target_output_dir = output_dir + changing_param + "/" + algo + "/"
+    target_output_dir = output_dir + "/" + changing_param + "/" + algo + "/"
     pathlib.Path(target_output_dir).mkdir(parents=True, exist_ok=True)  # for Python > 3.5
     return target_output_dir
 

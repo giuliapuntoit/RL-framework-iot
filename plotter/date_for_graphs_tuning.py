@@ -1,6 +1,6 @@
-algo = "sarsa"
+algo_sarsa = "sarsa"
 
-value_of_epsilon = [
+value_of_epsilon_sarsa = [
     [  # epsilon = 0.1
         '2020_11_08_14_08_49',
         '2020_11_08_14_40_36',
@@ -52,7 +52,7 @@ value_of_epsilon = [
     ]]
 
 # chosen epsilon=0.2
-value_of_alpha = [
+value_of_alpha_sarsa = [
     [  # alpha = 0.5
         '2020_11_11_00_17_51',
         '2020_11_11_00_52_58',
@@ -98,7 +98,7 @@ value_of_alpha = [
     ]]
 
 # chosen alpha = 0.1
-value_of_gamma = [
+value_of_gamma_sarsa = [
     [  # gamma = 0.35
         '2020_11_13_03_22_47',
         '2020_11_13_03_57_27',
@@ -135,7 +135,7 @@ value_of_gamma = [
 
 # algorithm = sarsa_lambda
 
-value_of_lambda = [
+value_of_lambda_sarsa_lambda = [
     [  # lambda = 0
         '2020_11_16_01_11_21',
         '2020_11_16_01_42_18',
@@ -178,7 +178,7 @@ value_of_lambda = [
 
 algo = "qlearning"
 
-value_of_epsilon = [
+value_of_epsilon_qlearning = [
     [  # epsilon = 0.1
         '2020_11_09_03_39_34',
         '2020_11_09_04_09_00',
@@ -231,7 +231,7 @@ value_of_epsilon = [
 ]
 
 # chosen epsilon = 0.2
-value_of_alpha = [
+value_of_alpha_qlearning = [
     [  # alpha = 0.5
         '2020_11_12_01_55_24',
         '2020_11_12_02_26_44',
@@ -278,7 +278,7 @@ value_of_alpha = [
 
 # chosen alpha = 0.1
 
-value_of_gamma = [
+value_of_gamma_qlearning = [
     [  # gamma = 0.35
         '2020_11_13_18_13_30',
         '2020_11_13_18_46_38',
@@ -313,10 +313,9 @@ value_of_gamma = [
 
 # chosen gamma = 0.55
 
+algo = "qlearning_lambda"
 
-# algorithm = qlearning_lambda
-
-value_of_lambda = [
+value_of_lambda_qlearning_lambda = [
     [  # lambda = 0
         '2020_11_16_23_53_58',
         '2020_11_17_00_27_31',

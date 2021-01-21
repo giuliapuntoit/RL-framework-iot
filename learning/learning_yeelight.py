@@ -573,7 +573,6 @@ def main(discovery_report=None):
         FrameworkConfiguration.RUNNING = False  # TODO should remove this
 
         print("\n############# Starting RL algorithm path", FrameworkConfiguration.path, "#############")
-
         print("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM", FrameworkConfiguration.epsilon, FrameworkConfiguration.alpha, FrameworkConfiguration.gamma)
         ReinforcementLearningAlgorithm().run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
         print("############# Finish RL algorithm #############")
