@@ -120,6 +120,21 @@ def read_avg_reward_from_output_file(algorithm, date_to_retrieve):
     return x, y_avg_reward_for_one_episode
 
 
+def read_parameters_from_output_file(date_to_retrieve):
+    # retrieve parameter value from output file
+    directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
+    file_parameters = 'output_parameters_' + date_to_retrieve + '.csv'
+
+    with open(directory + '/' + file_parameters, 'r') as csv_file:
+        reader = csv.reader(csv_file, delimiter=',')
+        parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
+
+    algorithm = parameters['algorithm_used']
+    print("RL ALGORITHM:", algorithm)
+
+    return parameters
+
+
 def read_reward_timesteps_from_output_file(algorithm, date_to_retrieve):
     """
     Read reward, cumulative reward and timesteps data from output file

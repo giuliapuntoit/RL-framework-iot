@@ -10,7 +10,7 @@ import pylab as pl
 from matplotlib.font_manager import FontProperties
 from config import FrameworkConfiguration
 from plotter.support_plotter import read_reward_timesteps_from_output_file, compute_avg_over_multiple_runs, \
-    return_greek_letter
+    return_greek_letter, read_parameters_from_output_file
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -34,14 +34,17 @@ def plot_single_configuration_multiple_runs(date_array, param):
 
     # retrieve data for all dates
     for dat in date_array:
+        parameters = read_parameters_from_output_file(dat)
+        param_value = parameters[param]
+
         x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(None, dat)
 
         # TODO remove this check, used only for robustness
-        if len(x) > 100:
-            x = x[0:100]
-            y_reward = y_reward[0:100]
-            y_cum_reward = y_cum_reward[0:100]
-            y_timesteps = y_timesteps[0:100]
+        # if len(x) > 100:
+        #     x = x[0:100]
+        #     y_reward = y_reward[0:100]
+        #     y_cum_reward = y_cum_reward[0:100]
+        #     y_timesteps = y_timesteps[0:100]
 
         x_all.append(x)
         y_all_reward.append(y_reward)
@@ -121,7 +124,6 @@ def plot_multiple_configuration_avg_rewards_timesteps_bars(algo, param, param_va
     fig, ax = plt.subplots()
     param_labels = []
     cnt = 0
-    print(param_values)
     for i in param_values:
         if cnt == 0 and param == "lambda":
             param_labels.append(return_greek_letter(param) + "=" + i)
