@@ -7,11 +7,11 @@ import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
-from matplotlib import patches
 from matplotlib.font_manager import FontProperties
 from config import FrameworkConfiguration
 
 from plotter.plot_moving_avg import print_cute_algo_name
+from plotter.support_plotter import fix_hist_step_vertical_line_at_end, read_avg_reward_from_output_file
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -23,51 +23,17 @@ n_cols = 1
 output_dir = './'
 
 
-def fix_hist_step_vertical_line_at_end(ax):
-    """
-    Support function to adjust layout of plots
-    """
-    ax_polygons = [poly for poly in ax.get_children() if isinstance(poly, patches.Polygon)]
-    for poly in ax_polygons:
-        poly.set_xy(poly.get_xy()[:-1])
-
-
 def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     x_all = []
     y_all_avg_rewards = []
 
-    x = []
-    y_avg_reward_for_one_episode = []
     # retrieve data for all dates
     for dat in date_array:
-        if algorithm is None:
-            directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
-            file_parameters = 'output_parameters_' + dat + '.csv'
+        x, y_avg_reward_for_one_episode = read_avg_reward_from_output_file(algorithm, dat)
 
-            with open(directory + '/' + file_parameters, 'r') as csv_file:
-                reader = csv.reader(csv_file, delimiter=',')
-                parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
-
-            algorithm = parameters['algorithm_used']
-        print("RL ALGORITHM:", algorithm)
-
-        directory = FrameworkConfiguration.directory + 'output/output_csv'
-        filename = 'output_' + algorithm + '_' + dat + '.csv'
-
-        x = []
-        y_avg_reward_for_one_episode = []
-        with open(directory + '/' + filename, 'r') as csv_file:
-            reader = csv.reader(csv_file, delimiter=',')
-            next(reader, None)
-            for row in reader:
-                x.append(int(row[0]))
-                # TO COMPUTE OVER NUMBER OF COMMANDS
-                # OTHERWISE REMOVE DIVISION BY ROW 3
-                y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
         x_all.append(x)
         y_all_avg_rewards.append(y_avg_reward_for_one_episode)
 
-    data = []
     fig, ax = plt.subplots()
     for i in range(0, len(x_all)):
         # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
@@ -75,9 +41,6 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
         plt.hist(np.sort(y_all_avg_rewards[i]), density=True, cumulative=True, label='CDF-run ' + str(i), bins=2000,
                  histtype='step', alpha=0.8)
         fix_hist_step_vertical_line_at_end(ax)
-
-        # data.append(("run"+str(i), y_all_avg_rewards[i]))
-    # fastplot.plot(data, 'CDF_PROVA.png', mode='CDF_multi', xlabel='Reward for algorithm ' + algorithm, legend=True,)
 
     plt.xlabel('Reward')
     plt.ylabel('CDF (Episode)')
@@ -103,7 +66,6 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     df_final_avg_over_n_runs = pd.DataFrame({'x': x_all[0], 'y1': y_final_avg_rewards})
 
     # ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
-    # color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
     i = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"].index(algorithm)
 
     # plot results

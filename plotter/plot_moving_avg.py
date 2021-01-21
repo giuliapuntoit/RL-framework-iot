@@ -1,5 +1,5 @@
 """
-    Script for plotting the moving average of the reward and timesteps over episodes for different algorithms
+    Script for plotting the moving average of the reward and timesteps over episodes for multiple runs and different algorithms
 """
 
 import matplotlib.pyplot as plt
@@ -9,6 +9,8 @@ import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from config import FrameworkConfiguration
+from plotter.support_plotter import print_cute_algo_name, read_reward_timesteps_from_output_file, \
+    compute_avg_over_multiple_runs
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -20,50 +22,10 @@ n_cols = 1
 output_dir = './'
 
 
-# Functions for plotting the moving average for multiple runs and multiple algorithms
-
-
-def print_cute_algo_name(a):
-    if a == "sarsa":
-        return "SARSA"
-    elif a == "sarsa_lambda":
-        return "SARSA(λ)"
-    elif a == "qlearning":
-        return "Q-learning"
-    elif a == "qlearning_lambda":
-        return "Q(λ)"
-    else:
-        return "invalid"
-
-
 def plot_single_algo_single_run(date_to_retrieve):
-    x = []
-    y_reward = []
-    y_cum_reward = []
-    y_timesteps = []
+    x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(None, date_to_retrieve)
 
-    directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
-    file_parameters = 'output_parameters_' + date_to_retrieve + '.csv'
-
-    with open(directory + '/' + file_parameters, 'r') as csv_file:
-        reader = csv.reader(csv_file, delimiter=',')
-        parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
-
-    algorithm = parameters['algorithm_used']
-    print("RL ALGORITHM:", algorithm)
-    print("PLOTTING GRAPHS...")
-
-    directory = FrameworkConfiguration.directory + 'output/output_csv'
-    filename = 'output_' + algorithm + '_' + date_to_retrieve + '.csv'
-
-    with open(directory + '/' + filename, 'r') as csv_file:
-        reader = csv.reader(csv_file, delimiter=',')
-        next(reader, None)
-        for row in reader:
-            x.append(int(row[0]))
-            y_reward.append(int(row[1]))
-            y_cum_reward.append(int(row[2]))
-            y_timesteps.append(int(row[3]))
+    window_size = 10
 
     df = pd.DataFrame({'x': x, 'y1': y_reward, 'y2': y_timesteps, 'y3': y_cum_reward})
 
@@ -79,11 +41,10 @@ def plot_single_algo_single_run(date_to_retrieve):
     # plt.title('Cum reward per algorithm')
     plt.grid(True, color='gray', linestyle='dashed')
     ax.set_xlim(xmin=0)
+    fig.tight_layout()
     plt.legend(loc='lower right', prop=fontP, ncol=n_cols)
 
     plt.show()
-
-    window_size = 10
 
     # calculate the smoothed moving average
     weights = np.repeat(1.0, window_size) / window_size
@@ -93,12 +54,11 @@ def plot_single_algo_single_run(date_to_retrieve):
     pl.plot(x, df['y1'], 'y--', label='data')
     pl.xlabel('Time')
     pl.ylabel('y')
+    fig.tight_layout()
     pl.legend(loc='lower right', prop=fontP, ncol=n_cols)
     # pl.title('Moving Average with window size = ' + str(window_size))
     pl.grid(True, color='gray', linestyle='dashed')
     pl.show()
-
-    print("Done.")
 
 
 def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
@@ -115,66 +75,22 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
     y_reward = []
     y_cum_reward = []
     y_timesteps = []
+
     # retrieve data for all dates
     for dat in date_array:
-        if algorithm is None:
-            directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
-            file_parameters = 'output_parameters_' + dat + '.csv'
+        x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(algorithm, dat)
 
-            with open(directory + '/' + file_parameters, 'r') as csv_file:
-                reader = csv.reader(csv_file, delimiter=',')
-                parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
-
-            algorithm = parameters['algorithm_used']
-        print("RL ALGORITHM:", algorithm)
-
-        directory = FrameworkConfiguration.directory + 'output/output_csv'
-        filename = 'output_' + algorithm + '_' + dat + '.csv'
-
-        x = []
-        y_reward = []
-        y_cum_reward = []
-        y_timesteps = []
-        with open(directory + '/' + filename, 'r') as csv_file:
-            reader = csv.reader(csv_file, delimiter=',')
-            next(reader, None)
-            for row in reader:
-                x.append(int(row[0]))
-                y_reward.append(int(row[1]))
-                y_cum_reward.append(int(row[2]))
-                y_timesteps.append(int(row[3]))
         x_all.append(x)
         y_all_reward.append(y_reward)
         y_all_cum_reward.append(y_cum_reward)
         y_all_timesteps.append(y_timesteps)
 
     # compute average over multiple runs
-    y_final_reward = []
-    y_final_cum_reward = []
-    y_final_timesteps = []
-    for array_index in range(0, len(x_all[0])):
-        sum_r = 0
-        sum_cr = 0
-        sum_t = 0
-        count = 0
-        for date_index in range(0, len(date_array)):  # compute average
-            sum_r += y_all_reward[date_index][array_index]
-            sum_cr += y_all_cum_reward[date_index][array_index]
-            sum_t += y_all_timesteps[date_index][array_index]
-            count += 1
-        y_final_reward.append(sum_r / float(count))
-        y_final_cum_reward.append(sum_cr / float(count))
-        y_final_timesteps.append(sum_t / float(count))
-
-    global_avg_reward = np.mean(y_final_reward)
-    global_avg_timesteps = np.mean(y_final_timesteps)
+    y_final_reward, y_final_cum_reward, y_final_timesteps = compute_avg_over_multiple_runs(len(x_all[0]), len(date_array), y_all_reward, y_all_cum_reward, y_all_timesteps)
 
     df_single_run = pd.DataFrame({'x': x, 'y1': y_reward, 'y2': y_timesteps, 'y3': y_cum_reward})
     df_final_avg_over_n_runs = pd.DataFrame(
         {'x': x_all[0], 'y1': y_final_reward, 'y2': y_final_timesteps, 'y3': y_final_cum_reward})
-
-    # ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
-    color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
     window_size = 10
 
@@ -221,67 +137,25 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
     return algorithm, x, yMA, yMA_timesteps
 
 
-def plot_single_algo_multiple_runs_for_avg_bars(date_array, algorithm=None):
+def compute_single_algo_multiple_runs_global_values_for_avg_bars(date_array, algorithm=None):
     x_all = []
     y_all_reward = []
     y_all_cum_reward = []
     y_all_timesteps = []
 
-    x = []
-    y_reward = []
-    y_cum_reward = []
-    y_timesteps = []
     # retrieve data for all dates
     for dat in date_array:
-        if algorithm is None:
-            directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
-            file_parameters = 'output_parameters_' + dat + '.csv'
+        x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(algorithm, dat)
 
-            with open(directory + '/' + file_parameters, 'r') as csv_file:
-                reader = csv.reader(csv_file, delimiter=',')
-                parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
-
-            algorithm = parameters['algorithm_used']
-        print("RL ALGORITHM:", algorithm)
-
-        directory = FrameworkConfiguration.directory + 'output/output_csv'
-        filename = 'output_' + algorithm + '_' + dat + '.csv'
-
-        x = []
-        y_reward = []
-        y_cum_reward = []
-        y_timesteps = []
-        with open(directory + '/' + filename, 'r') as csv_file:
-            reader = csv.reader(csv_file, delimiter=',')
-            next(reader, None)
-            for row in reader:
-                x.append(int(row[0]))
-                y_reward.append(int(row[1]))
-                y_cum_reward.append(int(row[2]))
-                y_timesteps.append(int(row[3]))
         x_all.append(x)
         y_all_reward.append(y_reward)
         y_all_cum_reward.append(y_cum_reward)
         y_all_timesteps.append(y_timesteps)
 
     # compute average over multiple runs
-    y_final_reward = []
-    y_final_cum_reward = []
-    y_final_timesteps = []
-    for array_index in range(0, len(x_all[0])):
-        sum_r = 0
-        sum_cr = 0
-        sum_t = 0
-        count = 0
-        for date_index in range(0, len(date_array)):  # compute average
-            sum_r += y_all_reward[date_index][array_index]
-            sum_cr += y_all_cum_reward[date_index][array_index]
-            sum_t += y_all_timesteps[date_index][array_index]
-            count += 1
-        y_final_reward.append(sum_r / float(count))
-        y_final_cum_reward.append(sum_cr / float(count))
-        y_final_timesteps.append(sum_t / float(count))
+    y_final_reward, y_final_cum_reward, y_final_timesteps = compute_avg_over_multiple_runs(len(x_all[0]), len(date_array), y_all_reward, y_all_cum_reward, y_all_timesteps)
 
+    # compute single average value over all episodes for reward and timesteps values
     global_avg_reward = np.mean(y_final_reward)
     global_avg_timesteps = np.mean(y_final_timesteps)
 
@@ -293,8 +167,6 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
     target_output_dir = output_dir
     if path in [1, 2, 3]:
         target_output_dir = "../plot/path" + str(path) + "/"
-
-    color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
     for i in range(0, len(algorithms_target)):
         pl.plot(episodes_target[i][
@@ -372,7 +244,7 @@ def all_graphs_before_tuning():
     plot_multiple_algo_moving_avg(algos, episodes, moving_avgs_rewards, moving_avgs_timesteps)
 
 
-def all_graphs_all_paths(sarsa, sarsa_lambda, qlearning, qlearning_lambda, path=None):
+def all_graphs_for_specified_path(sarsa, sarsa_lambda, qlearning, qlearning_lambda, path=None):
     algos = []
     episodes = []
     moving_avgs_rewards = []
@@ -413,7 +285,7 @@ def all_graphs_all_paths(sarsa, sarsa_lambda, qlearning, qlearning_lambda, path=
     plot_multiple_algo_moving_avg(algos, episodes, moving_avgs_rewards, moving_avgs_timesteps, path=path)
 
 
-def plot_multiple_algos_rewards_timesteps(algos, avg_rew, avg_steps, path):
+def plot_multiple_algos_avg_rewards_timesteps_bars(algos, avg_rew, avg_steps, path):
     target_output_dir = output_dir
     if path in [1, 2, 3]:
         target_output_dir = "../plot/path" + str(path) + "/"
@@ -452,21 +324,23 @@ if __name__ == '__main__':
     from date_for_graphs_path1 import qlearning_dates
     from date_for_graphs_path1 import qlearning_lambda_dates
 
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(sarsa_dates, all_algo[0])
+    # plot_single_algo_single_run(sarsa_dates[0])
+
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_dates, all_algo[0])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(sarsa_lambda_dates, all_algo[1])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_lambda_dates, all_algo[1])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(qlearning_dates, all_algo[2])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_dates, all_algo[2])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(qlearning_lambda_dates, all_algo[3])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_lambda_dates, all_algo[3])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
 
-    all_graphs_all_paths(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
-    plot_multiple_algos_rewards_timesteps(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+    all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+    plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
 
     all_avg_rew = []
     all_avg_timesteps = []
@@ -479,21 +353,21 @@ if __name__ == '__main__':
     from date_for_graphs_path2 import qlearning_dates
     from date_for_graphs_path2 import qlearning_lambda_dates
 
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(sarsa_dates, all_algo[0])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_dates, all_algo[0])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(sarsa_lambda_dates, all_algo[1])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_lambda_dates, all_algo[1])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(qlearning_dates, all_algo[2])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_dates, all_algo[2])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(qlearning_lambda_dates, all_algo[3])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_lambda_dates, all_algo[3])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
 
-    all_graphs_all_paths(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
-    plot_multiple_algos_rewards_timesteps(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+    all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+    plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
 
     all_avg_rew = []
     all_avg_timesteps = []
@@ -506,18 +380,18 @@ if __name__ == '__main__':
     from date_for_graphs_path3 import qlearning_dates
     from date_for_graphs_path3 import qlearning_lambda_dates
 
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(sarsa_dates, all_algo[0])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_dates, all_algo[0])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(sarsa_lambda_dates, all_algo[1])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_lambda_dates, all_algo[1])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(qlearning_dates, all_algo[2])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_dates, all_algo[2])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
-    gar, gat = plot_single_algo_multiple_runs_for_avg_bars(qlearning_lambda_dates, all_algo[3])
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_lambda_dates, all_algo[3])
     all_avg_rew.append(gar)
     all_avg_timesteps.append(gat)
 
-    all_graphs_all_paths(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
-    plot_multiple_algos_rewards_timesteps(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+    all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+    plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
