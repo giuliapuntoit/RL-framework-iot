@@ -15,6 +15,9 @@ matplotlib.pyplot.rcParams['font.size'] = 20
 
 
 def plot_training_time_traffic(path=None):
+    """
+    Generate boxplots for training time and traffic values saved into csv files
+    """
     times = [[], [], [], []]
     traffic = [[], [], [], []]
 
@@ -64,12 +67,10 @@ if __name__ == '__main__':
     # date | 123           |           150
     # As input file I need only the log file
 
-    plot_training_time_traffic()  # Before tuning
+    # Before tuning
+    plot_training_time_traffic()
 
     # After tuning
-
     plot_training_time_traffic(path=1)
-
     plot_training_time_traffic(path=2)
-
     plot_training_time_traffic(path=3)

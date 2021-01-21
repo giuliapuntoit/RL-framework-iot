@@ -3,12 +3,10 @@
 """
 
 import matplotlib.pyplot as plt
-import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
-from config import FrameworkConfiguration
 from plotter.support_plotter import read_reward_timesteps_from_output_file, compute_avg_over_multiple_runs, \
     return_greek_letter, read_parameters_from_output_file
 
@@ -23,7 +21,11 @@ target_dir = "../plot/robustness/"
 complete_target_dir = ""
 
 
-def plot_single_configuration_multiple_runs(date_array, param):
+def compute_avg_single_configuration_multiple_runs(date_array, param):
+    """
+    Compute and return average values for reward and timesteps
+    for multiple excutions of the same configuration of parameters
+    """
     window_size = 10
 
     param_value = ""
@@ -77,6 +79,10 @@ def plot_single_configuration_multiple_runs(date_array, param):
 def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target, episodes_target,
                                            moving_average_rewards_target,
                                            moving_average_timesteps_target):
+    """
+    Generate plots with the moving average of reward and timesteps
+    for multiple executions and configurations of a single parameter
+    """
     for i in range(0, len(param_values_target)):
         if i == 0 and param == "lambda":
             pl.plot(episodes_target[i][
@@ -121,6 +127,10 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
 
 
 def plot_multiple_configuration_avg_rewards_timesteps_bars(algo, param, param_values, avg_rew, avg_steps):
+    """
+    Generate bar plots with the global average reward and timesteps values
+    for multiple executions and configurations of a single parameter
+    """
     fig, ax = plt.subplots()
     param_labels = []
     cnt = 0
@@ -160,6 +170,9 @@ def plot_multiple_configuration_avg_rewards_timesteps_bars(algo, param, param_va
 
 def boxplot_multiple_configurations_rewards_timesteps_last_episodes(algor, param, values_of_param, last_20_rewards,
                                                                     last_20_timesteps):
+    """
+    Generate boxplots for the value of reward over the last 20 episodes
+    """
     # non sto più facendo una media, sto mettendo tutti i punti del reward medio
     # last 20 episodes rewards of 5 run -> 100 punti per box
     # [    run 1     run 2   run 3   run 4    run 5
@@ -226,7 +239,7 @@ if __name__ == '__main__':
     ]
 
     for val in value_of_gamma:
-        p, ep, ma, mats, ar, at = plot_single_configuration_multiple_runs(date_array=val, param=changing_param)
+        p, ep, ma, mats, ar, at = compute_avg_single_configuration_multiple_runs(date_array=val, param=changing_param)
         changing_param_values.append(p)
         episodes.append(ep)
         moving_avgs_rewards.append(ma)

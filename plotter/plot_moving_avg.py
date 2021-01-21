@@ -3,12 +3,10 @@
 """
 
 import matplotlib.pyplot as plt
-import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
-from config import FrameworkConfiguration
 from plotter.support_plotter import print_cute_algo_name, read_reward_timesteps_from_output_file, \
     compute_avg_over_multiple_runs
 
@@ -23,6 +21,9 @@ output_dir = './'
 
 
 def plot_single_algo_single_run(date_to_retrieve):
+    """
+    Generate plots showing reward and cumulative reward of a single execution of the learning process
+    """
     x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(None, date_to_retrieve)
 
     window_size = 10
@@ -62,6 +63,10 @@ def plot_single_algo_single_run(date_to_retrieve):
 
 
 def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
+    """
+    Generate plots with reward of a single execution over episodes, average reward and moving average
+    reward computed over multiple executions of the same RL algorithm (same values for timesteps)
+    """
     target_output_dir = output_dir
     if path in [1, 2, 3]:
         target_output_dir = "../plot/path" + str(path) + "/"
@@ -138,6 +143,10 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
 
 
 def compute_single_algo_multiple_runs_global_values_for_avg_bars(date_array, algorithm=None):
+    """
+    Compute avg reward value averaged over all episodes and all executions
+    Obtains a unique number for 1 algorithm (same values for timesteps)
+    """
     x_all = []
     y_all_reward = []
     y_all_cum_reward = []
@@ -164,6 +173,9 @@ def compute_single_algo_multiple_runs_global_values_for_avg_bars(date_array, alg
 
 def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_average_rewards_target,
                                   moving_average_timesteps_target, path=None):
+    """
+    Generate plots having the moving average reward and timesteps values for all RL algorithms
+    """
     target_output_dir = output_dir
     if path in [1, 2, 3]:
         target_output_dir = "../plot/path" + str(path) + "/"
@@ -200,6 +212,9 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
 
 
 def all_graphs_before_tuning():
+    """
+    Plot graphs for data before the tuning phase
+    """
     algos = []
     episodes = []
     moving_avgs_rewards = []
@@ -245,6 +260,9 @@ def all_graphs_before_tuning():
 
 
 def all_graphs_for_specified_path(sarsa, sarsa_lambda, qlearning, qlearning_lambda, path=None):
+    """
+    Plot all graphs for a single path
+    """
     algos = []
     episodes = []
     moving_avgs_rewards = []
@@ -286,6 +304,9 @@ def all_graphs_for_specified_path(sarsa, sarsa_lambda, qlearning, qlearning_lamb
 
 
 def plot_multiple_algos_avg_rewards_timesteps_bars(algos, avg_rew, avg_steps, path):
+    """
+    Plot averaged bar graphs for 1 single path
+    """
     target_output_dir = output_dir
     if path in [1, 2, 3]:
         target_output_dir = "../plot/path" + str(path) + "/"

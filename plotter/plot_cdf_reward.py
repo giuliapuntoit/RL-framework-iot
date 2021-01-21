@@ -3,13 +3,10 @@
 """
 
 import matplotlib.pyplot as plt
-import csv
 import numpy as np
 import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
-from config import FrameworkConfiguration
-
 from plotter.plot_moving_avg import print_cute_algo_name
 from plotter.support_plotter import fix_hist_step_vertical_line_at_end, read_avg_reward_from_output_file
 
@@ -24,6 +21,9 @@ output_dir = './'
 
 
 def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
+    """
+    Compute directly from the output file the average reward per time step for each episode
+    """
     x_all = []
     y_all_avg_rewards = []
 
@@ -86,6 +86,9 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
 
 
 def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew, path):
+    """
+    Generate plot of the CDF of the average reward for episodes
+    """
     target_output_dir = output_dir
     if path in [1, 2, 3]:
         target_output_dir = "../plot/path" + str(path) + "/"
@@ -111,8 +114,10 @@ def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew, p
 
 
 def plot_cdf_unique_path(path=None):
-    # I could pass a list of dates, then do the average of these dates
-    # Then put multiple lines inside 1 multiline plot
+    """
+    Plot CDF of the reward with data before parameter tuning
+    All runs refer to path 2
+    """
     algos = []
     episodes = []
     avg_rewards = []
@@ -171,8 +176,9 @@ def plot_cdf_unique_path(path=None):
 
 
 def plot_cdf_path_from_dates(sarsa, sarsa_lambda, qlearning, qlearning_lambda, path=None):
-    # I could pass a list of dates, then do the average of these dates
-    # Then put multiple lines inside 1 multiline plot
+    """
+    Generate plots for the CDF of the reward for all 4 algorithms
+    """
     algos = []
     episodes = []
     avg_rewards = []
@@ -255,6 +261,3 @@ if __name__ == '__main__':
     from date_for_graphs_path3 import qlearning_lambda_dates
 
     plot_cdf_path_from_dates(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
-
-
-# 1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda

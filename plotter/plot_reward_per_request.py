@@ -17,10 +17,10 @@ n_cols = 1
 
 
 def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_graphs=False, color_index=0, algorithm="sarsa"):
-    directory = FrameworkConfiguration.directory + 'output/log/'
-    log_file = directory + 'log_' + date_to_retrieve + '.log'
-
-    print(log_file)
+    """
+    Retrieve the reward per each time step (or command sent by the RL algorithm) from log file
+    for 1 single execution
+    """
 
     episodes, commands, reward, cum_rewards = read_all_info_from_log(date_to_retrieve)
 
@@ -42,6 +42,11 @@ def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_g
 
 
 def compute_avg_reward_per_request_multiple_runs(dates, algo, show_intermediate_graphs=False):
+    """
+    Compute the average reward per commands over multiple executions
+    Note that multiple executions of the same algorithms are likely to have different numbers of commands sent/timesteps
+    This number depends on the single run
+    """
     commands = []
     cum_rewards = []
     min_length = -1
@@ -83,7 +88,10 @@ def compute_avg_reward_per_request_multiple_runs(dates, algo, show_intermediate_
 
 
 def plot_cum_reward_per_command_multiple_algos_for_specified_path(rewards, commands, algorithms, path):
-
+    """
+    Generate plot with the cumulative reward average over multiple executions
+    for all algorithms used for 1 single path
+    """
     for index, al in enumerate(algorithms):
         pl.plot(commands[index], rewards[index], label=print_cute_algo_name(al))  # single line
 
