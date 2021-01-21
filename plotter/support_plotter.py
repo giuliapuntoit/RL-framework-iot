@@ -9,7 +9,7 @@ from config import FrameworkConfiguration
 
 def print_cute_algo_name(a):
     """
-    Return algorithm with greek letters
+    Function to return algorithm with greek letters
     """
     if a == "sarsa":
         return "SARSA"
@@ -19,6 +19,22 @@ def print_cute_algo_name(a):
         return "Q-learning"
     elif a == "qlearning_lambda":
         return "Q(λ)"
+    else:
+        return "invalid"
+
+
+def return_greek_letter(par):
+    """
+    Function to return the corresponding greek letter
+    """
+    if par == "epsilon":
+        return "ε"
+    elif par == "alpha":
+        return "α"
+    elif par == "gamma":
+        return "γ"
+    elif par == "lambda":
+        return "λ"
     else:
         return "invalid"
 
