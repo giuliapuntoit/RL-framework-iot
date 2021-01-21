@@ -17,7 +17,6 @@ class GetTrainingTimeTraffic(object):
         self.target_output = target_output
 
     def run(self):
-
         secs, commands = read_time_traffic_from_log(self.date_to_retrieve)
 
         if not os.path.isfile(self.target_output):  # If file does not exist
