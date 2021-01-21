@@ -1,7 +1,10 @@
 """
     Script containing methods useful for other plots
 """
+
 import csv
+import pathlib
+
 import numpy as np
 from matplotlib import patches
 from config import FrameworkConfiguration
@@ -37,6 +40,20 @@ def return_greek_letter(par):
         return "λ"
     else:
         return "invalid"
+
+
+def build_output_dir_from_path(output_dir, path):
+    target_output_dir = output_dir
+    if path in [1, 2, 3]:
+        target_output_dir = "../plot/path" + str(path) + "/"
+        pathlib.Path(target_output_dir).mkdir(parents=True, exist_ok=True)  # for Python > 3.5
+    return target_output_dir
+
+
+def build_output_dir_for_params(output_dir, changing_param, algo):
+    target_output_dir = output_dir + changing_param + "/" + algo + "/"
+    pathlib.Path(target_output_dir).mkdir(parents=True, exist_ok=True)  # for Python > 3.5
+    return target_output_dir
 
 
 def fix_hist_step_vertical_line_at_end(ax):

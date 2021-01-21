@@ -8,7 +8,8 @@ import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.plot_moving_avg import print_cute_algo_name
-from plotter.support_plotter import fix_hist_step_vertical_line_at_end, read_avg_reward_from_output_file
+from plotter.support_plotter import fix_hist_step_vertical_line_at_end, read_avg_reward_from_output_file, \
+    build_output_dir_from_path
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -36,8 +37,6 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
 
     fig, ax = plt.subplots()
     for i in range(0, len(x_all)):
-        # plt.plot(episodes_target[i], avg_rew[i], label=algorithms_target[i], color=color[i])
-        # First sorting the array
         plt.hist(np.sort(y_all_avg_rewards[i]), density=True, cumulative=True, label='CDF-run ' + str(i), bins=2000,
                  histtype='step', alpha=0.8)
         fix_hist_step_vertical_line_at_end(ax)
@@ -65,7 +64,6 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
 
     df_final_avg_over_n_runs = pd.DataFrame({'x': x_all[0], 'y1': y_final_avg_rewards})
 
-    # ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
     i = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"].index(algorithm)
 
     # plot results
@@ -89,9 +87,7 @@ def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew, p
     """
     Generate plot of the CDF of the average reward for episodes
     """
-    target_output_dir = output_dir
-    if path in [1, 2, 3]:
-        target_output_dir = "../plot/path" + str(path) + "/"
+    target_output_dir = build_output_dir_from_path(output_dir, path)
 
     fig, ax = plt.subplots()
 
@@ -143,7 +139,6 @@ def plot_cdf_unique_path(path=None):
 
     algos.append(al)
     episodes.append(ep)
-    # avg_rewards.append(avgr)
     tmp_arr = []
     for arr in all_avgr:
         tmp_arr = np.concatenate((np.array(tmp_arr), np.array(arr)))
@@ -154,7 +149,6 @@ def plot_cdf_unique_path(path=None):
 
     algos.append(al)
     episodes.append(ep)
-    # avg_rewards.append(avgr)
     tmp_arr = []
     for arr in all_avgr:
         tmp_arr = np.concatenate((np.array(tmp_arr), np.array(arr)))
@@ -166,7 +160,6 @@ def plot_cdf_unique_path(path=None):
 
     algos.append(al)
     episodes.append(ep)
-    # avg_rewards.append(avgr)
     tmp_arr = []
     for arr in all_avgr:
         tmp_arr = np.concatenate((np.array(tmp_arr), np.array(arr)))

@@ -5,9 +5,8 @@
 import matplotlib.pyplot as plt
 import pylab as pl
 from matplotlib.font_manager import FontProperties
-from config import FrameworkConfiguration
 from plotter.plot_moving_avg import print_cute_algo_name
-from plotter.support_plotter import read_all_info_from_log
+from plotter.support_plotter import read_all_info_from_log, build_output_dir_from_path
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -15,6 +14,7 @@ fontP = FontProperties()
 fontP.set_size('x-small')
 n_cols = 1
 
+output_dir = './'
 
 def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_graphs=False, color_index=0, algorithm="sarsa"):
     """
@@ -34,7 +34,7 @@ def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_g
         pl.legend(loc='upper right')
         # pl.title('Cumulative reward over commands for ' + algorithm)
         pl.grid(True)
-        plt.savefig('commands_plot_' + algorithm + '_lambda.png')
+        plt.savefig('commands_plot_' + algorithm + '.png')
         pl.tight_layout()
         plt.show()
 
@@ -66,12 +66,12 @@ def compute_avg_reward_per_request_multiple_runs(dates, algo, show_intermediate_
     avg_cum_reward = []
     avg_commands = []
     for i in range(min_length):
-        sum = 0.0
-        cnt = 0.0
+        total_sum = 0.0
+        total_cnt = 0.0
         for index, dat in enumerate(dates):
-            sum += cum_rewards[index][i]
-            cnt += 1
-        avg_cum_reward.append(sum/cnt)
+            total_sum += cum_rewards[index][i]
+            total_cnt += 1
+        avg_cum_reward.append(total_sum / total_cnt)
         avg_commands.append(i)
 
     if show_intermediate_graphs:
@@ -92,6 +92,8 @@ def plot_cum_reward_per_command_multiple_algos_for_specified_path(rewards, comma
     Generate plot with the cumulative reward average over multiple executions
     for all algorithms used for 1 single path
     """
+    target_output_dir = build_output_dir_from_path(output_dir, path)
+
     for index, al in enumerate(algorithms):
         pl.plot(commands[index], rewards[index], label=print_cute_algo_name(al))  # single line
 
@@ -101,7 +103,7 @@ def plot_cum_reward_per_command_multiple_algos_for_specified_path(rewards, comma
     # pl.title('Cumulative reward over commands for algos')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig("../plot/path" + str(path) + "/" + 'all_commands_all_algos.png')
+    plt.savefig(target_output_dir + 'all_commands_all_algos.png')
     plt.show()
 
 

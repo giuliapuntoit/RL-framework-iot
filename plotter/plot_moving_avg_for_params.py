@@ -8,7 +8,7 @@ import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.support_plotter import read_reward_timesteps_from_output_file, compute_avg_over_multiple_runs, \
-    return_greek_letter, read_parameters_from_output_file
+    return_greek_letter, read_parameters_from_output_file, build_output_dir_for_params
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -17,7 +17,8 @@ fontP = FontProperties()
 fontP.set_size('x-small')
 n_cols = 2
 
-target_dir = "../plot/robustness/"
+target_dir = "../plot/robustness/"  # only for robustness
+# target_dir = "../plot/"  # Tuning
 complete_target_dir = ""
 
 
@@ -42,11 +43,11 @@ def compute_avg_single_configuration_multiple_runs(date_array, param):
         x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(None, dat)
 
         # TODO remove this check, used only for robustness
-        # if len(x) > 100:
-        #     x = x[0:100]
-        #     y_reward = y_reward[0:100]
-        #     y_cum_reward = y_cum_reward[0:100]
-        #     y_timesteps = y_timesteps[0:100]
+        if len(x) > 100:
+            x = x[0:100]
+            y_reward = y_reward[0:100]
+            y_cum_reward = y_cum_reward[0:100]
+            y_timesteps = y_timesteps[0:100]
 
         x_all.append(x)
         y_all_reward.append(y_reward)
@@ -215,7 +216,8 @@ if __name__ == '__main__':
 
     changing_param = "gamma"
     algo = "qlearning"
-    complete_target_dir = target_dir + changing_param + "/" + algo + "/"
+    complete_target_dir = build_output_dir_for_params(target_dir, changing_param, algo)
+
     print("ALGO SHOULD BE", algo, "FOR ALL RESULTS")
     value_of_gamma = [[
         # gam=0.35

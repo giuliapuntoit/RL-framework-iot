@@ -2,11 +2,8 @@
     Script to generate an automated plot in real time attaching to the execution of the current RL algorithm used
 """
 
-import csv
 import matplotlib.pyplot as plt
 from matplotlib.animation import  FuncAnimation
-
-from config import FrameworkConfiguration
 from plotter.support_plotter import read_reward_timesteps_from_output_file
 
 target_output_dir = './'

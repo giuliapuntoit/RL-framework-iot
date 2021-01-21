@@ -1,14 +1,13 @@
 """
     Script for plotting the moving average of the reward and timesteps over episodes for multiple runs and different algorithms
 """
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.support_plotter import print_cute_algo_name, read_reward_timesteps_from_output_file, \
-    compute_avg_over_multiple_runs
+    compute_avg_over_multiple_runs, build_output_dir_from_path
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams['font.size'] = 20
@@ -31,12 +30,11 @@ def plot_single_algo_single_run(date_to_retrieve):
     df = pd.DataFrame({'x': x, 'y1': y_reward, 'y2': y_timesteps, 'y3': y_cum_reward})
 
     # ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
-    color = ('#77FF82', '#47CC99', '#239DBA', '#006586')
 
     fig, ax = plt.subplots()
 
-    plt.plot(df['x'], df['y1'], data=None, label="reward", color=color[0])
-    plt.plot(df['x'], df['y2'], data=None, label="cum", color=color[1])
+    plt.plot(df['x'], df['y1'], data=None, label="reward")
+    plt.plot(df['x'], df['y2'], data=None, label="cum")
     plt.xlabel('Episodes')
     plt.ylabel('Reward')
     # plt.title('Cum reward per algorithm')
@@ -67,9 +65,9 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
     Generate plots with reward of a single execution over episodes, average reward and moving average
     reward computed over multiple executions of the same RL algorithm (same values for timesteps)
     """
-    target_output_dir = output_dir
-    if path in [1, 2, 3]:
-        target_output_dir = "../plot/path" + str(path) + "/"
+    target_output_dir = build_output_dir_from_path(output_dir, path)
+
+    window_size = 10
 
     x_all = []
     y_all_reward = []
@@ -96,8 +94,6 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
     df_single_run = pd.DataFrame({'x': x, 'y1': y_reward, 'y2': y_timesteps, 'y3': y_cum_reward})
     df_final_avg_over_n_runs = pd.DataFrame(
         {'x': x_all[0], 'y1': y_final_reward, 'y2': y_final_timesteps, 'y3': y_final_cum_reward})
-
-    window_size = 10
 
     # calculate the smoothed moving average
     weights = np.repeat(1.0, window_size) / window_size
@@ -176,9 +172,7 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
     """
     Generate plots having the moving average reward and timesteps values for all RL algorithms
     """
-    target_output_dir = output_dir
-    if path in [1, 2, 3]:
-        target_output_dir = "../plot/path" + str(path) + "/"
+    target_output_dir = build_output_dir_from_path(output_dir, path)
 
     for i in range(0, len(algorithms_target)):
         pl.plot(episodes_target[i][
@@ -307,9 +301,8 @@ def plot_multiple_algos_avg_rewards_timesteps_bars(algos, avg_rew, avg_steps, pa
     """
     Plot averaged bar graphs for 1 single path
     """
-    target_output_dir = output_dir
-    if path in [1, 2, 3]:
-        target_output_dir = "../plot/path" + str(path) + "/"
+    target_output_dir = build_output_dir_from_path(output_dir, path)
+
     fig, ax = plt.subplots()
     cols_labels = []
     for al in algos:
