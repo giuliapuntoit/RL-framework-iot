@@ -71,12 +71,18 @@ def build_directory_and_filename(algorithm, date):
 
 
 def build_directory_and_logfile(date_to_retrieve):
+    """
+    Find directory and the log name to retrieve data
+    """
     directory = FrameworkConfiguration.directory + 'output/log/'
     log_file = directory + 'log_' + date_to_retrieve + '.log'
     return directory, log_file
 
 
 def read_all_info_from_log(date_to_retrieve):
+    """
+    Retrieve all info from log file
+    """
     directory, log_file = build_directory_and_logfile(date_to_retrieve)
 
     print(log_file)
@@ -103,12 +109,10 @@ def read_all_info_from_log(date_to_retrieve):
     return episodes, commands, rewards, cum_rewards
 
 
-
-
-
-
 def read_time_traffic_from_log(date_to_retrieve):
-
+    """
+    Retrieve only training time and traffic from log file
+    """
     directory, log_file = build_directory_and_logfile(date_to_retrieve)
 
     print(log_file)
@@ -139,7 +143,6 @@ def read_avg_reward_from_output_file(algorithm, date_to_retrieve):
     """
     Retrieve and compute the average reward per time step for episodes from output
     """
-
     directory, filename = build_directory_and_filename(algorithm, date_to_retrieve)
 
     x = []
@@ -158,7 +161,9 @@ def read_avg_reward_from_output_file(algorithm, date_to_retrieve):
 
 
 def read_parameters_from_output_file(date_to_retrieve):
-    # retrieve parameter value from output file
+    """
+    Retrieve parameter value from output file
+    """
     directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
     file_parameters = 'output_parameters_' + date_to_retrieve + '.csv'
 
