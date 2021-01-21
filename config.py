@@ -1,5 +1,4 @@
 class FrameworkConfiguration(object):  # change name, tipo configuration params ecc
-    # potrei suddividere per params di algoritmo, params di framework ecc
     # should be unique and unmodifiable for and by all threads
 
     # Da spostare:
