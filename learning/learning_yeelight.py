@@ -524,6 +524,9 @@ class ReinforcementLearningAlgorithm(object):
 def main(discovery_report=None):
     print("Received discovery report:", discovery_report)
 
+    if FrameworkConfiguration.DEBUG:
+        print(FrameworkConfiguration().as_dict())
+
     # NON MI DOVREBBERO SERVIRE QUESTI SOCKET
     # Socket setup
     FrameworkConfiguration.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
