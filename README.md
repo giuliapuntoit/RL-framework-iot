@@ -171,6 +171,7 @@ Since a lot of different plots can be generated, here there is a quick explanati
 * ``plot_output_data.py`` shows reward and time step results for 1 single execution (It can be used for check the correct working:
   <p align="center"><img src="./images/single_output.png" height="270">
 * ``plot_animation.py`` generates an animated plot in real time while the algorithm is working. Once the algorithm has started, the current date can be retrieved from the ``log_date.log`` file and copied into the ``plot_animation.py`` script. Once this script has started, it will generate a real time plot as the one showed in <a href="#demo">Demo</a> section.
+* ``support_plotter.py`` contains methods for supporting the operation of the other scripts inside the Plotter module.
 
 
 **Note**:
