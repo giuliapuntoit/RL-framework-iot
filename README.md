@@ -42,6 +42,13 @@ We start developing our framework:
 
 ## How to use?
 
+This project has been developed with Python 3.7. 
+To use it, you need to first install all necessary Python packages with command:
+
+```
+pip install .
+```
+
 After installing all needed dependencies, the project can be executed directly running the ``__main__.py`` script or the ``learning_yeelight`` script.
 
 ### Structure
@@ -110,11 +117,11 @@ The complete workflow is modelled in the following way:
 
 Here there is an in-depth description of the previous figure:
 
-1.  Normally, the framework starts through the ``__main__.py`` script, that first activates the Discoverer. Before starting, the ``config.py`` file provides some general information about the root directory in which saving output files, the state-machine and the goal that the RL agent should learn. Possible paths arbitrarily defined for the Yeelight protocol are shown inside the ``images`` directory.
+1.  Normally, the framework starts through the ``__main__.py`` script, that first activates the Discoverer. Before starting, the ``config.py`` file provides all necessary information to configure the framework: some general information about the root directory in which saving output files, the state-machine, the goal that the RL agent should learn, all values of parameters for the chosen RL algorithm. Possible paths arbitrarily defined for the Yeelight protocol are shown inside the ``images`` directory.
 2. The Discoverer analyzes the local network and returns to the main script all Discovery Reports describing found IoT devices of 2 protocols: Yeelight and Shelly. *Support for multiple protocols needs to be done.*
 3. The main script receives these reports and generates a thread running the Learning module, passing to it the Discovery Report for 1 single Yeelight device found inside the LAN. *Support for concurrent threads is work in progress.*
 4. The Learning module is the RL agent, iterating over episodes. 
-	1. It receives multiple parameters as input: the chosen RL algorithm, values of ε, α, γ and λ if needed, total number of episodes, etc. Also some flags are present to decide whether after the learning process the user wants to directly plot some results, or wants to run the RL agent following the best policy found, using respectively the Plotter module or the Run Policy Found script.
+	1. It receives multiple parameters as input from the ``config.py`` file: the chosen RL algorithm, values of ε, α, γ and λ if needed, total number of episodes, etc. Also some flags are present to decide whether after the learning process the user wants to directly plot some results, or wants to run the RL agent following the best policy found, using respectively the Plotter module or the Run Policy Found script.
 	2. During each episode, the agent asks for commands to the Request Builder, which accesses data of the Yeelight Dictionary and returns a JSON string with the built command requested by the agent. This string can be sent to the Yeelight device.
 	3. The JSON string is passed to the API Yeelight script inside the Device Communication module, that sends commands to the Yeelight bulb and handles its responses.
 	4. Moreover, at each time step t the Learning module retrieves the reward r<sub>t</sub> and the current state s<sub>t</sub> from the State Machine module. In order to retrieve information about the state of the Yeelight device, this module asks to the Dictionary module the command to retrieve all necessary information from the bulb and sends this command to the API script, which actually sends the command to the bulb and returns the response to the State Machine Yeelight module.
@@ -166,6 +173,7 @@ Main features include:
 * Support to 4 RL algorithms, that can selected inside the ``learning_yeelight.py`` script.
 * Collect all necessary data to generate plots for comparing performance among different configurations.
 * Block the learning process and restart it from the Q matrix computed before, giving as id the date of the previous execution.
+* Possibility to configure all parameters inside a single file - ``config.py`` - about algorithms, the framework and about debug options.
 
 ## Tests
 

@@ -1,6 +1,10 @@
+"""
+    Class for plotting reward and timesteps over episodes for 1 single execution of RL algorithm
+"""
+
 import matplotlib.pyplot as plt
 import csv
-from config import GlobalVar
+from config import FrameworkConfiguration
 plt.rcParams["font.family"] = "Times New Roman"
 
 
@@ -20,7 +24,7 @@ class PlotOutputData(object):
         y_cum_reward = []
         y_timesteps = []
 
-        directory = GlobalVar.directory + 'output/output_Q_parameters'
+        directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
         file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
 
         with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -31,7 +35,7 @@ class PlotOutputData(object):
         print("RL ALGORITHM:", algorithm)
         print("PLOTTING GRAPHS...")
 
-        directory = GlobalVar.directory + 'output/output_csv'
+        directory = FrameworkConfiguration.directory + 'output/output_csv'
         filename = 'output_' + algorithm + '_' + self.date_to_retrieve + '.csv'
 
         with open(directory + '/' + filename, 'r') as csv_file:
@@ -99,5 +103,3 @@ class PlotOutputData(object):
 
 if __name__ == '__main__':
     PlotOutputData(date_to_retrieve='2020_11_21_11_09_13', separate_plots=False).run()
-
-# 1 sarsa, 2 sarsa_lambda, 3 qlearning, 4 qlearning_lambda

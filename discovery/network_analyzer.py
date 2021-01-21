@@ -1,3 +1,7 @@
+"""
+    Script for analyzing LAN to find IoT devices
+"""
+
 import pprint
 import nmap
 import ipaddress
@@ -6,10 +10,14 @@ from discovery.discovery_report import DiscoveryReport
 
 
 def analyze_lan():
+    """
+    Found IoT Shelly and Yeelight devices and creates 1 Discovery Report for each IoT device
+    :return: list of Discovery Reports
+    """
+
     # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
 
-    # scan_range = scanner.scan(hosts="192.168.1.1 192.168.1.212 192.168.1.212")
     print("START SCANNING LAN")
     scan_range = scanner.scan(hosts="192.168.1.1/24", arguments='-sL')
 
@@ -41,6 +49,7 @@ def analyze_lan():
         pp.pprint(dev.__dict__)
     return devices
 
+    # TODO try not to use already known ports!
     # Scan ports:
     # if yeelight
     # res1 = scanner.scan(target_yeelight, str(yeelight_port))

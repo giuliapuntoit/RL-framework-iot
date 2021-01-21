@@ -1,17 +1,23 @@
+"""
+    Script to generate an automated plot in real time attaching to the execution of the current RL algorithm used
+"""
+
 import csv
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import  FuncAnimation
 
-from config import GlobalVar
+from config import FrameworkConfiguration
 
 target_output_dir = './'
 
 
+# TODO this code is duplicated i think
 def get_reward_for_episode(curr_date="2020_12_15_00_19_48", algorithm="qlearning"):
+    """
+    Function to read the output of RL algorithms and save the reward value per episode
+    """
     if algorithm is None:
-        directory = GlobalVar.directory + 'output/output_Q_parameters'
+        directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
         file_parameters = 'output_parameters_' + curr_date + '.csv'
 
         with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -21,7 +27,7 @@ def get_reward_for_episode(curr_date="2020_12_15_00_19_48", algorithm="qlearning
         algorithm = parameters['algorithm_used']
     print("RL ALGORITHM:", algorithm)
 
-    directory = GlobalVar.directory + 'output/output_csv'
+    directory = FrameworkConfiguration.directory + 'output/output_csv'
     filename = 'output_' + algorithm + '_' + curr_date + '.csv'
 
     x = []
@@ -41,6 +47,9 @@ def get_reward_for_episode(curr_date="2020_12_15_00_19_48", algorithm="qlearning
 
 
 def animate(k):
+    """
+    Generate the animated plot with real time changes
+    """
     x, y = get_reward_for_episode()
     plt.cla()
     plt.plot(x, y, 'k')  # single line
@@ -50,6 +59,7 @@ def animate(k):
     plt.tight_layout()
 
 
+# Call the animate function, interval is the delay between frames in ms
 ani = FuncAnimation(plt.gcf(), animate, interval=20000)
 
 plt.tight_layout()

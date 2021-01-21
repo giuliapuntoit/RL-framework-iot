@@ -1,12 +1,14 @@
-import string
+"""
+    Class acting as a broker script that calls the DictYeelight class
+    This class asks for information on a command and builds the command with all retrieved info
+"""
 
-from dictionary.dict_yeelight import DictYeelight
+import string
 import random
 import pprint
 import json
 
-# builder_yeelight is a broker script that calls dict_yeelight
-# It manages the answer and returns it to the calling script
+from dictionary.dict_yeelight import DictYeelight
 
 
 class ServeYeelight(object):

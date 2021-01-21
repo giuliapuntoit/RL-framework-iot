@@ -1,3 +1,7 @@
+"""
+    Class that plays the Reinforcement Learning agent
+"""
+
 #!/usr/bin/python
 import csv
 import numpy as np
@@ -12,8 +16,10 @@ import os
 import struct
 from threading import Thread
 from time import sleep
+import logging
+import sys
 
-
+from colorizer_for_output import ColorHandler
 from plotter.plot_output_data import PlotOutputData
 from learning.run_output_Q_parameters import RunOutputQParameters
 from request_builder.builder_yeelight import ServeYeelight
@@ -21,89 +27,24 @@ from device_communication.api_yeelight import bulbs_detection_loop, operate_on_b
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props, get_states, \
     get_optimal_policy, get_optimal_path
 
-from config import GlobalVar
+from config import FrameworkConfiguration
 
-import logging
-import sys
+# Set colored output for console
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 LOG = logging.getLogger()
 LOG.setLevel(logging.DEBUG)
 for handler in LOG.handlers:
     LOG.removeHandler(handler)
 
-
-class _AnsiColorizer(object):
-    """
-    A colorizer is an object that loosely wraps around a stream, allowing
-    callers to write text to the stream in a particular color.
-
-    Colorizer classes must implement C{supported()} and C{write(text, color)}.
-    """
-    _colors = dict(black=30, red=31, green=32, yellow=33,
-                   blue=34, magenta=35, cyan=36, white=37)
-
-    def __init__(self, stream):
-        self.stream = stream
-
-    @classmethod
-    def supported(cls, stream=sys.stdout):
-        """
-        A class method that returns True if the current platform supports
-        coloring terminal output using this method. Returns False otherwise.
-        """
-        if not stream.isatty():
-            return False  # auto color only on TTYs
-        try:
-            import curses
-        except ImportError:
-            return False
-        else:
-            try:
-                try:
-                    return curses.tigetnum("colors") > 2
-                except curses.error:
-                    curses.setupterm()
-                    return curses.tigetnum("colors") > 2
-            except:
-                raise
-                # guess false in case of error
-                return False
-
-    def write(self, text, color):
-        """
-        Write the given text to the stream in the given color.
-
-        @param text: Text to be written to the stream.
-
-        @param color: A string label for a color. e.g. 'red', 'white'.
-        """
-        color = self._colors[color]
-        self.stream.write('\x1b[%s;1m%s\x1b[0m' % (color, text))
-
-
-class ColorHandler(logging.StreamHandler):
-    def __init__(self, stream=sys.stderr):
-        super(ColorHandler, self).__init__(_AnsiColorizer(stream))
-
-    def emit(self, record):
-        msg_colors = {
-            logging.DEBUG: "green",
-            logging.INFO: "blue",
-            logging.WARNING: "yellow",
-            logging.ERROR: "red"
-        }
-
-        color = msg_colors.get(record.levelno, "green")
-        self.stream.write(record.msg + "\n", color)
-
 LOG.addHandler(ColorHandler())
 
+# SHOULD NOT MODIFY GLOBAL VARIABLES
 # Global variables for bulb connection
-GlobalVar.detected_bulbs = {}
-GlobalVar.bulb_idx2ip = {}
-GlobalVar.RUNNING = True
-GlobalVar.current_command_id = 1
-GlobalVar.MCAST_GRP = '239.255.255.250'
+FrameworkConfiguration.detected_bulbs = {}
+FrameworkConfiguration.bulb_idx2ip = {}
+FrameworkConfiguration.RUNNING = True
+FrameworkConfiguration.current_command_id = 1
+FrameworkConfiguration.MCAST_GRP = '239.255.255.250'
 idLamp = ""
 
 # Global variables for RL
@@ -112,48 +53,34 @@ tot_reward = 0
 
 class ReinforcementLearningAlgorithm(object):
 
-    def __init__(self, epsilon=0.6,
-                 total_episodes=10,
-                 max_steps=100,
-                 alpha=0.005,
-                 gamma=0.95,
-                 lam=0.9,
-                 decay_episode=20,
-                 decay_value=0.001,
-                 show_graphs=False,
-                 follow_policy=True,
-                 use_old_matrix=False,
-                 date_old_matrix='YY_mm_dd_HH_MM_SS',
-                 seconds_to_wait=4.0,
-                 follow_partial_policy=False,
-                 follow_policy_every_tot_episodes=5,
-                 num_actions_to_use=37,
-                 algorithm='sarsa'):
-        self.total_episodes = total_episodes
-        self.max_steps = max_steps
-        self.epsilon = epsilon
-        self.alpha = alpha
-        self.gamma = gamma
-        self.decay_episode = decay_episode
-        self.decay_value = decay_value
-        self.show_graphs = show_graphs
-        self.follow_policy = follow_policy
-        self.seconds_to_wait = seconds_to_wait
-        self.follow_partial_policy = follow_partial_policy
-        self.follow_policy_every_tot_episodes = follow_policy_every_tot_episodes
-        self.num_actions_to_use = num_actions_to_use
-        self.algorithm = algorithm
+    def __init__(self):
+        self.total_episodes = FrameworkConfiguration.total_episodes
+        self.max_steps = FrameworkConfiguration.max_steps
+        self.epsilon = FrameworkConfiguration.epsilon
+        self.alpha = FrameworkConfiguration.alpha
+        self.gamma = FrameworkConfiguration.gamma
+        self.decay_episode = FrameworkConfiguration.decay_episode
+        self.decay_value = FrameworkConfiguration.decay_value
+        self.show_graphs = FrameworkConfiguration.show_graphs
+        self.follow_policy = FrameworkConfiguration.follow_policy
+        self.seconds_to_wait = FrameworkConfiguration.seconds_to_wait
+        self.follow_partial_policy = FrameworkConfiguration.follow_partial_policy
+        self.follow_policy_every_tot_episodes = FrameworkConfiguration.follow_policy_every_tot_episodes
+        self.num_actions_to_use = FrameworkConfiguration.num_actions_to_use
+        self.algorithm = FrameworkConfiguration.algorithm
         # lambda is needed only in case of sarsa(lambda) or Q(lambda) algorithms
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
-            self.lam = lam
-        if date_old_matrix != 'YY_mm_dd_HH_MM_SS':
-            self.use_old_matrix = use_old_matrix  # in sarsa lambda also E is needed
-            self.date_old_matrix = date_old_matrix  # I should check it is in a correct format
+            self.lam = FrameworkConfiguration.lam
+        if FrameworkConfiguration.date_old_matrix != 'YY_mm_dd_HH_MM_SS':
+            self.use_old_matrix = FrameworkConfiguration.use_old_matrix  # in sarsa lambda also E is needed
+            self.date_old_matrix = FrameworkConfiguration.date_old_matrix  # I should check it is in a correct format
         else:
             self.use_old_matrix = False
 
-    # Function to choose the next action, same for all algorithms
     def choose_action(self, state, Qmatrix):
+        """
+        Function to choose the next action, same for all algorithms
+        """
         # Here I should choose the method
         if np.random.uniform(0, 1) < self.epsilon:
             # print("\t\tSelect the action randomly")
@@ -167,16 +94,18 @@ class ReinforcementLearningAlgorithm(object):
         # action is an index
         return action
 
-    # SARSA
-    # Function to learn the Q-value
     def update_sarsa(self, state, state2, reward, action, action2, Qmatrix):
+        """
+        SARSA function to learn the Q-value
+        """
         predict = Qmatrix[state, action]
         target = reward + self.gamma * Qmatrix[state2, action2]
         Qmatrix[state, action] = Qmatrix[state, action] + self.alpha * (target - predict)
 
-    # SARSA(lambda)
-    # Function to update the Q-value matrix and the Eligibility matrix
     def update_sarsa_lambda(self, state, state2, reward, action, action2, len_states, len_actions, Qmatrix, Ematrix):
+        """
+        SARSA(lambda) function to update the Q-value matrix and the Eligibility matrix
+        """
         predict = Qmatrix[state, action]
         target = reward + self.gamma * Qmatrix[state2, action2]
         delta = target - predict
@@ -187,10 +116,11 @@ class ReinforcementLearningAlgorithm(object):
                 Qmatrix[s, a] = Qmatrix[s, a] + self.alpha * delta * Ematrix[s, a]
                 Ematrix[s, a] = self.gamma * self.lam * Ematrix[s, a]
 
-    # Qlearning(lambda) (Watkins's Q(lambda) algorithm)
-    # Function to update the Q-value matrix and the Eligibility matrix
     def update_qlearning_lambda(self, state, state2, reward, action, action2, len_states, len_actions, Qmatrix,
                                 Ematrix):
+        """
+        Q-learning(lambda) (Watkins's Q(lambda) algorithm) function to update the Q-value matrix and the Eligibility matrix
+        """
         predict = Qmatrix[state, action]
         maxQ = np.amax(Qmatrix[state2, :])  # Find maximum value for the new state Q(s', a*)
         maxIndex = np.argmax(Qmatrix[state2, :])  # Find index of the maximum value a*
@@ -206,15 +136,19 @@ class ReinforcementLearningAlgorithm(object):
                 else:
                     Ematrix[s, a] = 0
 
-    # Q-learning
-    # Function to learn the Q-value
     def update_qlearning(self, state, state2, reward, action, Qmatrix):
+        """
+        # Q-learning function to learn the Q-value
+        """
         predict = Qmatrix[state, action]
         maxQ = np.amax(Qmatrix[state2, :])  # Find maximum value for the new state
         target = reward + self.gamma * maxQ
         Qmatrix[state, action] = Qmatrix[state, action] + self.alpha * (target - predict)
 
     def run(self):
+        """
+        Run RL algorithm
+        """
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
         # Obtain data about states, path and policy
@@ -226,13 +160,13 @@ class ReinforcementLearningAlgorithm(object):
 
         # Initialize output files
 
-        log_dir = GlobalVar.directory + 'output/log'
+        log_dir = FrameworkConfiguration.directory + 'output/log'
         pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5 YY_mm_dd_HH_MM_SS'
         log_filename = current_date.strftime(log_dir + '/' + 'log_' + '%Y_%m_%d_%H_%M_%S' + '.log')
 
-        log_date_filename = GlobalVar.directory + 'output/log_date.log'
+        log_date_filename = FrameworkConfiguration.directory + 'output/log_date.log'
 
-        output_Q_params_dir = GlobalVar.directory + 'output/output_Q_parameters'
+        output_Q_params_dir = FrameworkConfiguration.directory + 'output/output_Q_parameters'
         pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         output_Q_filename = current_date.strftime(
             output_Q_params_dir + '/' + 'output_Q_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
@@ -243,7 +177,7 @@ class ReinforcementLearningAlgorithm(object):
             output_E_filename = current_date.strftime(
                 output_Q_params_dir + '/' + 'output_E_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
-        output_dir = GlobalVar.directory + 'output/output_csv'
+        output_dir = FrameworkConfiguration.directory + 'output/output_csv'
         pathlib.Path(output_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
         output_filename = current_date.strftime(
             output_dir + '/' + 'output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
@@ -270,7 +204,7 @@ class ReinforcementLearningAlgorithm(object):
             output_writer.writerow(['seconds_to_wait', self.seconds_to_wait])
             output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal_policy)])
             output_writer.writerow(['optimal_path', "-".join(str(pat) for pat in optimal_path)])
-            output_writer.writerow(['path', GlobalVar.path])
+            output_writer.writerow(['path', FrameworkConfiguration.path])
 
             if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                 output_writer.writerow(['lambda', self.lam])
@@ -356,7 +290,7 @@ class ReinforcementLearningAlgorithm(object):
             sleep(3)
             t = 0
 
-            if GlobalVar.path == 3:
+            if FrameworkConfiguration.path == 3:
                 # Special initial configuration for visual checks on the bulb
                 # ONLY FOR PATH 3
                 operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 0"))
@@ -367,12 +301,14 @@ class ReinforcementLearningAlgorithm(object):
                 sleep(self.seconds_to_wait)
 
             # Turn off the lamp
-            # print("\t\tREQUEST: Setting power off") TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\t\tREQUEST: Setting power off")
             operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
             count_actions += 1
             sleep(self.seconds_to_wait)
             state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
-            # print("\tSTARTING FROM STATE", states[state1]) TODO
+            if FrameworkConfiguration.DEBUG:
+                print("\tSTARTING FROM STATE", states[state1])
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -393,13 +329,15 @@ class ReinforcementLearningAlgorithm(object):
 
                 # Perform an action on the bulb sending a command
                 json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
-                # print("\t\tREQUEST:", str(json_string)) TODO
+                if FrameworkConfiguration.DEBUG:
+                    print("\t\tREQUEST:", str(json_string))
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
                 count_actions += 1
                 sleep(self.seconds_to_wait)
 
                 state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
-                # print("\tFROM STATE", states[state1], "TO STATE", states[state2]) TODO
+                if FrameworkConfiguration.DEBUG:
+                    print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
                 reward_from_states = compute_reward_from_states(state1, state2)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
@@ -585,16 +523,21 @@ class ReinforcementLearningAlgorithm(object):
 
 def main(discovery_report=None):
     print("Received discovery report:", discovery_report)
+
+    if FrameworkConfiguration.DEBUG:
+        print(FrameworkConfiguration().as_dict())
+
+    # NON MI DOVREBBERO SERVIRE QUESTI SOCKET
     # Socket setup
-    GlobalVar.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    fcntl.fcntl(GlobalVar.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    GlobalVar.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    GlobalVar.listen_socket.bind(("", 1982))
-    fcntl.fcntl(GlobalVar.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+    FrameworkConfiguration.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    fcntl.fcntl(FrameworkConfiguration.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
+    FrameworkConfiguration.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    FrameworkConfiguration.listen_socket.bind(("", 1982))
+    fcntl.fcntl(FrameworkConfiguration.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
     # GlobalVar.scan_socket.settimeout(GlobalVar.timeout)  # set 2 seconds of timeout -> could be a configurable parameter
     # GlobalVar.listen_socket.settimeout(GlobalVar.timeout)
-    mreq = struct.pack("4sl", socket.inet_aton(GlobalVar.MCAST_GRP), socket.INADDR_ANY)
-    GlobalVar.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    mreq = struct.pack("4sl", socket.inet_aton(FrameworkConfiguration.MCAST_GRP), socket.INADDR_ANY)
+    FrameworkConfiguration.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
     # Give socket some time to set up
     sleep(2)
@@ -605,49 +548,34 @@ def main(discovery_report=None):
     # Give detection thread some time to collect bulb info
     sleep(10)
     max_wait = 0
-    while len(GlobalVar.bulb_idx2ip) == 0 and max_wait < 10:
+    while len(FrameworkConfiguration.bulb_idx2ip) == 0 and max_wait < 10:
         # Wait for 10 seconds to see if some bulb is present
         # The number of seconds could be extended if necessary
         sleep(1)
         max_wait += 1
-    if len(GlobalVar.bulb_idx2ip) == 0:
+    if len(FrameworkConfiguration.bulb_idx2ip) == 0:
         print("Bulb list is empty.")
     else:
         # If some bulb was found, take first bulb or the one specified as argument
         display_bulbs()
-        print(GlobalVar.bulb_idx2ip)
+        print(FrameworkConfiguration.bulb_idx2ip)
         global idLamp
         if discovery_report is None:
-            idLamp = list(GlobalVar.bulb_idx2ip.keys())[0]
+            idLamp = list(FrameworkConfiguration.bulb_idx2ip.keys())[0]
             print("No discovery report: id lamp", idLamp)
-        elif discovery_report['ip'] and discovery_report['ip'] in GlobalVar.bulb_idx2ip.values():
-            idLamp = list(GlobalVar.bulb_idx2ip.keys())[list(GlobalVar.bulb_idx2ip.values()).index(discovery_report['ip'])]
+        elif discovery_report['ip'] and discovery_report['ip'] in FrameworkConfiguration.bulb_idx2ip.values():
+            idLamp = list(FrameworkConfiguration.bulb_idx2ip.keys())[list(FrameworkConfiguration.bulb_idx2ip.values()).index(discovery_report['ip'])]
             print("Discovery report found: id lamp", idLamp)
         print("Waiting 5 seconds before using RL algorithm")
         sleep(5)
 
         # Stop bulb detection loop
-        GlobalVar.RUNNING = False
+        FrameworkConfiguration.RUNNING = False  # TODO should remove this
 
-        print("\n############# Starting RL algorithm path", GlobalVar.path, "#############")
-        # Dopo il tuning il Q-learning ha i parametri migliori per il path 2:
-        # Ora 100 episodi di tuning per epsilon, alpha, gamma +.1 -.1 (9 run)
-        algo = 'qlearning'  # , 'sarsa_lambda', 'qlearning', 'qlearning_lambda']:
-        eps = 0.2
-        alp = 0.1
-        gam = 0.55
-        print("ALGORITHM", algo, "- PATH", GlobalVar.path, " - EPS ALP GAM", eps, alp, gam)
-        ReinforcementLearningAlgorithm(max_steps=100, total_episodes=100,
-                                       num_actions_to_use=37,
-                                       seconds_to_wait=0.1,
-                                       epsilon=eps,  # already tuned
-                                       alpha=alp,  # already tuned
-                                       gamma=gam,  # already tuned
-                                       show_graphs=False,
-                                       follow_policy=False,
-                                       follow_partial_policy=False,
-                                       follow_policy_every_tot_episodes=30,
-                                       algorithm=algo).run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
+        print("\n############# Starting RL algorithm path", FrameworkConfiguration.path, "#############")
+
+        print("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM", FrameworkConfiguration.epsilon, FrameworkConfiguration.alpha, FrameworkConfiguration.gamma)
+        ReinforcementLearningAlgorithm().run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
         print("############# Finish RL algorithm #############")
 
     # Goal achieved, tell detection thread to quit and wait

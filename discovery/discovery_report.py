@@ -1,3 +1,8 @@
+"""
+    Class to save and pass the information about found IoT devices
+"""
+
+
 class DiscoveryReport(object):
     # To facilitate passing information about results of the discovery process inside the network
     def __init__(self, result="", protocol="", timestamp="", ip="", port=""):

@@ -1,3 +1,7 @@
+"""
+    Class for plotting training time and traffic from files generated from GetTrainingTimeTraffic class
+"""
+
 import numpy as np
 import csv
 import matplotlib
@@ -5,9 +9,6 @@ import matplotlib.pyplot
 import matplotlib.font_manager
 matplotlib.pyplot.rcParams["font.family"] = "Times New Roman"
 matplotlib.pyplot.rcParams['font.size'] = 20
-
-
-# matplotlib.pyplot.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 
 
 class PlotTrainingTimeTraffic(object):
