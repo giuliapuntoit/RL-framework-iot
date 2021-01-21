@@ -70,9 +70,46 @@ def build_directory_and_filename(algorithm, date):
     return directory, filename
 
 
-def read_time_traffic_from_log(date_to_retrieve):
+def build_directory_and_logfile(date_to_retrieve):
     directory = FrameworkConfiguration.directory + 'output/log/'
     log_file = directory + 'log_' + date_to_retrieve + '.log'
+    return directory, log_file
+
+
+def read_all_info_from_log(date_to_retrieve):
+    directory, log_file = build_directory_and_logfile(date_to_retrieve)
+
+    print(log_file)
+
+    count = 0
+    cum_reward = 0
+    commands = []
+    rewards = []
+    cum_rewards = []
+    episodes = []
+    with open(log_file) as f:
+        for line in f:
+            if len(line.strip()) != 0:  # Not empty lines
+                if line.startswith("Episode"):
+                    episodes.append(count)
+                if not line.startswith("Episode") and not line.startswith("Total"):
+                    count += 1
+                    commands.append(count)
+                    tmp_reward = int(line.split()[5])
+                    cum_reward += tmp_reward
+                    rewards.append(tmp_reward)
+                    cum_rewards.append(cum_reward)
+
+    return episodes, commands, rewards, cum_rewards
+
+
+
+
+
+
+def read_time_traffic_from_log(date_to_retrieve):
+
+    directory, log_file = build_directory_and_logfile(date_to_retrieve)
 
     print(log_file)
 
@@ -128,9 +165,6 @@ def read_parameters_from_output_file(date_to_retrieve):
     with open(directory + '/' + file_parameters, 'r') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
-
-    algorithm = parameters['algorithm_used']
-    print("RL ALGORITHM:", algorithm)
 
     return parameters
 
