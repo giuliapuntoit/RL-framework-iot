@@ -2,14 +2,14 @@
     Script containing methods useful for other plots
 """
 import csv
+import numpy as np
 from matplotlib import patches
-
 from config import FrameworkConfiguration
 
 
 def print_cute_algo_name(a):
     """
-    Return algorithm with greek letters
+    Function to return algorithm with greek letters
     """
     if a == "sarsa":
         return "SARSA"
@@ -19,6 +19,22 @@ def print_cute_algo_name(a):
         return "Q-learning"
     elif a == "qlearning_lambda":
         return "Q(λ)"
+    else:
+        return "invalid"
+
+
+def return_greek_letter(par):
+    """
+    Function to return the corresponding greek letter
+    """
+    if par == "epsilon":
+        return "ε"
+    elif par == "alpha":
+        return "α"
+    elif par == "gamma":
+        return "γ"
+    elif par == "lambda":
+        return "λ"
     else:
         return "invalid"
 
@@ -54,11 +70,79 @@ def build_directory_and_filename(algorithm, date):
     return directory, filename
 
 
+def build_directory_and_logfile(date_to_retrieve):
+    """
+    Find directory and the log name to retrieve data
+    """
+    directory = FrameworkConfiguration.directory + 'output/log/'
+    log_file = directory + 'log_' + date_to_retrieve + '.log'
+    return directory, log_file
+
+
+def read_all_info_from_log(date_to_retrieve):
+    """
+    Retrieve all info from log file
+    """
+    directory, log_file = build_directory_and_logfile(date_to_retrieve)
+
+    print(log_file)
+
+    count = 0
+    cum_reward = 0
+    commands = []
+    rewards = []
+    cum_rewards = []
+    episodes = []
+    with open(log_file) as f:
+        for line in f:
+            if len(line.strip()) != 0:  # Not empty lines
+                if line.startswith("Episode"):
+                    episodes.append(count)
+                if not line.startswith("Episode") and not line.startswith("Total"):
+                    count += 1
+                    commands.append(count)
+                    tmp_reward = int(line.split()[5])
+                    cum_reward += tmp_reward
+                    rewards.append(tmp_reward)
+                    cum_rewards.append(cum_reward)
+
+    return episodes, commands, rewards, cum_rewards
+
+
+def read_time_traffic_from_log(date_to_retrieve):
+    """
+    Retrieve only training time and traffic from log file
+    """
+    directory, log_file = build_directory_and_logfile(date_to_retrieve)
+
+    print(log_file)
+
+    # Each non empty line is a sent command
+    # Command of power is substituted by episode finishing line
+    # Minus last line that is the total time
+
+    counter_line = -1
+    with open(log_file) as f:
+        for line in f:
+            if len(line.strip()) != 0:  # Not empty lines
+                counter_line += 1
+        last_line = line
+
+    secs = float(last_line.split()[3])
+    np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
+
+    print("Total lines", counter_line)
+    print("Last line", last_line)
+    print("Seconds", secs)
+
+    # Number of lines in log file correspond to number of sent commands
+    return secs, counter_line
+
+
 def read_avg_reward_from_output_file(algorithm, date_to_retrieve):
     """
     Retrieve and compute the average reward per time step for episodes from output
     """
-
     directory, filename = build_directory_and_filename(algorithm, date_to_retrieve)
 
     x = []
@@ -74,6 +158,20 @@ def read_avg_reward_from_output_file(algorithm, date_to_retrieve):
             y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
 
     return x, y_avg_reward_for_one_episode
+
+
+def read_parameters_from_output_file(date_to_retrieve):
+    """
+    Retrieve parameter value from output file
+    """
+    directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
+    file_parameters = 'output_parameters_' + date_to_retrieve + '.csv'
+
+    with open(directory + '/' + file_parameters, 'r') as csv_file:
+        reader = csv.reader(csv_file, delimiter=',')
+        parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
+
+    return parameters
 
 
 def read_reward_timesteps_from_output_file(algorithm, date_to_retrieve):

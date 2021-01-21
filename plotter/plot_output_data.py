@@ -5,11 +5,15 @@
 import matplotlib.pyplot as plt
 import csv
 from config import FrameworkConfiguration
+from plotter.support_plotter import read_parameters_from_output_file, read_reward_timesteps_from_output_file
+
 plt.rcParams["font.family"] = "Times New Roman"
 
 
 class PlotOutputData(object):
-    # Plot results from a single run
+    """
+    Plot results from a single run
+    """
     def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', separate_plots=False):
         if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
             self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S
@@ -19,33 +23,11 @@ class PlotOutputData(object):
         self.separate_plots = separate_plots
 
     def run(self):
-        x = []
-        y_reward = []
-        y_cum_reward = []
-        y_timesteps = []
-
-        directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
-        file_parameters = 'output_parameters_' + self.date_to_retrieve + '.csv'
-
-        with open(directory + '/' + file_parameters, 'r') as csv_file:
-            reader = csv.reader(csv_file, delimiter=',')
-            parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
-
+        parameters = read_parameters_from_output_file(self.date_to_retrieve)
         algorithm = parameters['algorithm_used']
         print("RL ALGORITHM:", algorithm)
-        print("PLOTTING GRAPHS...")
 
-        directory = FrameworkConfiguration.directory + 'output/output_csv'
-        filename = 'output_' + algorithm + '_' + self.date_to_retrieve + '.csv'
-
-        with open(directory + '/' + filename, 'r') as csv_file:
-            reader = csv.reader(csv_file, delimiter=',')
-            next(reader, None)
-            for row in reader:
-                x.append(int(row[0]))
-                y_reward.append(int(row[1]))
-                y_cum_reward.append(int(row[2]))
-                y_timesteps.append(int(row[3]))
+        x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(algorithm, self.date_to_retrieve)
 
         if self.separate_plots:
             plt.plot(x, y_reward, 'k', label='rew')
@@ -98,7 +80,6 @@ class PlotOutputData(object):
             plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.35, wspace=0.35)
 
             plt.show()
-            print("Done.")
 
 
 if __name__ == '__main__':
