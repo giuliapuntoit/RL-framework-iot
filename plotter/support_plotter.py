@@ -2,8 +2,8 @@
     Script containing methods useful for other plots
 """
 import csv
+import numpy as np
 from matplotlib import patches
-
 from config import FrameworkConfiguration
 
 
@@ -52,6 +52,34 @@ def build_directory_and_filename(algorithm, date):
     filename = 'output_' + algorithm + '_' + date + '.csv'
 
     return directory, filename
+
+
+def read_time_traffic_from_log(date_to_retrieve):
+    directory = FrameworkConfiguration.directory + 'output/log/'
+    log_file = directory + 'log_' + date_to_retrieve + '.log'
+
+    print(log_file)
+
+    # Each non empty line is a sent command
+    # Command of power is substituted by episode finishing line
+    # Minus last line that is the total time
+
+    counter_line = -1
+    with open(log_file) as f:
+        for line in f:
+            if len(line.strip()) != 0:  # Not empty lines
+                counter_line += 1
+        last_line = line
+
+    secs = float(last_line.split()[3])
+    np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
+
+    print("Total lines", counter_line)
+    print("Last line", last_line)
+    print("Seconds", secs)
+
+    # Number of lines in log file correspond to number of sent commands
+    return secs, counter_line
 
 
 def read_avg_reward_from_output_file(algorithm, date_to_retrieve):

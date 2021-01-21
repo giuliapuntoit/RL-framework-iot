@@ -3,10 +3,8 @@
 """
 
 import os
-import numpy as np
 import csv
-
-from config import FrameworkConfiguration
+from plotter.support_plotter import read_time_traffic_from_log
 
 
 class GetTrainingTimeTraffic(object):
@@ -20,28 +18,7 @@ class GetTrainingTimeTraffic(object):
 
     def run(self):
 
-        directory = FrameworkConfiguration.directory + 'output/log/'
-        log_file = directory + 'log_' + self.date_to_retrieve + '.log'
-
-        print(log_file)
-
-        # Each non empty line is a sent command
-        # Command of power is substituted by episode finishing line
-        # Minus last line that is the total time
-
-        counter_line = -1
-        with open(log_file) as f:
-            for line in f:
-                if len(line.strip()) != 0:  # Not empty lines
-                    counter_line += 1
-            last_line = line
-
-        secs = float(last_line.split()[3])
-        np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
-
-        print("Total lines", counter_line)
-        print("Last line", last_line)
-        print("Seconds", secs)
+        secs, commands = read_time_traffic_from_log(self.date_to_retrieve)
 
         if not os.path.isfile(self.target_output):  # If file does not exist
             # Write header
@@ -51,7 +28,7 @@ class GetTrainingTimeTraffic(object):
 
         with open(self.target_output, mode="a") as output_file:
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            output_writer.writerow([self.date_to_retrieve, secs, counter_line])
+            output_writer.writerow([self.date_to_retrieve, secs, commands])
 
 
 def get_data_before_tuning_unique_path():
