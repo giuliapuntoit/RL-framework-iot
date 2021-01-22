@@ -224,7 +224,7 @@ def plot_cdf_path_from_dates(sarsa, sarsa_lambda, qlearning, qlearning_lambda, p
     plot_cdf_reward_multiple_algo(algos, episodes, avg_rewards, path)
 
 
-if __name__ == '__main__':
+def main():
     plot_cdf_unique_path()
 
     target_path = 1
@@ -254,3 +254,7 @@ if __name__ == '__main__':
     from date_for_graphs_path3 import qlearning_lambda_dates
 
     plot_cdf_path_from_dates(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+
+
+if __name__ == '__main__':
+    main()

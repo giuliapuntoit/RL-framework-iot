@@ -16,6 +16,7 @@ n_cols = 1
 
 output_dir = './'
 
+
 def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_graphs=False, color_index=0, algorithm="sarsa"):
     """
     Retrieve the reward per each time step (or command sent by the RL algorithm) from log file
@@ -107,7 +108,7 @@ def plot_cum_reward_per_command_multiple_algos_for_specified_path(rewards, comma
     plt.show()
 
 
-if __name__ == '__main__':
+def main():
     algos = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"]
 
     target_path = 1
@@ -186,3 +187,6 @@ if __name__ == '__main__':
     all_avg_commands.append(avg_com)
 
     plot_cum_reward_per_command_multiple_algos_for_specified_path(all_cum_rewards, all_avg_commands, algos, target_path)
+
+if __name__ == '__main__':
+    main()

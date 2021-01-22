@@ -19,7 +19,8 @@ n_cols = 2
 
 target_dir = "../plot/"  # Tuning
 
-def compute_avg_single_configuration_multiple_runs(date_array, param):
+
+def compute_avg_single_configuration_multiple_runs(date_array, param, for_robustness=False):
     """
     Compute and return average values for reward and timesteps
     for multiple excutions of the same configuration of parameters
@@ -39,12 +40,12 @@ def compute_avg_single_configuration_multiple_runs(date_array, param):
 
         x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(None, dat)
 
-        # TODO remove this check, used only for robustness
-        # if len(x) > 100:
-        #     x = x[0:100]
-        #     y_reward = y_reward[0:100]
-        #     y_cum_reward = y_cum_reward[0:100]
-        #     y_timesteps = y_timesteps[0:100]
+        if for_robustness:
+            if len(x) > 100:
+                x = x[0:100]
+                y_reward = y_reward[0:100]
+                y_cum_reward = y_cum_reward[0:100]
+                y_timesteps = y_timesteps[0:100]
 
         x_all.append(x)
         y_all_reward.append(y_reward)
@@ -84,7 +85,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     complete_target_dir = build_output_dir_for_params(target_dir, param, algorithm)
 
     for i in range(0, len(param_values_target)):
-        if i == 0 and param == "lambda":
+        if i == 0 and param == "lambda":  # lambda can be 0 so I do not remove the 0 in the legend of the plot
             pl.plot(episodes_target[i][
                     np.array(episodes_target[i]).shape[0] - np.array(moving_average_rewards_target[i]).shape[0]:],
                     moving_average_rewards_target[i],
@@ -93,7 +94,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
             pl.plot(episodes_target[i][
                     np.array(episodes_target[i]).shape[0] - np.array(moving_average_rewards_target[i]).shape[0]:],
                     moving_average_rewards_target[i],
-                    label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )  # color=color[i])
+                    label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )  # remove 0 from legend, keep only decimals
 
     pl.xlabel('Episode')
     pl.ylabel('Final reward')
@@ -272,7 +273,7 @@ def plot_graphs_for_changing_param(algo, changing_param, for_robustness=False):
             exit(6)
 
     for val in values:
-        p, ep, ma, mats, ar, at = compute_avg_single_configuration_multiple_runs(date_array=val, param=changing_param)
+        p, ep, ma, mats, ar, at = compute_avg_single_configuration_multiple_runs(date_array=val, param=changing_param, for_robustness=for_robustness)
         changing_param_values.append(p)
         episodes.append(ep)
         moving_avgs_rewards.append(ma)
@@ -289,7 +290,8 @@ def plot_graphs_for_changing_param(algo, changing_param, for_robustness=False):
                                                            avg_timesteps)
 
 
-if __name__ == '__main__':
+def main():
+    global target_dir
     target_dir = "../plot/tuning"  # Tuning
     for alg in ["sarsa", "qlearning"]:
         for p in ["epsilon", "alpha", "gamma"]:
@@ -298,5 +300,9 @@ if __name__ == '__main__':
     for alg in ["sarsa_lambda", "qlearning_lambda"]:
         plot_graphs_for_changing_param(alg, "lambda", for_robustness=False)
 
-    # target_dir = "../plot/robustness"  # only for robustness
-    # plot_params_for_robustness("qlearning", "gamma", for_robustness=True)
+    target_dir = "../plot/robustness"  # only for robustness
+    plot_graphs_for_changing_param("qlearning", "gamma", for_robustness=True)
+
+
+if __name__ == '__main__':
+    main()

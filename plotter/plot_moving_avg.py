@@ -324,7 +324,7 @@ def plot_multiple_algos_avg_rewards_timesteps_bars(algos, avg_rew, avg_steps, pa
     plt.show()
 
 
-if __name__ == '__main__':
+def main():
     all_algo = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"]
 
     all_avg_rew = []
@@ -409,3 +409,6 @@ if __name__ == '__main__':
 
     all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
     plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+
+if __name__ == '__main__':
+    main()

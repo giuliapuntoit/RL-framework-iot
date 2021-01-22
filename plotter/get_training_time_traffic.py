@@ -4,7 +4,12 @@
 
 import os
 import csv
+import pathlib
+
 from plotter.support_plotter import read_time_traffic_from_log
+
+
+output_dir = "./tmp/"
 
 
 class GetTrainingTimeTraffic(object):
@@ -45,16 +50,16 @@ def get_data_before_tuning_unique_path():
     from date_for_graphs_before_tuning_path2 import qlearning_lambda
 
     for dat in sarsa:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_sarsa.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'0_sarsa.csv').run()
 
     for dat in sarsa_lambda:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_sarsa_lambda.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'0_sarsa_lambda.csv').run()
 
     for dat in qlearning:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_qlearning.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'0_qlearning.csv').run()
 
     for dat in qlearning_lambda:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='0_qlearning_lambda.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'0_qlearning_lambda.csv').run()
 
 
 def get_data_algos_path(sarsa, sarsa_lambda, qlearning, qlearning_lambda, path=None):
@@ -63,19 +68,21 @@ def get_data_algos_path(sarsa, sarsa_lambda, qlearning, qlearning_lambda, path=N
     """
 
     for dat in sarsa:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='path' + str(path) + '_sarsa.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'path' + str(path) + '_sarsa.csv').run()
 
     for dat in sarsa_lambda:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='path' + str(path) + '_sarsa_lambda.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'path' + str(path) + '_sarsa_lambda.csv').run()
 
     for dat in qlearning:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='path' + str(path) + '_qlearning.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'path' + str(path) + '_qlearning.csv').run()
 
     for dat in qlearning_lambda:
-        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output='path' + str(path) + '_qlearning_lambda.csv').run()
+        GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'path' + str(path) + '_qlearning_lambda.csv').run()
 
 
-if __name__ == '__main__':
+def main():
+    pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)  # for Python > 3.5
+
     get_data_before_tuning_unique_path()
 
     # Plot all paths
@@ -107,3 +114,7 @@ if __name__ == '__main__':
     from date_for_graphs_path3 import qlearning_lambda_dates
 
     get_data_algos_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+
+
+if __name__ == '__main__':
+    main()
