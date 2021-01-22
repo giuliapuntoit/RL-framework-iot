@@ -4,7 +4,7 @@
 
 import csv
 import pathlib
-
+import shutil
 import numpy as np
 from matplotlib import patches
 from config import FrameworkConfiguration
@@ -236,3 +236,7 @@ def compute_avg_over_multiple_runs(number_episodes, number_runs, y_all_reward, y
         y_final_timesteps.append(sum_t / float(count))
 
     return y_final_reward, y_final_cum_reward, y_final_timesteps
+
+
+def clear_tmp_files():
+    shutil.rmtree("./tmp/")
