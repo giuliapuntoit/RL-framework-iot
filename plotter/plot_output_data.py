@@ -82,5 +82,9 @@ class PlotOutputData(object):
             plt.show()
 
 
-if __name__ == '__main__':
+def main():
     PlotOutputData(date_to_retrieve='2020_11_21_11_09_13', separate_plots=False).run()
+
+
+if __name__ == '__main__':
+    main()

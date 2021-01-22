@@ -30,8 +30,13 @@ def animate(k):
     plt.tight_layout()
 
 
-# Call the animate function, interval is the delay between frames in ms
-ani = FuncAnimation(plt.gcf(), animate, interval=20000)
+def main():
+    # Call the animate function, interval is the delay between frames in ms
+    ani = FuncAnimation(plt.gcf(), animate, interval=20000)
 
-plt.tight_layout()
-plt.show()
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
