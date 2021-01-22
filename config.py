@@ -14,18 +14,14 @@ class FrameworkConfiguration(object):
     current_command_id = 1
     id_lamp = ""
 
-    # Da togliere:
-    listen_socket = None
-    scan_socket = None
-
     # Da riorganizzare
     timeout = 5
-    reward = 0
+    reward = 0  # this should not be here
     path = 2
     directory = "../"
 
     # RL params
-    algorithm = 'sarsa'
+    algorithm = 'sarsa'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
     epsilon = 0.6
     total_episodes = 5
     max_steps = 100

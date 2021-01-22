@@ -8,6 +8,7 @@ from config import FrameworkConfiguration
 from discovery import network_analyzer
 from learning import learning_yeelight
 
+
 if __name__ == '__main__':
     # Discovery: find devices in the local network
     devices = network_analyzer.analyze_lan()

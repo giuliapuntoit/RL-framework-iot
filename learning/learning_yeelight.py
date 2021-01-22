@@ -2,20 +2,15 @@
     Class that plays the Reinforcement Learning agent
 """
 
-#!/usr/bin/python
+# !/usr/bin/python
 import csv
 import numpy as np
 import json
 import random
 import pathlib
-import socket
 from datetime import datetime
 import time
 import copy
-import fcntl
-import os
-import struct
-from threading import Thread
 from time import sleep
 import logging
 import sys
@@ -24,7 +19,7 @@ from colorizer_for_output import ColorHandler
 from plotter.plot_output_data import PlotOutputData
 from learning.run_output_Q_parameters import RunOutputQParameters
 from request_builder.builder_yeelight import BuilderYeelight
-from device_communication.api_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, display_bulbs
+from device_communication.api_yeelight import operate_on_bulb, operate_on_bulb_json
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props, get_states, \
     get_optimal_policy, get_optimal_path
 
@@ -39,14 +34,8 @@ for handler in LOG.handlers:
 
 LOG.addHandler(ColorHandler())
 
-# SHOULD NOT MODIFY GLOBAL VARIABLES
 # Global variables for bulb connection
-FrameworkConfiguration.detected_bulbs = {}
-FrameworkConfiguration.bulb_idx2ip = {}
-FrameworkConfiguration.RUNNING = True
-FrameworkConfiguration.current_command_id = 1
-FrameworkConfiguration.MCAST_GRP = '239.255.255.250'
-idLamp = ""
+idLamp = ""  # TODO non è che sono diversi??? Mi serve this?
 
 # Global variables for RL
 tot_reward = 0
@@ -54,7 +43,8 @@ tot_reward = 0
 
 class ReinforcementLearningAlgorithm(object):
 
-    def __init__(self):
+    def __init__(self, discovery_report, thread_id):
+        self.discovery_report = discovery_report
         self.total_episodes = FrameworkConfiguration.total_episodes
         self.max_steps = FrameworkConfiguration.max_steps
         self.epsilon = FrameworkConfiguration.epsilon
@@ -78,8 +68,11 @@ class ReinforcementLearningAlgorithm(object):
         else:
             self.use_old_matrix = False
         self.current_date = datetime.now()
+        if thread_id:
+            self.thread_id = thread_id
+        self.id_for_output = '%Y_%m_%d_%H_%M_%S'
 
-    def choose_action(self, state, Qmatrix):
+    def choose_action(self, state, q_matrix):
         """
         Function to choose the next action, same for all algorithms
         """
@@ -91,61 +84,62 @@ class ReinforcementLearningAlgorithm(object):
             # Select maximum, if multiple values select randomly
             # print("\t\tSelect maximum")
             # choose random action between the max ones
-            action = np.random.choice(np.where(Qmatrix[state, :] == Qmatrix[state, :].max())[0])
+            action = np.random.choice(np.where(q_matrix[state, :] == q_matrix[state, :].max())[0])
         # The action then should be converted when used into a json_string returned by builder_yeelight
         # action is an index
         return action
 
-    def update_sarsa(self, state, state2, reward, action, action2, Qmatrix):
+    def update_sarsa(self, state, state_2, reward, action, action_2, q_matrix):
         """
         SARSA function to learn the Q-value
         """
-        predict = Qmatrix[state, action]
-        target = reward + self.gamma * Qmatrix[state2, action2]
-        Qmatrix[state, action] = Qmatrix[state, action] + self.alpha * (target - predict)
+        predict = q_matrix[state, action]
+        target = reward + self.gamma * q_matrix[state_2, action_2]
+        q_matrix[state, action] = q_matrix[state, action] + self.alpha * (target - predict)
 
-    def update_sarsa_lambda(self, state, state2, reward, action, action2, len_states, len_actions, Qmatrix, Ematrix):
+    def update_sarsa_lambda(self, state, state_2, reward, action, action_2, len_states, len_actions, q_matrix,
+                            e_matrix):
         """
         SARSA(lambda) function to update the Q-value matrix and the Eligibility matrix
         """
-        predict = Qmatrix[state, action]
-        target = reward + self.gamma * Qmatrix[state2, action2]
+        predict = q_matrix[state, action]
+        target = reward + self.gamma * q_matrix[state_2, action_2]
         delta = target - predict
-        Ematrix[state, action] = Ematrix[state, action] + 1
+        e_matrix[state, action] = e_matrix[state, action] + 1
         # For all s, a
         for s in range(len_states):
             for a in range(len_actions):
-                Qmatrix[s, a] = Qmatrix[s, a] + self.alpha * delta * Ematrix[s, a]
-                Ematrix[s, a] = self.gamma * self.lam * Ematrix[s, a]
+                q_matrix[s, a] = q_matrix[s, a] + self.alpha * delta * e_matrix[s, a]
+                e_matrix[s, a] = self.gamma * self.lam * e_matrix[s, a]
 
-    def update_qlearning_lambda(self, state, state2, reward, action, action2, len_states, len_actions, Qmatrix,
-                                Ematrix):
+    def update_qlearning_lambda(self, state, state_2, reward, action, action_2, len_states, len_actions, q_matrix,
+                                e_matrix):
         """
         Q-learning(lambda) (Watkins's Q(lambda) algorithm) function to update the Q-value matrix and the Eligibility matrix
         """
-        predict = Qmatrix[state, action]
-        maxQ = np.amax(Qmatrix[state2, :])  # Find maximum value for the new state Q(s', a*)
-        maxIndex = np.argmax(Qmatrix[state2, :])  # Find index of the maximum value a*
+        predict = q_matrix[state, action]
+        maxQ = np.amax(q_matrix[state_2, :])  # Find maximum value for the new state Q(s', a*)
+        maxIndex = np.argmax(q_matrix[state_2, :])  # Find index of the maximum value a*
         target = reward + self.gamma * maxQ
         delta = target - predict
-        Ematrix[state, action] = Ematrix[state, action] + 1
+        e_matrix[state, action] = e_matrix[state, action] + 1
         # For all s, a
         for s in range(len_states):
             for a in range(len_actions):
-                Qmatrix[s, a] = Qmatrix[s, a] + self.alpha * delta * Ematrix[s, a]
-                if action2 == maxIndex:
-                    Ematrix[s, a] = self.gamma * self.lam * Ematrix[s, a]
+                q_matrix[s, a] = q_matrix[s, a] + self.alpha * delta * e_matrix[s, a]
+                if action_2 == maxIndex:
+                    e_matrix[s, a] = self.gamma * self.lam * e_matrix[s, a]
                 else:
-                    Ematrix[s, a] = 0
+                    e_matrix[s, a] = 0
 
-    def update_qlearning(self, state, state2, reward, action, Qmatrix):
+    def update_qlearning(self, state, state_2, reward, action, q_matrix):
         """
         # Q-learning function to learn the Q-value
         """
-        predict = Qmatrix[state, action]
-        maxQ = np.amax(Qmatrix[state2, :])  # Find maximum value for the new state
+        predict = q_matrix[state, action]
+        maxQ = np.amax(q_matrix[state_2, :])  # Find maximum value for the new state
         target = reward + self.gamma * maxQ
-        Qmatrix[state, action] = Qmatrix[state, action] + self.alpha * (target - predict)
+        q_matrix[state, action] = q_matrix[state, action] + self.alpha * (target - predict)
 
     def initialize_log_files(self, output_directory, log_directory):
         """
@@ -154,7 +148,7 @@ class ReinforcementLearningAlgorithm(object):
         log_dir = FrameworkConfiguration.directory + output_directory + '/' + log_directory
         pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5 YY_mm_dd_HH_MM_SS'
 
-        log_filename = self.current_date.strftime(log_dir + '/' + 'log_' + '%Y_%m_%d_%H_%M_%S' + '.log')
+        log_filename = self.current_date.strftime(log_dir + '/' + 'log_' + self.id_for_output + '.log')
         log_date_filename = FrameworkConfiguration.directory + output_directory + '/log_date.log'
 
         return log_filename, log_date_filename
@@ -166,11 +160,14 @@ class ReinforcementLearningAlgorithm(object):
         output_Q_params_dir = FrameworkConfiguration.directory + output_directory + '/' + q_params_directory
         pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
 
-        output_Q_filename = self.current_date.strftime(output_Q_params_dir + '/' + 'output_Q_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
-        output_parameters_filename = self.current_date.strftime(output_Q_params_dir + '/' + 'output_parameters_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+        output_Q_filename = self.current_date.strftime(
+            output_Q_params_dir + '/' + 'output_Q_' + self.id_for_output + '.csv')
+        output_parameters_filename = self.current_date.strftime(
+            output_Q_params_dir + '/' + 'output_parameters_' + self.id_for_output + '.csv')
         output_E_filename = ''
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
-            output_E_filename = self.current_date.strftime(output_Q_params_dir + '/' + 'output_E_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+            output_E_filename = self.current_date.strftime(
+                output_Q_params_dir + '/' + 'output_E_' + self.id_for_output + '.csv')
 
         return output_Q_filename, output_parameters_filename, output_E_filename
 
@@ -180,9 +177,11 @@ class ReinforcementLearningAlgorithm(object):
         """
         output_dir = FrameworkConfiguration.directory + output_directory + '/' + output_csv_directory
         pathlib.Path(output_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
-        output_filename = self.current_date.strftime(output_dir + '/' + 'output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+        output_filename = self.current_date.strftime(
+            output_dir + '/' + 'output_' + self.algorithm + '_' + self.id_for_output + '.csv')
 
-        partial_output_filename = self.current_date.strftime(output_dir + '/' + 'partial_output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+        partial_output_filename = self.current_date.strftime(
+            output_dir + '/' + 'partial_output_' + self.algorithm + '_' + self.id_for_output + '.csv')
         return output_filename, partial_output_filename
 
     def write_date_id_to_log(self, log_date_filename):
@@ -191,7 +190,7 @@ class ReinforcementLearningAlgorithm(object):
         """
         with open(log_date_filename, mode='a') as output_file:
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
-            output_writer.writerow([self.current_date.strftime('%Y_%m_%d_%H_%M_%S'), self.algorithm])
+            output_writer.writerow([self.current_date.strftime(self.id_for_output), self.algorithm])
 
     def write_params_to_output_file(self, output_parameters_filename, optimal_policy, optimal_path):
         """
@@ -212,6 +211,7 @@ class ReinforcementLearningAlgorithm(object):
             output_writer.writerow(['optimal_policy', "-".join(str(act) for act in optimal_policy)])
             output_writer.writerow(['optimal_path', "-".join(str(pat) for pat in optimal_path)])
             output_writer.writerow(['path', FrameworkConfiguration.path])
+            output_writer.writerow(['protocol', self.discovery_report['protocol']])
 
             if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                 output_writer.writerow(['lambda', self.lam])
@@ -221,7 +221,6 @@ class ReinforcementLearningAlgorithm(object):
         Retrieve old save Q matrix
         """
         file_Q = 'output_Q_' + self.date_old_matrix + '.csv'
-        Q = []
         try:
             output_Q_params_dir = FrameworkConfiguration.directory + output_directory + '/' + q_params_directory
             tmp_matrix = np.genfromtxt(output_Q_params_dir + '/' + file_Q, delimiter=',', dtype=np.float32)
@@ -246,7 +245,6 @@ class ReinforcementLearningAlgorithm(object):
         Retrieve old save Q matrix
         """
         file_E = 'output_E_' + self.date_old_matrix + '.csv'
-        E = []
         try:
             output_Q_params_dir = FrameworkConfiguration.directory + output_directory + '/' + q_params_directory
             tmp_matrix = np.genfromtxt(output_Q_params_dir + '/' + file_E, delimiter=',', dtype=np.float32)
@@ -287,17 +285,17 @@ class ReinforcementLearningAlgorithm(object):
         if FrameworkConfiguration.path == 3:
             # Special initial configuration for visual checks on the bulb
             # ONLY FOR PATH 3
-            operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 0"))
+            operate_on_bulb("set_power", str("\"on\", \"sudden\", 0"), self.discovery_report)
             num_actions += 1
             sleep(self.seconds_to_wait)
-            operate_on_bulb(idLamp, "set_rgb", str("255" + ", \"sudden\", 500"))
+            operate_on_bulb("set_rgb", str("255" + ", \"sudden\", 500"), self.discovery_report)
             num_actions += 1
             sleep(self.seconds_to_wait)
 
         # Turn off the lamp
         if FrameworkConfiguration.DEBUG:
             print("\t\tREQUEST: Setting power off")
-        operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
+        operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), self.discovery_report)
         num_actions += 1
         return num_actions
 
@@ -330,12 +328,12 @@ class ReinforcementLearningAlgorithm(object):
         """
         header = [label]  # For correct output structure
         for i in range(0, self.num_actions_to_use):
-            json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=i).run()
+            json_string = BuilderYeelight(method_chosen_index=i).run()
             header.append(json.loads(json_string)['method'])
 
         with open(output_filename, "w") as output_matrix_file:
             output_matrix_writer = csv.writer(output_matrix_file, delimiter=',', quotechar='"',
-                                         quoting=csv.QUOTE_NONE)
+                                              quoting=csv.QUOTE_NONE)
             output_matrix_writer.writerow(header)
             for index, stat in enumerate(states):
                 row = [stat]
@@ -360,7 +358,8 @@ class ReinforcementLearningAlgorithm(object):
         output_dir = 'output'
         q_params_dir = 'output_Q_parameters'
         log_filename, log_date_filename = self.initialize_log_files(output_dir, 'log')
-        output_Q_filename, output_parameters_filename, output_E_filename = self.initialize_output_q_params_files(output_dir, q_params_dir)
+        output_Q_filename, output_parameters_filename, output_E_filename = self.initialize_output_q_params_files(
+            output_dir, q_params_dir)
         output_filename, partial_output_filename = self.initialize_output_csv_files(output_dir, 'output_csv')
 
         self.write_date_id_to_log(log_date_filename)
@@ -413,7 +412,7 @@ class ReinforcementLearningAlgorithm(object):
             t = 0
             count_actions += self.set_initial_state()
             sleep(self.seconds_to_wait)
-            state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
+            state1, old_props_values = compute_next_state_from_props(0, [], self.discovery_report)
             if FrameworkConfiguration.DEBUG:
                 print("\tSTARTING FROM STATE", states[state1])
             action1 = self.choose_action(state1, Q)
@@ -436,14 +435,14 @@ class ReinforcementLearningAlgorithm(object):
                     action1 = self.choose_action(state1, Q)
 
                 # Perform an action on the bulb sending a command
-                json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
+                json_string = BuilderYeelight(method_chosen_index=action1).run()
                 if FrameworkConfiguration.DEBUG:
                     print("\t\tREQUEST:", str(json_string))
-                reward_from_response = operate_on_bulb_json(idLamp, json_string)
+                reward_from_response = operate_on_bulb_json(json_string, self.discovery_report)
                 count_actions += 1
                 sleep(self.seconds_to_wait)
 
-                state2, new_props_values = compute_next_state_from_props(idLamp, state1, old_props_values)
+                state2, new_props_values = compute_next_state_from_props(state1, old_props_values, self.discovery_report)
                 if FrameworkConfiguration.DEBUG:
                     print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
@@ -522,14 +521,15 @@ class ReinforcementLearningAlgorithm(object):
                         sleep(60)
                         count_actions = 0
 
+                    # Save Q-matrix
                     self.save_matrix(output_Q_filename, states, Q, 'Q')
+
+                    # Save E-matrix
+                    # Only for sarsa(lambda) and Q(lambda)
                     if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                         self.save_matrix(output_E_filename, states, E, 'E')
 
-                    found_policy, dict_results = RunOutputQParameters(id_lamp=idLamp,
-                                                                      date_to_retrieve=self.current_date.strftime(
-                                                                          '%Y_%m_%d_%H_%M_%S'),
-                                                                      show_retrieved_info=False).run()
+                    found_policy, dict_results = RunOutputQParameters(date_to_retrieve=self.current_date.strftime(self.id_for_output), show_retrieved_info=False, discovery_report=self.discovery_report).run()
                     count_actions += 20
 
                     with open(partial_output_filename, mode="a") as partial_output_file:
@@ -564,11 +564,12 @@ class ReinforcementLearningAlgorithm(object):
         sleep(5)  # Wait for writing to files
         # PLOT DATA
         if self.show_graphs:
-            PlotOutputData(date_to_retrieve=self.current_date.strftime('%Y_%m_%d_%H_%M_%S'), separate_plots=False).run()
+            PlotOutputData(date_to_retrieve=self.current_date.strftime(self.id_for_output), separate_plots=False).run()
 
         # FOLLOW BEST POLICY FOUND
         if self.follow_policy:
-            RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=self.current_date.strftime('%Y_%m_%d_%H_%M_%S')).run()
+            RunOutputQParameters(date_to_retrieve=self.current_date.strftime(self.id_for_output),
+                                 discovery_report=self.discovery_report).run()
 
 
 def main(discovery_report=None):
@@ -577,60 +578,21 @@ def main(discovery_report=None):
     if FrameworkConfiguration.DEBUG:
         print(FrameworkConfiguration().as_dict())
 
-    # NON MI DOVREBBERO SERVIRE QUESTI SOCKET
-    # Socket setup
-    FrameworkConfiguration.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    fcntl.fcntl(FrameworkConfiguration.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    FrameworkConfiguration.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    FrameworkConfiguration.listen_socket.bind(("", 1982))
-    fcntl.fcntl(FrameworkConfiguration.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    # GlobalVar.scan_socket.settimeout(GlobalVar.timeout)  # set 2 seconds of timeout -> could be a configurable parameter
-    # GlobalVar.listen_socket.settimeout(GlobalVar.timeout)
-    mreq = struct.pack("4sl", socket.inet_aton(FrameworkConfiguration.MCAST_GRP), socket.INADDR_ANY)
-    FrameworkConfiguration.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    global idLamp
+    if discovery_report is None:
+        print("No discovery report found.")
+        exit(-1)
+    elif discovery_report['ip']:
+        print("Discovery report found: id lamp", idLamp)  # TODO always 1?
 
-    # Give socket some time to set up
-    sleep(2)
-
-    # First discover the lamp and connect to the lamp, with the bulb detection thread
-    detection_thread = Thread(target=bulbs_detection_loop)
-    detection_thread.start()
-    # Give detection thread some time to collect bulb info
-    sleep(10)
-    max_wait = 0
-    while len(FrameworkConfiguration.bulb_idx2ip) == 0 and max_wait < 10:
-        # Wait for 10 seconds to see if some bulb is present
-        # The number of seconds could be extended if necessary
-        sleep(1)
-        max_wait += 1
-    if len(FrameworkConfiguration.bulb_idx2ip) == 0:
-        print("Bulb list is empty.")
-    else:
-        # If some bulb was found, take first bulb or the one specified as argument
-        display_bulbs()
-        print(FrameworkConfiguration.bulb_idx2ip)
-        global idLamp
-        if discovery_report is None:
-            idLamp = list(FrameworkConfiguration.bulb_idx2ip.keys())[0]
-            print("No discovery report: id lamp", idLamp)
-        elif discovery_report['ip'] and discovery_report['ip'] in FrameworkConfiguration.bulb_idx2ip.values():
-            idLamp = list(FrameworkConfiguration.bulb_idx2ip.keys())[list(FrameworkConfiguration.bulb_idx2ip.values()).index(discovery_report['ip'])]
-            print("Discovery report found: id lamp", idLamp)
         print("Waiting 5 seconds before using RL algorithm")
         sleep(5)
 
-        # Stop bulb detection loop
-        FrameworkConfiguration.RUNNING = False  # TODO should remove this
-
         print("\n############# Starting RL algorithm path", FrameworkConfiguration.path, "#############")
-        print("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM", FrameworkConfiguration.epsilon, FrameworkConfiguration.alpha, FrameworkConfiguration.gamma)
-        ReinforcementLearningAlgorithm().run()  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
+        print("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM",
+              FrameworkConfiguration.epsilon, FrameworkConfiguration.alpha, FrameworkConfiguration.gamma)
+        ReinforcementLearningAlgorithm(discovery_report=discovery_report).run()
         print("############# Finish RL algorithm #############")
-
-    # Goal achieved, tell detection thread to quit and wait
-    RUNNING = False  # non credo serva di nuovo, sarebbe global var comunque
-    detection_thread.join()
-    # Done
 
 
 if __name__ == '__main__':

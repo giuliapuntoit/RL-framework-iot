@@ -76,7 +76,7 @@ def get_optimal_path():
     return optimal_path
 
 
-def compute_next_state_from_props(id_lamp, current_state, old_props_values):
+def compute_next_state_from_props(current_state, old_props_values, discovery_report):
     # Given the current state, send a request to the yeelight device
     # to get the current property values. From that information, based on the selected
     # path, it computes and returns the next state
@@ -84,11 +84,11 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     next_state = current_state
 
     # Get the json command for asking the desired properties
-    json_command = BuilderYeelight(id_lamp=id_lamp, method_chosen_index=0, select_all_props=True).run()
-    # props_names = ServeYeelight(id_lamp=id_lamp).get_all_properties()
+    json_command = BuilderYeelight(method_chosen_index=0, select_all_props=True).run()
+    # props_names = BuilderYeelight().get_all_properties()
 
     # Send the json command to the yeelight device
-    props_values = operate_on_bulb_props(id_lamp, json_command)
+    props_values = operate_on_bulb_props(json_command, discovery_report)
 
     if not props_values or len(props_values) < 7:
         # print("\t\tSomething went wrong from get_prop: keeping the current state") TODO

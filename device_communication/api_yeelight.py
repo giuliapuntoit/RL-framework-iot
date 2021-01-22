@@ -12,116 +12,116 @@ import re
 from config import FrameworkConfiguration
 
 
-def send_search_broadcast():
-    """
-    Multicast search request to all hosts in LAN, do not wait for response
-    """
-    print("send_search_broadcast running")
-    multicase_address = (FrameworkConfiguration.MCAST_GRP, 1982)
-    msg = "M-SEARCH * HTTP/1.1\r\n"
-    msg = msg + "HOST: 239.255.255.250:1982\r\n"
-    msg = msg + "MAN: \"ssdp:discover\"\r\n"
-    msg = msg + "ST: wifi_bulb"
-    FrameworkConfiguration.scan_socket.sendto(msg.encode(), multicase_address)
+# def send_search_broadcast():
+#     """
+#     Multicast search request to all hosts in LAN, do not wait for response
+#     """
+#     print("send_search_broadcast running")
+#     multicase_address = (FrameworkConfiguration.MCAST_GRP, 1982)
+#     msg = "M-SEARCH * HTTP/1.1\r\n"
+#     msg = msg + "HOST: 239.255.255.250:1982\r\n"
+#     msg = msg + "MAN: \"ssdp:discover\"\r\n"
+#     msg = msg + "ST: wifi_bulb"
+#     FrameworkConfiguration.scan_socket.sendto(msg.encode(), multicase_address)
 
 
-def bulbs_detection_loop():
-    """
-    A standalone thread broadcasting search request and listening on all responses
-    """
-    print("bulbs_detection_loop running")
-    search_interval = 30000
-    read_interval = 100
-    time_elapsed = 0
-
-    while FrameworkConfiguration.RUNNING:
-        if time_elapsed % search_interval == 0:
-            send_search_broadcast()
-
-        # Scanner
-        while True:
-            try:
-                data = FrameworkConfiguration.scan_socket.recv(2048)
-            except socket.error as e:
-                err = e.args[0]
-                if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
-                    break
-                else:
-                    print(e)
-                    sys.exit(1)
-            handle_search_response(data)
-
-        # Passive listener
-        while True:
-            try:
-                data, addr = FrameworkConfiguration.listen_socket.recvfrom(2048)
-            except socket.error as e:
-                err = e.args[0]
-                if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
-                    break
-                else:
-                    print(e)
-                    sys.exit(1)
-            handle_search_response(data)
-
-        time_elapsed += read_interval
-        sleep(read_interval / 1000.0)
-    FrameworkConfiguration.scan_socket.close()
-    FrameworkConfiguration.listen_socket.close()
-
-
-def get_param_value(data, param):
-    """
-    Match line of 'param = value'
-    """
-    param_re = re.compile(param + ":\s*([ -~]*)")  # Match all printable characters
-    match = param_re.search(data.decode())
-    if match is not None:
-        value = match.group(1)
-        return value
+# def bulbs_detection_loop():
+#     """
+#     A standalone thread broadcasting search request and listening on all responses
+#     """
+#     print("bulbs_detection_loop running")
+#     search_interval = 30000
+#     read_interval = 100
+#     time_elapsed = 0
+#
+#     while FrameworkConfiguration.RUNNING:
+#         if time_elapsed % search_interval == 0:
+#             send_search_broadcast()
+#
+#         # Scanner
+#         while True:
+#             try:
+#                 data = FrameworkConfiguration.scan_socket.recv(2048)
+#             except socket.error as e:
+#                 err = e.args[0]
+#                 if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
+#                     break
+#                 else:
+#                     print(e)
+#                     sys.exit(1)
+#             handle_search_response(data)
+#
+#         # Passive listener
+#         while True:
+#             try:
+#                 data, addr = FrameworkConfiguration.listen_socket.recvfrom(2048)
+#             except socket.error as e:
+#                 err = e.args[0]
+#                 if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
+#                     break
+#                 else:
+#                     print(e)
+#                     sys.exit(1)
+#             handle_search_response(data)
+#
+#         time_elapsed += read_interval
+#         sleep(read_interval / 1000.0)
+#     FrameworkConfiguration.scan_socket.close()
+#     FrameworkConfiguration.listen_socket.close()
 
 
-def get_support_value(data):
-    """
-    Match line of 'support = value'
-    """
-    support_re = re.compile("support" + ":\s*([ -~]*)")  # Match all printable characters
-    match = support_re.search(data.decode())
-    if match is not None:
-        value = match.group(1)
-        return value
+# def get_param_value(data, param):
+#     """
+#     Match line of 'param = value'
+#     """
+#     param_re = re.compile(param + ":\s*([ -~]*)")  # Match all printable characters
+#     match = param_re.search(data.decode())
+#     if match is not None:
+#         value = match.group(1)
+#         return value
 
 
-def handle_search_response(data):
-    """
-    Parse search response and extract all interested data
-    If new bulb is found, insert it into dictionary of managed bulbs
-    """
-    location_re = re.compile("Location.*yeelight[^0-9]*([0-9]{1,3}(\.[0-9]{1,3}){3}):([0-9]*)")
-    match = location_re.search(data.decode())
-    if match is None:
-        print("invalid data received: " + data.decode())
-        return
+# def get_support_value(data):
+#     """
+#     Match line of 'support = value'
+#     """
+#     support_re = re.compile("support" + ":\s*([ -~]*)")  # Match all printable characters
+#     match = support_re.search(data.decode())
+#     if match is not None:
+#         value = match.group(1)
+#         return value
 
-    host_ip = match.group(1)
-    if host_ip in FrameworkConfiguration.detected_bulbs:
-        bulb_id = FrameworkConfiguration.detected_bulbs[host_ip][0]
-    else:
-        bulb_id = len(FrameworkConfiguration.detected_bulbs) + 1
-    host_port = match.group(3)
-    model = get_param_value(data, "model")
-    power = get_param_value(data, "power")
-    bright = get_param_value(data, "bright")
-    rgb = get_param_value(data, "rgb")
-    supported_methods = get_support_value(data).split(sep=None)
-    # print(supported_methods)
-    # Use two dictionaries to store index->ip and ip->bulb map
 
-    # TODO I NEED TO CHANGE THESE STRUCTURES:
-    #  1) detected_bulbs con solo bulb_id ( o neanche )
-    #  2) bulb_idx2ip ( o neanche, mi serve solo l'info sul current id e current ip e basta! )
-    FrameworkConfiguration.detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port, supported_methods]
-    FrameworkConfiguration.bulb_idx2ip[bulb_id] = host_ip
+# def handle_search_response(data):
+#     """
+#     Parse search response and extract all interested data
+#     If new bulb is found, insert it into dictionary of managed bulbs
+#     """
+#     location_re = re.compile("Location.*yeelight[^0-9]*([0-9]{1,3}(\.[0-9]{1,3}){3}):([0-9]*)")
+#     match = location_re.search(data.decode())
+#     if match is None:
+#         print("invalid data received: " + data.decode())
+#         return
+#
+#     host_ip = match.group(1)
+#     if host_ip in FrameworkConfiguration.detected_bulbs:
+#         bulb_id = FrameworkConfiguration.detected_bulbs[host_ip][0]
+#     else:
+#         bulb_id = len(FrameworkConfiguration.detected_bulbs) + 1
+#     host_port = match.group(3)
+#     model = get_param_value(data, "model")
+#     power = get_param_value(data, "power")
+#     bright = get_param_value(data, "bright")
+#     rgb = get_param_value(data, "rgb")
+#     supported_methods = get_support_value(data).split(sep=None)
+#     # print(supported_methods)
+#     # Use two dictionaries to store index->ip and ip->bulb map
+#
+#     # TODO I NEED TO CHANGE THESE STRUCTURES:
+#     #  1) detected_bulbs con solo bulb_id ( o neanche )
+#     #  2) bulb_idx2ip ( o neanche, mi serve solo l'info sul current id e current ip e basta! )
+#     FrameworkConfiguration.detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port, supported_methods]
+#     FrameworkConfiguration.bulb_idx2ip[bulb_id] = host_ip
 
 
 def handle_response(data):
@@ -205,46 +205,41 @@ def handle_response_props(data):
     return []
 
 
-def display_bulb(idx):
-    """
-    Display a bulb found in the network
-    """
-    if idx not in FrameworkConfiguration.bulb_idx2ip:
-        print("error: invalid bulb idx")
-        return
-    bulb_ip = FrameworkConfiguration.bulb_idx2ip[idx]
-    model = FrameworkConfiguration.detected_bulbs[bulb_ip][1]
-    power = FrameworkConfiguration.detected_bulbs[bulb_ip][2]
-    bright = FrameworkConfiguration.detected_bulbs[bulb_ip][3]
-    rgb = FrameworkConfiguration.detected_bulbs[bulb_ip][4]
-    print(str(idx) + ": ip=" \
-          + bulb_ip + ",model=" + model \
-          + ",power=" + power + ",bright=" \
-          + bright + ",rgb=" + rgb)
+# def display_bulb(idx):
+#     """
+#     Display a bulb found in the network
+#     """
+#     if idx not in FrameworkConfiguration.bulb_idx2ip:
+#         print("error: invalid bulb idx")
+#         return
+#     bulb_ip = FrameworkConfiguration.bulb_idx2ip[idx]
+#     model = FrameworkConfiguration.detected_bulbs[bulb_ip][1]
+#     power = FrameworkConfiguration.detected_bulbs[bulb_ip][2]
+#     bright = FrameworkConfiguration.detected_bulbs[bulb_ip][3]
+#     rgb = FrameworkConfiguration.detected_bulbs[bulb_ip][4]
+#     print(str(idx) + ": ip=" \
+#           + bulb_ip + ",model=" + model \
+#           + ",power=" + power + ",bright=" \
+#           + bright + ",rgb=" + rgb)
+
+#
+# def display_bulbs():
+#     """
+#     Display all bulbs found in the network
+#     """
+#     print(str(len(FrameworkConfiguration.detected_bulbs)) + " managed bulbs")
+#     for i in range(1, len(FrameworkConfiguration.detected_bulbs) + 1):
+#         display_bulb(i)
 
 
-def display_bulbs():
-    """
-    Display all bulbs found in the network
-    """
-    print(str(len(FrameworkConfiguration.detected_bulbs)) + " managed bulbs")
-    for i in range(1, len(FrameworkConfiguration.detected_bulbs) + 1):
-        display_bulb(i)
-
-
-def operate_on_bulb(idx, method, params):
+def operate_on_bulb(method, params, discovery_report):
     """
     Operate on bulb; no guarantee of success
-    :param params: Input data 'params' must be a compiled into one string
+    Input data 'params' must be a compiled into one string
                    E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
     """
-
-    if idx not in FrameworkConfiguration.bulb_idx2ip:
-        print("error: invalid bulb idx")
-        return
-
-    bulb_ip = FrameworkConfiguration.bulb_idx2ip[idx]
-    port = FrameworkConfiguration.detected_bulbs[bulb_ip][5]
+    bulb_ip = discovery_report['ip']
+    port = discovery_report['port']
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.settimeout(FrameworkConfiguration.timeout)
@@ -263,19 +258,16 @@ def operate_on_bulb(idx, method, params):
         pass
 
 
-def operate_on_bulb_props(id_lamp, json_string):
+def operate_on_bulb_props(json_string, discovery_report):
     """
     Send a request for the properties of the bulb, handling the response properly
     :return Return the property values of the current state of the bulb
     """
     if FrameworkConfiguration.DEBUG:
         print("\t\tREQUEST FOR PROPS:", json_string)
-    if id_lamp not in FrameworkConfiguration.bulb_idx2ip:
-        print("error: invalid bulb idx")
-        return []
 
-    bulb_ip = FrameworkConfiguration.bulb_idx2ip[id_lamp]
-    port = FrameworkConfiguration.detected_bulbs[bulb_ip][5]
+    bulb_ip = discovery_report['ip']
+    port = discovery_report['port']
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.settimeout(FrameworkConfiguration.timeout)
@@ -293,21 +285,16 @@ def operate_on_bulb_props(id_lamp, json_string):
         return []
 
 
-def operate_on_bulb_json(id_lamp, json_string):
+def operate_on_bulb_json(json_string, discovery_report):
     """
     Operate on bulb; no guarantee of success
     Send a command already formatted inside a json
-    :param id_lamp:
-    :param json_string: command already formatted inside a json
+    Input json_string: command already formatted inside a json
     :return: Return the reward returned by the response given to this sent command
     """
 
-    if id_lamp not in FrameworkConfiguration.bulb_idx2ip:
-        print("error: invalid bulb idx")
-        return
-
-    bulb_ip = FrameworkConfiguration.bulb_idx2ip[id_lamp]
-    port = FrameworkConfiguration.detected_bulbs[bulb_ip][5]
+    bulb_ip = discovery_report['ip']
+    port = discovery_report['port']
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.settimeout(FrameworkConfiguration.timeout)

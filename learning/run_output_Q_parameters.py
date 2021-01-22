@@ -2,15 +2,10 @@
     Class to follow the best policy found by a learning process
 """
 
-import os
-import struct
 import numpy as np
 import csv
 import time
-from threading import Thread
 from time import sleep
-import socket
-import fcntl
 from config import FrameworkConfiguration
 
 # Q will be read from output_Q_date.csv
@@ -19,15 +14,17 @@ from config import FrameworkConfiguration
 
 # Identify which RL algorithm was used and use it
 
-from device_communication.api_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json
+from device_communication.api_yeelight import operate_on_bulb, operate_on_bulb_json
+from discovery import network_analyzer
+from plotter.support_plotter import read_parameters_from_output_file
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props
 from request_builder.builder_yeelight import BuilderYeelight
 
 
 class RunOutputQParameters(object):
-    def __init__(self, id_lamp=0, date_to_retrieve='YY_mm_dd_HH_MM_SS', show_retrieved_info=True):
-        self.id_lamp = id_lamp
+    def __init__(self, date_to_retrieve='YY_mm_dd_HH_MM_SS', show_retrieved_info=True, discovery_report=None):
         self.show_retrieved_info = show_retrieved_info
+        self.discovery_report = discovery_report
         if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
             self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S
         else:
@@ -42,8 +39,6 @@ class RunOutputQParameters(object):
         actions = []
         states = []
         Q = []
-
-        parameters = {}
 
         # Retrieving Q matrix, states and actions
         with open(directory + '/' + file_Q, 'r') as csv_file:
@@ -127,9 +122,9 @@ class RunOutputQParameters(object):
             print("------------------------------------------")
             print("FOLLOW POLICY")
         print("\t\tREQUEST: Setting power off")
-        operate_on_bulb(self.id_lamp, "set_power", str("\"off\", \"sudden\", 0"))
+        operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), None)
         sleep(seconds_to_wait)
-        state1, old_props_values = compute_next_state_from_props(self.id_lamp, 0, [])
+        state1, old_props_values = compute_next_state_from_props(0, [], None)
         print("\tSTARTING FROM STATE", states[state1])
 
         t = 0
@@ -143,12 +138,12 @@ class RunOutputQParameters(object):
             final_policy.append(max_action)
             print("\tACTION TO PERFORM", max_action)
 
-            json_string = BuilderYeelight(id_lamp=self.id_lamp, method_chosen_index=max_action).run()
+            json_string = BuilderYeelight(method_chosen_index=max_action).run()
             print("\t\tREQUEST:", str(json_string))
-            reward_from_response = operate_on_bulb_json(self.id_lamp, json_string)
+            reward_from_response = operate_on_bulb_json(json_string, self.discovery_report)
             sleep(seconds_to_wait)
 
-            state2, new_props_values = compute_next_state_from_props(self.id_lamp, state1, old_props_values)
+            state2, new_props_values = compute_next_state_from_props(state1, old_props_values, None)
 
             print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
@@ -187,51 +182,36 @@ class RunOutputQParameters(object):
             return False, dict_results
 
 
-if __name__ == '__main__':
-    # Socket setup
-    FrameworkConfiguration.scan_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    fcntl.fcntl(FrameworkConfiguration.scan_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    FrameworkConfiguration.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    FrameworkConfiguration.listen_socket.bind(("", 1982))
-    fcntl.fcntl(FrameworkConfiguration.listen_socket, fcntl.F_SETFL, os.O_NONBLOCK)
-    # GlobalVar.scan_socket.settimeout(GlobalVar.timeout)  # set 2 seconds of timeout
-    # GlobalVar.listen_socket.settimeout(GlobalVar.timeout)
-    mreq = struct.pack("4sl", socket.inet_aton(FrameworkConfiguration.MCAST_GRP), socket.INADDR_ANY)
-    FrameworkConfiguration.listen_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+def main(discovery_report=None):
+    date_to_retrieve = "2020_10_30_02_10_16"
+    if discovery_report is None:
+        print("No discovery report found. Analyzing LAN...")
 
-    # First discover the lamp and connect to the lamp
-    # Start the bulb detection thread
-    detection_thread = Thread(target=bulbs_detection_loop)
-    detection_thread.start()
-    # Give detection thread some time to collect bulb info
-    sleep(10)
+        devices = network_analyzer.analyze_lan()
 
-    # Show discovered lamps
-    display_bulbs()
+        if len(devices) > 0:
+            print("Found devices")
+            for dev in devices:
+                parameters = read_parameters_from_output_file(date_to_retrieve)
+                if (parameters['protocol'] and dev.protocol == parameters['protocol']) \
+                        or (not parameters['protocol'] and dev.protocol == "yeelight"):
+                    # TODO Remove check after OR (just temporary, I just added the protocol inside parameters
+                    print("Waiting 5 seconds before verifying optimal policy")
+                    sleep(5)
+                    RunOutputQParameters(date_to_retrieve=date_to_retrieve, discovery_report=discovery_report).run()
 
-    print(FrameworkConfiguration.bulb_idx2ip)
-    max_wait = 0
-    while len(FrameworkConfiguration.bulb_idx2ip) == 0 and max_wait < 10:
-        sleep(1)
-        max_wait += 1
-    if len(FrameworkConfiguration.bulb_idx2ip) == 0:
-        print("Bulb list is empty.")
-    else:
-        # If some bulbs were found inside the network do something
-        display_bulbs()
-        idLamp = list(FrameworkConfiguration.bulb_idx2ip.keys())[0]
+        else:
+            print("No device found.")
+            exit(-1)
+    elif discovery_report['ip']:
+        print("Discovery report found: IP", discovery_report['ip'])
 
         print("Waiting 5 seconds before verifying optimal policy")
         sleep(5)
 
-        FrameworkConfiguration.RUNNING = False
-
-        flag, dict_res = RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2021_01_26_14_30_21").run()
+        flag, dict_res = RunOutputQParameters(date_to_retrieve=date_to_retrieve, discovery_report=discovery_report).run()
         print(dict_res)
 
-    # Goal achieved, tell detection thread to quit and wait
-    RUNNING = False
-    detection_thread.join()
-    # Done
 
-# TODO qua lo fa con una lamp a caso il run? Dovrei mandare il report?
+if __name__ == '__main__':
+    main()

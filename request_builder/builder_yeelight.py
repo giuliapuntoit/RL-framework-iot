@@ -15,9 +15,9 @@ class BuilderYeelight(object):
     # Enable access to the dictionary and constructs command
     # Builds the selected Yeelight command and sends it back as a json command
 
-    def __init__(self, id_lamp=0, method_chosen_index=-1, select_all_props=False):
+    def __init__(self, method_chosen_index=-1, select_all_props=False):
         self.method_chosen_index = method_chosen_index
-        self.id = id_lamp
+        self.id = 1  # TODO do i need this?
         self.select_all_props = select_all_props
 
     def run(self):
