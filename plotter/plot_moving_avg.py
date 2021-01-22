@@ -214,10 +214,10 @@ def all_graphs_before_tuning():
     moving_avgs_rewards = []
     moving_avgs_timesteps = []
 
-    from date_for_graphs_before_tuning_path2 import sarsa
-    from date_for_graphs_before_tuning_path2 import sarsa_lambda
-    from date_for_graphs_before_tuning_path2 import qlearning
-    from date_for_graphs_before_tuning_path2 import qlearning_lambda
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import sarsa
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import sarsa_lambda
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import qlearning
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import qlearning_lambda
 
     # SARSA
     al, ep, ma, mats = plot_single_algo_multiple_runs(date_array=sarsa, algorithm="sarsa")
@@ -333,10 +333,10 @@ def main():
     target_path = 1
     print("PATH ", target_path)
 
-    from date_for_graphs_path1 import sarsa_dates
-    from date_for_graphs_path1 import sarsa_lambda_dates
-    from date_for_graphs_path1 import qlearning_dates
-    from date_for_graphs_path1 import qlearning_lambda_dates
+    from dates_for_graphs.date_for_graphs_path1 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path1 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path1 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path1 import qlearning_lambda_dates
 
     # plot_single_algo_single_run(sarsa_dates[0])
 
@@ -362,10 +362,10 @@ def main():
     target_path = 2
     print("PATH ", target_path)
 
-    from date_for_graphs_path2 import sarsa_dates
-    from date_for_graphs_path2 import sarsa_lambda_dates
-    from date_for_graphs_path2 import qlearning_dates
-    from date_for_graphs_path2 import qlearning_lambda_dates
+    from dates_for_graphs.date_for_graphs_path2 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path2 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path2 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path2 import qlearning_lambda_dates
 
     gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_dates, all_algo[0])
     all_avg_rew.append(gar)
@@ -389,10 +389,10 @@ def main():
     target_path = 3
     print("PATH ", target_path)
 
-    from date_for_graphs_path3 import sarsa_dates
-    from date_for_graphs_path3 import sarsa_lambda_dates
-    from date_for_graphs_path3 import qlearning_dates
-    from date_for_graphs_path3 import qlearning_lambda_dates
+    from dates_for_graphs.date_for_graphs_path3 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path3 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path3 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path3 import qlearning_lambda_dates
 
     gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_dates, all_algo[0])
     all_avg_rew.append(gar)
@@ -409,6 +409,7 @@ def main():
 
     all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
     plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+
 
 if __name__ == '__main__':
     main()

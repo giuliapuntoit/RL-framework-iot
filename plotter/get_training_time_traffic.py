@@ -44,10 +44,10 @@ def get_data_before_tuning_unique_path():
     All the executions refer to the same path 2
     """
 
-    from date_for_graphs_before_tuning_path2 import sarsa
-    from date_for_graphs_before_tuning_path2 import sarsa_lambda
-    from date_for_graphs_before_tuning_path2 import qlearning
-    from date_for_graphs_before_tuning_path2 import qlearning_lambda
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import sarsa
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import sarsa_lambda
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import qlearning
+    from dates_for_graphs.date_for_graphs_before_tuning_path2 import qlearning_lambda
 
     for dat in sarsa:
         GetTrainingTimeTraffic(date_to_retrieve=dat, target_output=output_dir+'0_sarsa.csv').run()
@@ -89,29 +89,29 @@ def main():
     target_path = 1
     print("PATH ", target_path)
 
-    from date_for_graphs_path1 import sarsa_dates
-    from date_for_graphs_path1 import sarsa_lambda_dates
-    from date_for_graphs_path1 import qlearning_dates
-    from date_for_graphs_path1 import qlearning_lambda_dates
+    from dates_for_graphs.date_for_graphs_path1 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path1 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path1 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path1 import qlearning_lambda_dates
 
     get_data_algos_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
     target_path = 2
     print("PATH ", target_path)
 
-    from date_for_graphs_path2 import sarsa_dates
-    from date_for_graphs_path2 import sarsa_lambda_dates
-    from date_for_graphs_path2 import qlearning_dates
-    from date_for_graphs_path2 import qlearning_lambda_dates
+    from dates_for_graphs.date_for_graphs_path2 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path2 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path2 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path2 import qlearning_lambda_dates
 
     get_data_algos_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
 
     target_path = 3
     print("PATH ", target_path)
 
-    from date_for_graphs_path3 import sarsa_dates
-    from date_for_graphs_path3 import sarsa_lambda_dates
-    from date_for_graphs_path3 import qlearning_dates
-    from date_for_graphs_path3 import qlearning_lambda_dates
+    from dates_for_graphs.date_for_graphs_path3 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path3 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path3 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path3 import qlearning_lambda_dates
 
     get_data_algos_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
 

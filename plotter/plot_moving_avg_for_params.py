@@ -224,11 +224,11 @@ def plot_graphs_for_changing_param(algo, changing_param, for_robustness=False):
     if for_robustness:
         if algo == "qlearning":
             if changing_param == "epsilon":
-                from date_for_robustness import qlearning_dates_eps as values
+                from dates_for_graphs.date_for_robustness import qlearning_dates_eps as values
             elif changing_param == "alpha":
-                from date_for_robustness import qlearning_dates_alp as values
+                from dates_for_graphs.date_for_robustness import qlearning_dates_alp as values
             elif changing_param == "gamma":
-                from date_for_robustness import qlearning_dates_gam as values
+                from dates_for_graphs.date_for_robustness import qlearning_dates_gam as values
             else:
                 print("Invalid changing_param")
                 exit(1)
@@ -238,33 +238,33 @@ def plot_graphs_for_changing_param(algo, changing_param, for_robustness=False):
     else:
         if algo == "qlearning":
             if changing_param == "epsilon":
-                from date_for_graphs_tuning import value_of_epsilon_qlearning as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_epsilon_qlearning as values
             elif changing_param == "alpha":
-                from date_for_graphs_tuning import value_of_alpha_qlearning as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_alpha_qlearning as values
             elif changing_param == "gamma":
-                from date_for_graphs_tuning import value_of_gamma_qlearning as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_gamma_qlearning as values
             else:
                 print("Invalid changing_param")
                 exit(2)
         elif algo == "qlearning_lambda":
             if changing_param == "lambda":
-                from date_for_graphs_tuning import value_of_lambda_qlearning_lambda as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_lambda_qlearning_lambda as values
             else:
                 print("Invalid changing_param")
                 exit(3)
         elif algo == "sarsa":
             if changing_param == "epsilon":
-                from date_for_graphs_tuning import value_of_epsilon_sarsa as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_epsilon_sarsa as values
             elif changing_param == "alpha":
-                from date_for_graphs_tuning import value_of_alpha_sarsa as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_alpha_sarsa as values
             elif changing_param == "gamma":
-                from date_for_graphs_tuning import value_of_gamma_sarsa as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_gamma_sarsa as values
             else:
                 print("Invalid changing_param")
                 exit(4)
         elif algo == "sarsa_lambda":
             if changing_param == "lambda":
-                from date_for_graphs_tuning import value_of_lambda_sarsa_lambda as values
+                from dates_for_graphs.date_for_graphs_tuning import value_of_lambda_sarsa_lambda as values
             else:
                 print("Invalid changing_param")
                 exit(5)
