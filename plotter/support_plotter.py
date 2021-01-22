@@ -239,4 +239,7 @@ def compute_avg_over_multiple_runs(number_episodes, number_runs, y_all_reward, y
 
 
 def clear_tmp_files():
+    """
+    Delete the tmp directory inside Plotter module containing temporary files used for plotting
+    """
     shutil.rmtree("./tmp/")
