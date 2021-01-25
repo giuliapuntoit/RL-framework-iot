@@ -20,13 +20,13 @@ Here there is a first component based on the [Yeelight](https://www.yeelight.com
 	1. [Motivation](#motivation)
 	2. [Definitions](#definitions)
 	3. [Current work](#current-work)
-2. [How to use?](#how-to-use)
+2. [Features](#features)
+3. [How to use?](#how-to-use)
 	1. [Structure](#structure)
 	2. [Output](#output)
 	3. [Workflow](#workflow)
 	4. [Plots (screenshots)](#plots-screenshots)
-3. [Demo](#demo)
-4. [Features](#features)
+4. [Demo](#demo)
 5. [Tests](#tests)
 6. [Contribute](#contribute)
 7. [Authors](#authors)
@@ -58,6 +58,17 @@ We start developing our framework:
 *  Implementing 4 RL algorithms: SARSA, Q-learning, SARSA(λ) and Q(λ).
 
 **Note**: the Yeelight protocol defines a maximum rate on the commands to be sent to Yeelight devices, hence our framework can take about 50 minutes to complete the 1 learning process of 200 episodes for a single RL algorithm.
+
+
+## Features
+
+Main features include:
+
+* Support to 4 RL algorithms, that can selected inside the ``learning_yeelight.py`` script.
+* Collect all necessary data to generate plots for comparing performance among different configurations.
+* Block the learning process and restart it from the Q matrix computed before, giving as id the date of the previous execution.
+* Possibility to configure all parameters inside a single file - ``config.py`` - about algorithms, the framework and about debug options.
+
 
 ## How to use?
 
@@ -187,14 +198,6 @@ A short demo of the working of the Learning process, showed through the console 
 
 Recall that this demo was done using the previously described ``plot_animation.py``script, in order to create an animated plot.
 
-## Features
-
-Main features include:
-
-* Support to 4 RL algorithms, that can selected inside the ``learning_yeelight.py`` script.
-* Collect all necessary data to generate plots for comparing performance among different configurations.
-* Block the learning process and restart it from the Q matrix computed before, giving as id the date of the previous execution.
-* Possibility to configure all parameters inside a single file - ``config.py`` - about algorithms, the framework and about debug options.
 
 ## Tests
 
