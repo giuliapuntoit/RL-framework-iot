@@ -50,7 +50,7 @@ Here we want to interact with such devices, by learning their protocols in an au
 
 ### Current work
 
-We mimic the behaviour of an attacker, which tries to explore the state-machine of the IoT device it is trying to communicate with.
+This work mimics the behaviour of an attacker, which tries to explore the state-machine of the IoT device it is trying to communicate with.
 
 We start developing our framework:
 
