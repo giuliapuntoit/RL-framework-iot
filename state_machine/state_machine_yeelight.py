@@ -4,7 +4,7 @@
 
 from device_communication.api_yeelight import operate_on_bulb_props
 from config import FrameworkConfiguration
-from request_builder.builder_yeelight import ServeYeelight
+from request_builder.builder_yeelight import BuilderYeelight
 from time import sleep
 
 
@@ -84,7 +84,7 @@ def compute_next_state_from_props(id_lamp, current_state, old_props_values):
     next_state = current_state
 
     # Get the json command for asking the desired properties
-    json_command = ServeYeelight(id_lamp=id_lamp, method_chosen_index=0, select_all_props=True).run()
+    json_command = BuilderYeelight(id_lamp=id_lamp, method_chosen_index=0, select_all_props=True).run()
     # props_names = ServeYeelight(id_lamp=id_lamp).get_all_properties()
 
     # Send the json command to the yeelight device

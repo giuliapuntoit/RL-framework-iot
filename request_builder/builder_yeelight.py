@@ -11,7 +11,7 @@ import json
 from dictionary.dict_yeelight import DictYeelight
 
 
-class ServeYeelight(object):
+class BuilderYeelight(object):
     # Enable access to the dictionary and constructs command
     # Builds the selected Yeelight command and sends it back as a json command
 
@@ -128,6 +128,6 @@ class ServeYeelight(object):
 
 
 if __name__ == '__main__':
-    json_command = ServeYeelight(method_chosen_index=6).run()
+    json_command = BuilderYeelight(method_chosen_index=6).run()
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(json_command)

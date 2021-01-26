@@ -23,7 +23,7 @@ import sys
 from colorizer_for_output import ColorHandler
 from plotter.plot_output_data import PlotOutputData
 from learning.run_output_Q_parameters import RunOutputQParameters
-from request_builder.builder_yeelight import ServeYeelight
+from request_builder.builder_yeelight import BuilderYeelight
 from device_communication.api_yeelight import bulbs_detection_loop, operate_on_bulb, operate_on_bulb_json, display_bulbs
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props, get_states, \
     get_optimal_policy, get_optimal_path
@@ -92,7 +92,7 @@ class ReinforcementLearningAlgorithm(object):
             # print("\t\tSelect maximum")
             # choose random action between the max ones
             action = np.random.choice(np.where(Qmatrix[state, :] == Qmatrix[state, :].max())[0])
-        # The action then should be converted when used into a json_string returned by serve_yeelight
+        # The action then should be converted when used into a json_string returned by builder_yeelight
         # action is an index
         return action
 
@@ -301,10 +301,35 @@ class ReinforcementLearningAlgorithm(object):
         num_actions += 1
         return num_actions
 
+    def write_log_file(self, log_filename, t, tmp_reward, state1, state2, action1, action2):
+        """
+        Write data at each time step
+        """
+        with open(log_filename, "a") as write_file:
+            write_file.write("\nTimestep " + str(t) + " finished.")
+            write_file.write(" Temporary reward: " + str(tmp_reward))
+            write_file.write(" Previous state: " + str(state1))
+            write_file.write(" Current state: " + str(state2))
+            write_file.write(" Performed action: " + str(action1))
+            if self.algorithm != 'qlearning':
+                write_file.write(" Next action: " + str(action2))
+
+    def write_episode_summary(self, log_filename, output_filename, episode, reward_per_episode, cumulative_reward, t):
+        """
+        Write data at the end of each episode
+        """
+        with open(log_filename, "a") as write_file:
+            write_file.write("\nEpisode " + str(episode) + " finished.\n")
+        with open(output_filename, mode="a") as output_file:
+            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            output_writer.writerow([episode, reward_per_episode, cumulative_reward, t - 1])
+
     def run(self):
         """
         Run RL algorithm
         """
+
+        # INITIALIZATION PHASE
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
         # Obtain data about states, path and policy
@@ -330,7 +355,7 @@ class ReinforcementLearningAlgorithm(object):
         # to 0 values
         # Q = np.zeros((len(states), self.num_actions_to_use))
         # or to random values from 0 to 1
-        Q = np.random.rand((len(states), self.num_actions_to_use))
+        Q = np.random.rand(len(states), self.num_actions_to_use)
 
         if self.use_old_matrix:
             # Retrieve from output_Q_data.csv an old matrix for "transfer learning"
@@ -344,13 +369,12 @@ class ReinforcementLearningAlgorithm(object):
             if self.use_old_matrix:
                 # Retrieve from output_E_data.csv
                 # Check the format of the matrix is correct
-                # TODO Or should I start always from an empty E matrix?
+                # TODO or should I start always from an empty E matrix?
                 E = self.retrieve_old_e_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, E)
             print(E)
 
         start_time = time.time()
 
-        x = range(0, self.total_episodes)
         y_timesteps = []
         y_reward = []
         y_cum_reward = []
@@ -361,7 +385,8 @@ class ReinforcementLearningAlgorithm(object):
         # Write into output_filename the header: Episodes, Reward, CumReward, Timesteps
         self.write_headers_to_output_files(output_filename, partial_output_filename)
 
-        # Starting the learning process
+        # STARTING THE LEARNING PROCESS
+        # LOOP OVER EPISODES
         for episode in range(self.total_episodes):
             print("----------------------------------------------------------------")
             print("Episode", episode)
@@ -382,6 +407,7 @@ class ReinforcementLearningAlgorithm(object):
                     self.epsilon = 0.1
                     self.decay_value = 0
 
+            # LOOP OVER TIME STEPS
             while t < self.max_steps:
                 if count_actions > 55:  # To avoid crashing the lamp (rate of 60 commands/minute)
                     sleep(60)
@@ -391,7 +417,7 @@ class ReinforcementLearningAlgorithm(object):
                     action1 = self.choose_action(state1, Q)
 
                 # Perform an action on the bulb sending a command
-                json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
+                json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=action1).run()
                 if FrameworkConfiguration.DEBUG:
                     print("\t\tREQUEST:", str(json_string))
                 reward_from_response = operate_on_bulb_json(idLamp, json_string)
@@ -425,34 +451,22 @@ class ReinforcementLearningAlgorithm(object):
                 elif self.algorithm == 'qlearning_lambda':
                     # Choosing the next action
                     action2 = self.choose_action(state2, Q)
-
                     # Learning the Q-value
                     self.update_qlearning_lambda(state1, state2, tmp_reward, action1, action2, len(states),
                                                  self.num_actions_to_use, Q, E)
-
                 elif self.algorithm == 'qlearning':
                     action2 = -1  # Invalid action to avoid warnings
                     # Learning the Q-value
                     self.update_qlearning(state1, state2, tmp_reward, action1, Q)
-
                 else:
                     # SARSA as default algorithm
-
                     # Choosing the next action
                     action2 = self.choose_action(state2, Q)
-
                     # Learning the Q-value
                     self.update_sarsa(state1, state2, tmp_reward, action1, action2, Q)
 
                 # Update log file
-                with open(log_filename, "a") as write_file:
-                    write_file.write("\nTimestep " + str(t) + " finished.")
-                    write_file.write(" Temporary reward: " + str(tmp_reward))
-                    write_file.write(" Previous state: " + str(state1))
-                    write_file.write(" Current state: " + str(state2))
-                    write_file.write(" Performed action: " + str(action1))
-                    if self.algorithm != 'qlearning':
-                        write_file.write(" Next action: " + str(action2))
+                self.write_log_file(log_filename, t, tmp_reward, state1, state2, action1, action2)
 
                 state1 = state2
                 old_props_values = new_props_values
@@ -465,21 +479,22 @@ class ReinforcementLearningAlgorithm(object):
                 # If at the end of learning process
                 if done:
                     break
+
             cumulative_reward += reward_per_episode
             y_timesteps.append(t - 1)
             y_cum_reward.append(cumulative_reward)
             y_reward.append(reward_per_episode)
-            with open(log_filename, "a") as write_file:
-                write_file.write("\nEpisode " + str(episode) + " finished.\n")
-            with open(output_filename, mode="a") as output_file:
-                output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                output_writer.writerow([episode, reward_per_episode, cumulative_reward, t - 1])  # Episode or episode+1?
+
+            self.write_episode_summary(log_filename, output_filename, episode, reward_per_episode, cumulative_reward, t)
+
             if reward_per_episode >= 0:
                 LOG.debug("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
             else:
                 LOG.error("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
             sleep(0.1)
             # print("\tREWARD OF THE EPISODE:", reward_per_episode)
+
+            # SONO QUIII
 
             if self.follow_partial_policy:
                 if (episode + 1) % self.follow_policy_every_tot_episodes == 0:
@@ -492,7 +507,7 @@ class ReinforcementLearningAlgorithm(object):
                     # Save Q-matrix
                     header = ['Q']  # For correct output structure
                     for i in range(0, self.num_actions_to_use):
-                        json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=i).run()
+                        json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=i).run()
                         header.append(json.loads(json_string)['method'])
 
                     with open(output_Q_filename, "w") as output_Q_file:
@@ -522,7 +537,7 @@ class ReinforcementLearningAlgorithm(object):
                                 output_E_writer.writerow(row)
 
                     found_policy, dict_results = RunOutputQParameters(id_lamp=idLamp,
-                                                                      date_to_retrieve=current_date.strftime(
+                                                                      date_to_retrieve=self.current_date.strftime(
                                                                           '%Y_%m_%d_%H_%M_%S'),
                                                                       show_retrieved_info=False).run()
                     count_actions += 20
@@ -543,7 +558,7 @@ class ReinforcementLearningAlgorithm(object):
         print(Q)
         header = ['Q']  # For correct output structure
         for i in range(0, self.num_actions_to_use):
-            json_string = ServeYeelight(id_lamp=idLamp, method_chosen_index=i).run()
+            json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=i).run()
             header.append(json.loads(json_string)['method'])
 
         with open(output_Q_filename, "w") as output_Q_file:
@@ -577,11 +592,11 @@ class ReinforcementLearningAlgorithm(object):
 
         sleep(5)  # Wait for writing to files
         if self.show_graphs:
-            PlotOutputData(date_to_retrieve=current_date.strftime('%Y_%m_%d_%H_%M_%S'), separate_plots=False).run()
+            PlotOutputData(date_to_retrieve=self.current_date.strftime('%Y_%m_%d_%H_%M_%S'), separate_plots=False).run()
 
         # Following the best policy found
         if self.follow_policy:
-            RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=current_date.strftime('%Y_%m_%d_%H_%M_%S')).run()
+            RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=self.current_date.strftime('%Y_%m_%d_%H_%M_%S')).run()
 
 
 def main(discovery_report=None):

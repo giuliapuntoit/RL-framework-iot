@@ -21,7 +21,7 @@ from config import FrameworkConfiguration
 
 from device_communication.api_yeelight import bulbs_detection_loop, display_bulbs, operate_on_bulb, operate_on_bulb_json
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props
-from request_builder.builder_yeelight import ServeYeelight
+from request_builder.builder_yeelight import BuilderYeelight
 
 
 class RunOutputQParameters(object):
@@ -143,7 +143,7 @@ class RunOutputQParameters(object):
             final_policy.append(max_action)
             print("\tACTION TO PERFORM", max_action)
 
-            json_string = ServeYeelight(id_lamp=self.id_lamp, method_chosen_index=max_action).run()
+            json_string = BuilderYeelight(id_lamp=self.id_lamp, method_chosen_index=max_action).run()
             print("\t\tREQUEST:", str(json_string))
             reward_from_response = operate_on_bulb_json(self.id_lamp, json_string)
             sleep(seconds_to_wait)

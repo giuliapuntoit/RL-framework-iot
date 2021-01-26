@@ -12,7 +12,7 @@ from threading import Thread
 from time import sleep
 
 # Global variables
-from request_builder.builder_yeelight import ServeYeelight
+from request_builder.builder_yeelight import BuilderYeelight
 
 detected_bulbs = {}
 bulb_idx2ip = {}
@@ -269,7 +269,7 @@ else:
     sleep(2)
 
     for i in [0, 1, 17, 0, 2]:
-        json_command = ServeYeelight(id_lamp=idLamp, method_chosen_index=i, select_all_props=True).run()
+        json_command = BuilderYeelight(id_lamp=idLamp, method_chosen_index=i, select_all_props=True).run()
         operate_on_bulb_json(idLamp, json_command)
         sleep(2)
 
