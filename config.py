@@ -7,6 +7,7 @@ class FrameworkConfiguration(object):
     # should be unique and unmodifiable for and by all threads
 
     # Da riorganizzare
+    current_command_id = 1
     timeout = 5
     path = 2
     directory = "../"
@@ -37,7 +38,8 @@ class FrameworkConfiguration(object):
     DEBUG = False
 
     def as_dict(self):
-        return {'timeout': self.timeout,
+        return {'current_command_id': self.current_command_id,
+                'timeout': self.timeout,
                 'path': self.path,
                 'directory': self.directory,
                 'algorithm': self.algorithm,

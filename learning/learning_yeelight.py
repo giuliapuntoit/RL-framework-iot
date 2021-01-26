@@ -583,7 +583,7 @@ def main(discovery_report=None):
         print("No discovery report found.")
         exit(-1)
     elif discovery_report['ip']:
-        print("Discovery report found")
+        print("Discovery report found at", discovery_report['ip'])
 
         print("Waiting 5 seconds before using RL algorithm")
         sleep(5)
