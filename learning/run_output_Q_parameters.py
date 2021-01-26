@@ -13,9 +13,9 @@ import socket
 import fcntl
 from config import FrameworkConfiguration
 
-# Q will be read from output_Q_data.csv
-# Retrieve actions and state from output_Q_data.csv
-# Statistics to compute Q will be read from output_parameters_data.csv
+# Q will be read from output_Q_date.csv
+# Retrieve actions and state from output_Q_date.csv
+# Statistics to compute Q will be read from output_parameters_date.csv
 
 # Identify which RL algorithm was used and use it
 
@@ -226,7 +226,7 @@ if __name__ == '__main__':
 
         FrameworkConfiguration.RUNNING = False
 
-        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2021_01_26_11_16_16").run()
+        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2021_01_26_14_30_21").run()
 
     # Goal achieved, tell detection thread to quit and wait
     RUNNING = False

@@ -27,7 +27,7 @@ class FrameworkConfiguration(object):
     # RL params
     algorithm = 'sarsa'
     epsilon = 0.6
-    total_episodes = 10
+    total_episodes = 1
     max_steps = 100
     alpha = 0.005
     gamma = 0.95
