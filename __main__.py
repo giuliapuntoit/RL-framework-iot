@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # For implementing a thread safe queue with list of devices and ip:
     # https://stackoverflow.com/questions/19369724/the-right-way-to-limit-maximum-number-of-threads-running-at-once
 
-    # th = []
+    th = []
     print("\nSTART LEARNING PROCESS")
     for dev in devices:
         # Learning: starting the learning process
@@ -24,15 +24,16 @@ if __name__ == '__main__':
         if dev.protocol == "yeelight":
             FrameworkConfiguration.directory = "./"
             tmp_th = Thread(target=learning_yeelight.main, args=(dev.as_dict(), ))
-            tmp_th.start()
-            tmp_th.join()  # Useless this thread for now
-            # th.append(tmp_th)
+            # tmp_th.start()
+            # tmp_th.join()  # Useless this thread for now
+            th.append(tmp_th)
 
-    # for t in th:
-    #     print("STARTING T")
-    #     t.start()
-    # for t in th:
-    #     t.join()
+    for t in th:
+        print("STARTING THREADS")
+        t.start()
+    for t in th:
+        t.join()
+        print("JOINT THREADS")
     print("FINISH LEARNING PROCESS")
 
 
