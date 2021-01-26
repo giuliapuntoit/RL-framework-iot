@@ -4,6 +4,7 @@
 
 # !/usr/bin/python
 import csv
+import threading
 import numpy as np
 import json
 import random
@@ -35,7 +36,7 @@ for handler in LOG.handlers:
 LOG.addHandler(ColorHandler())
 
 # Global variables for bulb connection
-idLamp = ""  # TODO non è che sono diversi??? Mi serve this?
+# idLamp = ""  # TODO non è che sono diversi??? Mi serve this?
 
 # Global variables for RL
 tot_reward = 0
@@ -70,7 +71,7 @@ class ReinforcementLearningAlgorithm(object):
         self.current_date = datetime.now()
         if thread_id:
             self.thread_id = thread_id
-        self.id_for_output = '%Y_%m_%d_%H_%M_%S'
+        self.id_for_output = '%Y_%m_%d_%H_%M_%S' + '_' + self.thread_id
 
     def choose_action(self, state, q_matrix):
         """
@@ -578,12 +579,11 @@ def main(discovery_report=None):
     if FrameworkConfiguration.DEBUG:
         print(FrameworkConfiguration().as_dict())
 
-    global idLamp
     if discovery_report is None:
         print("No discovery report found.")
         exit(-1)
     elif discovery_report['ip']:
-        print("Discovery report found: id lamp", idLamp)  # TODO always 1?
+        print("Discovery report found")
 
         print("Waiting 5 seconds before using RL algorithm")
         sleep(5)
@@ -591,7 +591,7 @@ def main(discovery_report=None):
         print("\n############# Starting RL algorithm path", FrameworkConfiguration.path, "#############")
         print("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM",
               FrameworkConfiguration.epsilon, FrameworkConfiguration.alpha, FrameworkConfiguration.gamma)
-        ReinforcementLearningAlgorithm(discovery_report=discovery_report).run()
+        ReinforcementLearningAlgorithm(discovery_report=discovery_report, thread_id=threading.get_ident()).run()
         print("############# Finish RL algorithm #############")
 
 

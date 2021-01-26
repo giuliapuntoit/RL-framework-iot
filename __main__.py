@@ -3,7 +3,6 @@
 """
 
 from threading import Thread
-
 from config import FrameworkConfiguration
 from discovery import network_analyzer
 from learning import learning_yeelight
