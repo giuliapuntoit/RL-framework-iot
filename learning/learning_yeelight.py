@@ -324,6 +324,25 @@ class ReinforcementLearningAlgorithm(object):
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             output_writer.writerow([episode, reward_per_episode, cumulative_reward, t - 1])
 
+    def save_matrix(self, output_filename, states, matrix, label):
+        """
+        Save Q-matrix
+        """
+        header = [label]  # For correct output structure
+        for i in range(0, self.num_actions_to_use):
+            json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=i).run()
+            header.append(json.loads(json_string)['method'])
+
+        with open(output_filename, "w") as output_matrix_file:
+            output_matrix_writer = csv.writer(output_matrix_file, delimiter=',', quotechar='"',
+                                         quoting=csv.QUOTE_NONE)
+            output_matrix_writer.writerow(header)
+            for index, stat in enumerate(states):
+                row = [stat]
+                for val in matrix[index]:
+                    row.append("%.4f" % val)
+                output_matrix_writer.writerow(row)
+
     def run(self):
         """
         Run RL algorithm
@@ -494,8 +513,6 @@ class ReinforcementLearningAlgorithm(object):
             sleep(0.1)
             # print("\tREWARD OF THE EPISODE:", reward_per_episode)
 
-            # SONO QUIII
-
             if self.follow_partial_policy:
                 if (episode + 1) % self.follow_policy_every_tot_episodes == 0:
                     # Follow best policy found after some episodes
@@ -504,43 +521,17 @@ class ReinforcementLearningAlgorithm(object):
                     if count_actions > 35:  # To avoid crashing lamp
                         sleep(60)
                         count_actions = 0
-                    # Save Q-matrix
-                    header = ['Q']  # For correct output structure
-                    for i in range(0, self.num_actions_to_use):
-                        json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=i).run()
-                        header.append(json.loads(json_string)['method'])
 
-                    with open(output_Q_filename, "w") as output_Q_file:
-                        output_Q_writer = csv.writer(output_Q_file, delimiter=',', quotechar='"',
-                                                     quoting=csv.QUOTE_NONE)
-                        output_Q_writer.writerow(header)
-                        for index, stat in enumerate(states):
-                            row = [stat]
-                            for val in Q[index]:
-                                row.append("%.4f" % val)
-                            output_Q_writer.writerow(row)
-
-                    # Save E-matrix
-                    # Only for sarsa(lambda) and Q(lambda)
+                    self.save_matrix(output_Q_filename, states, Q, 'Q')
                     if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
-                        # Use same header as before with the first cell different
-                        header[0] = 'E'  # For correct output structure
-
-                        with open(output_E_filename, "w") as output_E_file:
-                            output_E_writer = csv.writer(output_E_file, delimiter=',', quotechar='"',
-                                                         quoting=csv.QUOTE_NONE)
-                            output_E_writer.writerow(header)
-                            for index, stat in enumerate(states):
-                                row = [stat]
-                                for val in E[index]:
-                                    row.append("%.4f" % val)
-                                output_E_writer.writerow(row)
+                        self.save_matrix(output_E_filename, states, E, 'E')
 
                     found_policy, dict_results = RunOutputQParameters(id_lamp=idLamp,
                                                                       date_to_retrieve=self.current_date.strftime(
                                                                           '%Y_%m_%d_%H_%M_%S'),
                                                                       show_retrieved_info=False).run()
                     count_actions += 20
+
                     with open(partial_output_filename, mode="a") as partial_output_file:
                         output_writer = csv.writer(partial_output_file, delimiter=',', quotechar='"',
                                                    quoting=csv.QUOTE_MINIMAL)
@@ -553,48 +544,29 @@ class ReinforcementLearningAlgorithm(object):
                         # I could stop here if found good policy, could continue if you think you could find a better one
                         pass
 
-        # Print and save the Q-matrix inside output_Q_data.csv file
+        # SAVE DATA
+        # Print and save the Q-matrix inside external file
         print("Q MATRIX:")
         print(Q)
-        header = ['Q']  # For correct output structure
-        for i in range(0, self.num_actions_to_use):
-            json_string = BuilderYeelight(id_lamp=idLamp, method_chosen_index=i).run()
-            header.append(json.loads(json_string)['method'])
-
-        with open(output_Q_filename, "w") as output_Q_file:
-            output_Q_writer = csv.writer(output_Q_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
-            output_Q_writer.writerow(header)
-            for index, stat in enumerate(states):
-                row = [stat]
-                for val in Q[index]:
-                    row.append("%.4f" % val)
-                output_Q_writer.writerow(row)
+        self.save_matrix(output_Q_filename, states, Q, 'Q')
 
         # Only for sarsa(lambda) and Q(lambda)
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
-            # Print and save the E-matrix inside output_E_data.csv file
+            # Print and save the E-matrix inside external file
             print("E matrix")
             print(E)
-            # Use same header as before with the first cell different
-            header[0] = 'E'  # For correct output structure
+            self.save_matrix(output_E_filename, states, E, 'E')
 
-            with open(output_E_filename, "w") as output_E_file:
-                output_E_writer = csv.writer(output_E_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
-                output_E_writer.writerow(header)
-                for index, stat in enumerate(states):
-                    row = [stat]
-                    for val in E[index]:
-                        row.append("%.4f" % val)
-                    output_E_writer.writerow(row)
-
+        # Write total time for learning algorithm
         with open(log_filename, "a") as write_file:
             write_file.write("\nTotal time of %s seconds." % (time.time() - start_time))
 
         sleep(5)  # Wait for writing to files
+        # PLOT DATA
         if self.show_graphs:
             PlotOutputData(date_to_retrieve=self.current_date.strftime('%Y_%m_%d_%H_%M_%S'), separate_plots=False).run()
 
-        # Following the best policy found
+        # FOLLOW BEST POLICY FOUND
         if self.follow_policy:
             RunOutputQParameters(id_lamp=idLamp, date_to_retrieve=self.current_date.strftime('%Y_%m_%d_%H_%M_%S')).run()
 
