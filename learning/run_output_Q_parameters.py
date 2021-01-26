@@ -226,7 +226,7 @@ if __name__ == '__main__':
 
         FrameworkConfiguration.RUNNING = False
 
-        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2020_10_30_02_10_16").run()
+        RunOutputQParameters(id_lamp=idLamp, date_to_retrieve="2021_01_26_11_16_16").run()
 
     # Goal achieved, tell detection thread to quit and wait
     RUNNING = False

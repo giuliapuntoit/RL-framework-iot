@@ -11,6 +11,7 @@ import pathlib
 import socket
 from datetime import datetime
 import time
+import copy
 import fcntl
 import os
 import struct
@@ -76,6 +77,7 @@ class ReinforcementLearningAlgorithm(object):
             self.date_old_matrix = FrameworkConfiguration.date_old_matrix  # I should check it is in a correct format
         else:
             self.use_old_matrix = False
+        self.current_date = datetime.now()
 
     def choose_action(self, state, Qmatrix):
         """
@@ -145,51 +147,56 @@ class ReinforcementLearningAlgorithm(object):
         target = reward + self.gamma * maxQ
         Qmatrix[state, action] = Qmatrix[state, action] + self.alpha * (target - predict)
 
-    def run(self):
+    def initialize_log_files(self, output_directory, log_directory):
         """
-        Run RL algorithm
+        Get log filenames and build non-existing directories
         """
-        np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
-
-        # Obtain data about states, path and policy
-        states = get_states()
-        optimal_policy = get_optimal_policy()
-        optimal_path = get_optimal_path()
-
-        current_date = datetime.now()
-
-        # Initialize output files
-
-        log_dir = FrameworkConfiguration.directory + 'output/log'
+        log_dir = FrameworkConfiguration.directory + output_directory + '/' + log_directory
         pathlib.Path(log_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5 YY_mm_dd_HH_MM_SS'
-        log_filename = current_date.strftime(log_dir + '/' + 'log_' + '%Y_%m_%d_%H_%M_%S' + '.log')
 
-        log_date_filename = FrameworkConfiguration.directory + 'output/log_date.log'
+        log_filename = self.current_date.strftime(log_dir + '/' + 'log_' + '%Y_%m_%d_%H_%M_%S' + '.log')
+        log_date_filename = FrameworkConfiguration.directory + output_directory + '/log_date.log'
 
-        output_Q_params_dir = FrameworkConfiguration.directory + 'output/output_Q_parameters'
+        return log_filename, log_date_filename
+
+    def initialize_output_q_params_files(self, output_directory, q_params_directory):
+        """
+        Get output filenames for saving Q and parameters and build non-existing directories
+        """
+        output_Q_params_dir = FrameworkConfiguration.directory + output_directory + '/' + q_params_directory
         pathlib.Path(output_Q_params_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
-        output_Q_filename = current_date.strftime(
-            output_Q_params_dir + '/' + 'output_Q_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
-        output_parameters_filename = current_date.strftime(
-            output_Q_params_dir + '/' + 'output_parameters_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+
+        output_Q_filename = self.current_date.strftime(output_Q_params_dir + '/' + 'output_Q_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+        output_parameters_filename = self.current_date.strftime(output_Q_params_dir + '/' + 'output_parameters_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
         output_E_filename = ''
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
-            output_E_filename = current_date.strftime(
-                output_Q_params_dir + '/' + 'output_E_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+            output_E_filename = self.current_date.strftime(output_Q_params_dir + '/' + 'output_E_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
-        output_dir = FrameworkConfiguration.directory + 'output/output_csv'
+        return output_Q_filename, output_parameters_filename, output_E_filename
+
+    def initialize_output_csv_files(self, output_directory, output_csv_directory):
+        """
+        Get output filenames for saving all episodes result and build non-existing directories
+        """
+        output_dir = FrameworkConfiguration.directory + output_directory + '/' + output_csv_directory
         pathlib.Path(output_dir + '/').mkdir(parents=True, exist_ok=True)  # for Python > 3.5
-        output_filename = current_date.strftime(
-            output_dir + '/' + 'output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+        output_filename = self.current_date.strftime(output_dir + '/' + 'output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
 
-        partial_output_filename = current_date.strftime(
-            output_dir + '/' + 'partial_output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+        partial_output_filename = self.current_date.strftime(output_dir + '/' + 'partial_output_' + self.algorithm + '_' + '%Y_%m_%d_%H_%M_%S' + '.csv')
+        return output_filename, partial_output_filename
 
+    def write_date_id_to_log(self, log_date_filename):
+        """
+        Write the identifier of files (date) and corresponding algorithm to log_date.log file
+        """
         with open(log_date_filename, mode='a') as output_file:
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
-            output_writer.writerow([current_date.strftime('%Y_%m_%d_%H_%M_%S'), self.algorithm])
+            output_writer.writerow([self.current_date.strftime('%Y_%m_%d_%H_%M_%S'), self.algorithm])
 
-        # Write parameters in output_parameters_filename
+    def write_params_to_output_file(self, output_parameters_filename, optimal_policy, optimal_path):
+        """
+        Write all parameters of the algorithm to output file
+        """
         with open(output_parameters_filename, mode='w') as output_file:
             output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONE)
             output_writer.writerow(['algorithm_used', self.algorithm])
@@ -209,58 +216,136 @@ class ReinforcementLearningAlgorithm(object):
             if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                 output_writer.writerow(['lambda', self.lam])
 
+    def retrieve_old_q_matrix(self, output_directory, q_params_directory, len_states, len_actions, empty_matrix):
+        """
+        Retrieve old save Q matrix
+        """
+        file_Q = 'output_Q_' + self.date_old_matrix + '.csv'
+        Q = []
+        try:
+            output_Q_params_dir = FrameworkConfiguration.directory + output_directory + '/' + q_params_directory
+            tmp_matrix = np.genfromtxt(output_Q_params_dir + '/' + file_Q, delimiter=',', dtype=np.float32)
+            Q_tmp = tmp_matrix[1:, 1:]
+            Q = copy.deepcopy(Q_tmp)
+
+        except Exception as e:
+            print("Wrong file format:", e)
+            print("Using an empty Q matrix instead of the old one.")
+            return empty_matrix
+
+        # Check the format of the matrix is correct
+        if len_states != len(Q) or len_actions != len(Q[0]) or np.isnan(np.sum(Q)):
+            print("Wrong file format: wrong Q dimensions or nan values present")
+            print("Using an empty Q matrix instead of the old one.")
+            return empty_matrix
+
+        return Q
+
+    def retrieve_old_e_matrix(self, output_directory, q_params_directory, len_states, len_actions, empty_matrix):
+        """
+        Retrieve old save Q matrix
+        """
+        file_E = 'output_E_' + self.date_old_matrix + '.csv'
+        E = []
+        try:
+            output_Q_params_dir = FrameworkConfiguration.directory + output_directory + '/' + q_params_directory
+            tmp_matrix = np.genfromtxt(output_Q_params_dir + '/' + file_E, delimiter=',', dtype=np.float32)
+            E_tmp = tmp_matrix[1:, 1:]
+            E = copy.deepcopy(E_tmp)
+
+        except Exception as e:
+            print("Wrong file format:", e)
+            print("Using an empty E matrix instead of the old one")
+            return empty_matrix
+
+        # Check the format of the matrix is correct
+        if len_states != len(E) or len_actions != len(E[0]) or np.isnan(np.sum(E)):
+            print("Wrong file format: wrong E dimensions or nan values present")
+            print("Using an empty E matrix instead of the old one")
+            return empty_matrix
+        return E
+
+    def write_headers_to_output_files(self, output_filename, partial_output_filename):
+        """
+        Write headers to output csv files
+        """
+        with open(output_filename, mode='w') as output_file:
+            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            output_writer.writerow(['Episodes', 'Reward', 'CumReward', 'Timesteps'])
+
+        if self.follow_partial_policy:
+            with open(partial_output_filename, mode='w') as partial_output_file:
+                output_writer = csv.writer(partial_output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                output_writer.writerow(
+                    ['CurrentEpisode', 'Timesteps', 'ObtainedReward', 'Time', 'PolicySelected', 'StatesPassed'])
+
+    def set_initial_state(self):
+        """
+        Set device to starting state (e.g. power off)
+        """
+        num_actions = 0
+        if FrameworkConfiguration.path == 3:
+            # Special initial configuration for visual checks on the bulb
+            # ONLY FOR PATH 3
+            operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 0"))
+            num_actions += 1
+            sleep(self.seconds_to_wait)
+            operate_on_bulb(idLamp, "set_rgb", str("255" + ", \"sudden\", 500"))
+            num_actions += 1
+            sleep(self.seconds_to_wait)
+
+        # Turn off the lamp
+        if FrameworkConfiguration.DEBUG:
+            print("\t\tREQUEST: Setting power off")
+        operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
+        num_actions += 1
+        return num_actions
+
+    def run(self):
+        """
+        Run RL algorithm
+        """
+        np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
+
+        # Obtain data about states, path and policy
+        states = get_states()
+        optimal_policy = get_optimal_policy()
+        optimal_path = get_optimal_path()
+
+        # Initialize filenames to be generated
+        output_dir = 'output'
+        q_params_dir = 'output_Q_parameters'
+        log_filename, log_date_filename = self.initialize_log_files(output_dir, 'log')
+        output_Q_filename, output_parameters_filename, output_E_filename = self.initialize_output_q_params_files(output_dir, q_params_dir)
+        output_filename, partial_output_filename = self.initialize_output_csv_files(output_dir, 'output_csv')
+
+        self.write_date_id_to_log(log_date_filename)
+        self.write_params_to_output_file(output_parameters_filename, optimal_policy, optimal_path)
+
         if self.show_graphs:
-            print("States are ", len(states))
-            print("Actions are ", self.num_actions_to_use)
+            print("States are", len(states))
+            print("Actions are", self.num_actions_to_use)
 
         # Initializing the Q-matrix
-        Q = np.zeros((len(states), self.num_actions_to_use))
+        # to 0 values
+        # Q = np.zeros((len(states), self.num_actions_to_use))
+        # or to random values from 0 to 1
+        Q = np.random.rand((len(states), self.num_actions_to_use))
 
         if self.use_old_matrix:
             # Retrieve from output_Q_data.csv an old matrix for "transfer learning"
-            # Check the format of the matrix is correct
-            file_Q = 'output_Q_' + self.date_old_matrix + '.csv'
-
-            try:
-                tmp_matrix = np.genfromtxt(output_Q_params_dir + '/' + file_Q, delimiter=',', dtype=np.float32)
-                Q_tmp = tmp_matrix[1:, 1:]
-                Q = Q_tmp
-
-            except Exception as e:
-                print("Wrong file format:", e)
-                print("Using an empty Q matrix instead of the old one.")
-
-            if len(states) != len(Q) or self.num_actions_to_use != len(Q[0]) or np.isnan(np.sum(Q)):
-                print("Wrong file format: wrong Q dimensions or nan values present")
-                print("Using an empty Q matrix instead of the old one.")
-
+            Q = self.retrieve_old_q_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, Q)
         print(Q)
-
-        # Retrieve from output_E_data.csv
-        # Check the format of the matrix is correct
-
         E = []
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
+            # Initializing the E-matrix
             E = np.zeros((len(states), self.num_actions_to_use))  # trace for state action pairs
 
             if self.use_old_matrix:
                 # Retrieve from output_E_data.csv
-                # check the format of the matrix is correct
-                file_E = 'output_E_' + self.date_old_matrix + '.csv'
-
-                try:
-                    tmp_matrix = np.genfromtxt(output_Q_params_dir + '/' + file_E, delimiter=',', dtype=np.float32)
-                    E_tmp = tmp_matrix[1:, 1:]
-                    E = E_tmp
-
-                except Exception as e:
-                    print("Wrong file format:", e)
-                    print("Using an empty E matrix instead of the old one")
-
-                if len(states) != len(E) or self.num_actions_to_use != len(E[0]) or np.isnan(np.sum(E)):
-                    print("Wrong file format: wrong E dimensions or nan values present")
-                    print("Using an empty E matrix instead of the old one")
-
+                # Check the format of the matrix is correct
+                # TODO Or should I start always from an empty E matrix?
+                E = self.retrieve_old_e_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, E)
             print(E)
 
         start_time = time.time()
@@ -271,40 +356,18 @@ class ReinforcementLearningAlgorithm(object):
         y_cum_reward = []
 
         cumulative_reward = 0
+        count_actions = 0
 
         # Write into output_filename the header: Episodes, Reward, CumReward, Timesteps
-        with open(output_filename, mode='w') as output_file:
-            output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            output_writer.writerow(['Episodes', 'Reward', 'CumReward', 'Timesteps'])
+        self.write_headers_to_output_files(output_filename, partial_output_filename)
 
-        if self.follow_partial_policy:
-            with open(partial_output_filename, mode='w') as partial_output_file:
-                output_writer = csv.writer(partial_output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                output_writer.writerow(
-                    ['CurrentEpisode', 'Timesteps', 'ObtainedReward', 'Time', 'PolicySelected', 'StatesPassed'])
-        count_actions = 0
         # Starting the learning process
         for episode in range(self.total_episodes):
             print("----------------------------------------------------------------")
             print("Episode", episode)
             sleep(3)
             t = 0
-
-            if FrameworkConfiguration.path == 3:
-                # Special initial configuration for visual checks on the bulb
-                # ONLY FOR PATH 3
-                operate_on_bulb(idLamp, "set_power", str("\"on\", \"sudden\", 0"))
-                count_actions += 1
-                sleep(self.seconds_to_wait)
-                operate_on_bulb(idLamp, "set_rgb", str("255" + ", \"sudden\", 500"))
-                count_actions += 1
-                sleep(self.seconds_to_wait)
-
-            # Turn off the lamp
-            if FrameworkConfiguration.DEBUG:
-                print("\t\tREQUEST: Setting power off")
-            operate_on_bulb(idLamp, "set_power", str("\"off\", \"sudden\", 0"))
-            count_actions += 1
+            count_actions += self.set_initial_state()
             sleep(self.seconds_to_wait)
             state1, old_props_values = compute_next_state_from_props(idLamp, 0, [])
             if FrameworkConfiguration.DEBUG:

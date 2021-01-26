@@ -34,3 +34,8 @@ if __name__ == '__main__':
     # for t in th:
     #     t.join()
     print("FINISH LEARNING PROCESS")
+
+
+# TODO qui dovrei poter scegliere tra runnare solo il run o anche il learning, se runnare il run mettere una data
+#  nel config dovrei scrivere la data se scelgo il run
+#  dovrei salvare i device found dei discovery report in un file chiamato devices
