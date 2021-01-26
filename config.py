@@ -7,6 +7,7 @@ class FrameworkConfiguration(object):
     # should be unique and unmodifiable for and by all threads
 
     # Da riorganizzare
+    max_threads = 3
     current_command_id = 1
     timeout = 5
     path = 2
