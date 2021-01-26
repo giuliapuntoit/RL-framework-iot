@@ -34,11 +34,13 @@ def analyze_lan():
         hostname = scan_range['scan'][str(ip)]['hostnames'][0]['name']
         if "yeelink" in hostname or "yeelight" in hostname:
             target_yeelight = str(ip)
+            # TODO here look for ports
             print("\tDEVICE: Found yeelight at", target_yeelight)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_yeelight], protocol="yeelight",
                                            timestamp=time.time(), ip=target_yeelight, port=yeelight_port))
         elif "shelly" in hostname:
             target_shelly = str(ip)
+            # TODO here look for ports
             print("\tDEVICE: Found shelly at", target_shelly)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_shelly], protocol="shelly",
                                            timestamp=time.time(), ip=target_shelly, port=shelly_port))
@@ -49,7 +51,6 @@ def analyze_lan():
         pp.pprint(dev.__dict__)
     return devices
 
-    # TODO try not to use already known ports!
     # Scan ports:
     # if yeelight
     # res1 = scanner.scan(target_yeelight, str(yeelight_port))
