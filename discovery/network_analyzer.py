@@ -18,8 +18,10 @@ def analyze_lan():
     # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
 
-    print("START SCANNING LAN")
-    scan_range = scanner.scan(hosts="192.168.1.1/24", arguments='-sL')
+    ip_to_scan = "192.168.43.0/24"  # you may want to change this last number if no devices are found
+    print("START SCANNING LAN", ip_to_scan)
+    print("This operation may take a while...")
+    scan_range = scanner.scan(hosts=ip_to_scan, arguments='-sL')
 
     # print(scan_range['scan'])
 
@@ -30,22 +32,23 @@ def analyze_lan():
     devices = []
 
     # Look for Yeelight and Shelly devices
-    for ip in ipaddress.IPv4Network('192.168.1.0/24'):
+    for ip in ipaddress.IPv4Network(ip_to_scan):
         hostname = scan_range['scan'][str(ip)]['hostnames'][0]['name']
         if "yeelink" in hostname or "yeelight" in hostname:
             target_yeelight = str(ip)
-            # TODO here look for ports
             print("\tDEVICE: Found yeelight at", target_yeelight)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_yeelight], protocol="yeelight",
                                            timestamp=time.time(), ip=target_yeelight, port=yeelight_port))
         elif "shelly" in hostname:
             target_shelly = str(ip)
-            # TODO here look for ports
             print("\tDEVICE: Found shelly at", target_shelly)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_shelly], protocol="shelly",
                                            timestamp=time.time(), ip=target_shelly, port=shelly_port))
 
     pp = pprint.PrettyPrinter(indent=4)
+    if len(devices) == 0:
+        print("No found devices.\nPlease be sure devices are connected to LAN with an IP address in", ip_to_scan)
+        print("If not you can change the range of IPs.")
     print("FINISH SCANNING LAN\nALL IOT DEVICES:")
     for dev in devices:
         pp.pprint(dev.__dict__)
