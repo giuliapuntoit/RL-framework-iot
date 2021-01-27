@@ -18,7 +18,7 @@ def analyze_lan():
     # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
 
-    ip_to_scan = "192.168.43.0/24"  # you may want to change this last number if no devices are found
+    ip_to_scan = "192.168.1.0/24"  # you may want to change this last number if no devices are found
     print("START SCANNING LAN", ip_to_scan)
     print("This operation may take a while...")
     scan_range = scanner.scan(hosts=ip_to_scan, arguments='-sL')
