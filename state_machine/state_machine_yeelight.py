@@ -237,7 +237,7 @@ def compute_next_state_from_props(current_state, old_props_values, discovery_rep
     return next_state, props_values
 
 
-def compute_reward_from_states(current_state, next_state):
+def compute_reward_from_states(current_state, next_state, storage_for_reward):
     # Compute the reward given by the transition from current_state to next_state
     # The reward depends on the path that the learning process is trying to learn
 
@@ -259,12 +259,12 @@ def compute_reward_from_states(current_state, next_state):
             reward_from_props = 5  # per rgb bright
         elif current_state == 4 and next_state == 5:  # Last step
             reward_from_props = 200
-            FrameworkConfiguration.reward += reward_from_props
-            tmp = FrameworkConfiguration.reward
-            FrameworkConfiguration.reward = 0
-            return tmp
-        FrameworkConfiguration.reward += reward_from_props
-        return 0
+            storage_for_reward += reward_from_props
+            tmp = storage_for_reward
+            storage_for_reward = 0
+            return tmp, storage_for_reward
+        storage_for_reward += reward_from_props
+        return 0, storage_for_reward
 
     elif FrameworkConfiguration.path == 2:
         # PATH 2
@@ -280,18 +280,18 @@ def compute_reward_from_states(current_state, next_state):
             reward_from_props = 10
         elif current_state == 11 and next_state == 5:
             reward_from_props = 15
-            FrameworkConfiguration.reward += reward_from_props
-            tmp = FrameworkConfiguration.reward
-            FrameworkConfiguration.reward = 0
-            return tmp
+            storage_for_reward += reward_from_props
+            tmp = storage_for_reward
+            storage_for_reward = 0
+            return tmp, storage_for_reward
         elif current_state == 10 and next_state == 5:
             reward_from_props = 200
-            FrameworkConfiguration.reward += reward_from_props
-            tmp = FrameworkConfiguration.reward
-            FrameworkConfiguration.reward = 0
-            return tmp
-        FrameworkConfiguration.reward += reward_from_props
-        return 0
+            storage_for_reward += reward_from_props
+            tmp = storage_for_reward
+            storage_for_reward = 0
+            return tmp, storage_for_reward
+        storage_for_reward += reward_from_props
+        return 0, storage_for_reward
 
     elif FrameworkConfiguration.path == 3:
         # PATH 3
@@ -313,10 +313,10 @@ def compute_reward_from_states(current_state, next_state):
             reward_from_props = 10
         elif current_state == 18 and next_state == 5:
             reward_from_props = 200
-            FrameworkConfiguration.reward += reward_from_props
-            tmp = FrameworkConfiguration.reward
-            FrameworkConfiguration.reward = 0
-            return tmp
-        FrameworkConfiguration.reward += reward_from_props
-        return 0
-    return reward_from_props
+            storage_for_reward += reward_from_props
+            tmp = storage_for_reward
+            storage_for_reward = 0
+            return tmp, storage_for_reward
+        storage_for_reward += reward_from_props
+        return 0, storage_for_reward
+    return reward_from_props, storage_for_reward

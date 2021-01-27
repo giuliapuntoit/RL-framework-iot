@@ -71,7 +71,8 @@ class ReinforcementLearningAlgorithm(object):
         self.current_date = datetime.now()
         if thread_id:
             self.thread_id = thread_id
-        self.id_for_output = '%Y_%m_%d_%H_%M_%S' + '_' + self.thread_id
+        self.id_for_output = '%Y_%m_%d_%H_%M_%S' + '_' + str(self.thread_id)
+        self.storage_reward = 0  # temporary storage variable
 
     def choose_action(self, state, q_matrix):
         """
@@ -447,7 +448,7 @@ class ReinforcementLearningAlgorithm(object):
                 if FrameworkConfiguration.DEBUG:
                     print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
-                reward_from_states = compute_reward_from_states(state1, state2)
+                reward_from_states, self.storage_reward = compute_reward_from_states(state1, state2, self.storage_reward)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
                 if tmp_reward >= 0:
                     LOG.debug("\t\tREWARD: " + str(tmp_reward))
@@ -581,6 +582,7 @@ def main(discovery_report=None):
 
     if discovery_report is None:
         print("No discovery report found.")
+        print("Please run this framework from the main script.")
         exit(-1)
     elif discovery_report['ip']:
         print("Discovery report found at", discovery_report['ip'])

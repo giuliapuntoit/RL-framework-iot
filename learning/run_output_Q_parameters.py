@@ -30,6 +30,7 @@ class RunOutputQParameters(object):
         else:
             print("Invalid date")
             exit(1)
+        self.storage_reward = 0
 
     def run(self):
         directory = FrameworkConfiguration.directory + 'output/output_Q_parameters'
@@ -147,7 +148,7 @@ class RunOutputQParameters(object):
 
             print("\tFROM STATE", states[state1], "TO STATE", states[state2])
 
-            reward_from_props = compute_reward_from_states(state1, state2)
+            reward_from_props, self.storage_reward = compute_reward_from_states(state1, state2, self.storage_reward)
 
             tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
             print("\tTMP REWARD:", str(tmp_reward))
