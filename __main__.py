@@ -31,13 +31,13 @@ if __name__ == '__main__':
                 # tmp_th.join()  # Useless this thread for now
                 th.append(tmp_th)
 
+    print("STARTING THREADS")
     for t in th:
-        print("STARTING THREADS")
         t.start()
 
     for t in th:
         t.join()
-        print("JOINT THREADS")
+    print("JOINED THREADS")
     print("FINISH LEARNING PROCESS")
 
 
