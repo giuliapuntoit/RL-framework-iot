@@ -635,3 +635,5 @@ if __name__ == '__main__':
 
 # TODO aggiorna read me tolto discovery yeelight + supporto multithread + output id con date e thread id +
 #  discovery della porta della yeelight che non è piu 1982
+# TODO check all runs and see if all prints respect the format
+#  when to use logging.error????
