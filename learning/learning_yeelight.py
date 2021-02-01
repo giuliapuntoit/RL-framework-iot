@@ -27,6 +27,7 @@ from state_machine.state_machine_yeelight import compute_reward_from_states, com
 from config import FrameworkConfiguration
 
 
+# TODO la formattazione del logger potrebbe andare in una ad hoc function
 # TODO check colored output works with basic config
 # Set colored output for console
 if FrameworkConfiguration.use_colored_output:
@@ -631,3 +632,6 @@ def main(discovery_report=None):
 
 if __name__ == '__main__':
     main()
+
+# TODO aggiorna read me tolto discovery yeelight + supporto multithread + output id con date e thread id +
+#  discovery della porta della yeelight che non è piu 1982
