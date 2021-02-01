@@ -303,6 +303,8 @@ class ReinforcementLearningAlgorithm(object):
         # Turn off the lamp
         if FrameworkConfiguration.DEBUG:
             print("\t\tREQUEST: Setting power off")
+            to_print = "\t\tREQUEST: Setting power off"
+            logging.debug(to_print)
         operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), self.discovery_report)
         num_actions += 1
         return num_actions
@@ -375,7 +377,11 @@ class ReinforcementLearningAlgorithm(object):
 
         if self.show_graphs:
             print("States are", len(states))
+            to_print = "States are" + str(len(states))
+            logging.debug(to_print)
             print("Actions are", self.num_actions_to_use)
+            to_print = "Actions are" + str(self.num_actions_to_use)
+            logging.debug(to_print)
 
         # Initializing the Q-matrix
         # to 0 values
@@ -387,6 +393,7 @@ class ReinforcementLearningAlgorithm(object):
             # Retrieve from output_Q_data.csv an old matrix for "transfer learning"
             Q = self.retrieve_old_q_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, Q)
         print(Q)
+        logging.debug(Q)
         E = []
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             # Initializing the E-matrix
@@ -398,6 +405,7 @@ class ReinforcementLearningAlgorithm(object):
                 # TODO or should I start always from an empty E matrix?
                 E = self.retrieve_old_e_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, E)
             print(E)
+            logging.debug(E)
 
         start_time = time.time()
 
@@ -415,7 +423,10 @@ class ReinforcementLearningAlgorithm(object):
         # LOOP OVER EPISODES
         for episode in range(self.total_episodes):
             print("----------------------------------------------------------------")
+            logging.debug("----------------------------------------------------------------")
             print("Episode", episode)
+            to_print = "Episode" + str(episode)
+            logging.debug(to_print)
             sleep(3)
             t = 0
             count_actions += self.set_initial_state()
@@ -423,6 +434,8 @@ class ReinforcementLearningAlgorithm(object):
             state1, old_props_values = compute_next_state_from_props(0, [], self.discovery_report)
             if FrameworkConfiguration.DEBUG:
                 print("\tSTARTING FROM STATE", states[state1])
+                to_print = "\tSTARTING FROM STATE" + str(states[state1])
+                logging.debug(to_print)
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -446,6 +459,8 @@ class ReinforcementLearningAlgorithm(object):
                 json_string = BuilderYeelight(method_chosen_index=action1).run()
                 if FrameworkConfiguration.DEBUG:
                     print("\t\tREQUEST:", str(json_string))
+                    to_print = "\t\tREQUEST:" + str(json_string)
+                    logging.debug(to_print)
                 reward_from_response = operate_on_bulb_json(json_string, self.discovery_report)
                 count_actions += 1
                 sleep(self.seconds_to_wait)
@@ -453,6 +468,8 @@ class ReinforcementLearningAlgorithm(object):
                 state2, new_props_values = compute_next_state_from_props(state1, old_props_values, self.discovery_report)
                 if FrameworkConfiguration.DEBUG:
                     print("\tFROM STATE", states[state1], "TO STATE", states[state2])
+                    to_print = "\tFROM STATE" + str(states[state1]) + "TO STATE" + str(states[state2])
+                    logging.debug(to_print)
 
                 reward_from_states, self.storage_reward = compute_reward_from_states(state1, state2, self.storage_reward)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
@@ -464,6 +481,8 @@ class ReinforcementLearningAlgorithm(object):
                     sleep(0.1)
                 else:
                     print("\t\tREWARD:", tmp_reward)
+                    to_print = "\t\tREWARD: " + str(tmp_reward)
+                    logging.debug(to_print)
 
                 if state2 == 5:
                     done = True
@@ -523,12 +542,15 @@ class ReinforcementLearningAlgorithm(object):
                 sleep(0.1)
             else:
                 print("\tREWARD OF THE EPISODE:", reward_per_episode)
+                logging.debug("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
 
             if self.follow_partial_policy:
                 if (episode + 1) % self.follow_policy_every_tot_episodes == 0:
                     # Follow best policy found after some episodes
                     print("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+                    logging.debug("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
                     print("\tFOLLOW PARTIAL POLICY AT EPISODE", episode)
+                    logging.debug("\tFOLLOW PARTIAL POLICY AT EPISODE" + str(episode))
                     if count_actions > 35:  # To avoid crashing lamp
                         sleep(60)
                         count_actions = 0
@@ -558,15 +580,15 @@ class ReinforcementLearningAlgorithm(object):
 
         # SAVE DATA
         # Print and save the Q-matrix inside external file
-        print("Q MATRIX:")
-        print(Q)
+        logging.debug("Q MATRIX:")
+        logging.debug(Q)
         self.save_matrix(output_Q_filename, states, Q, 'Q')
 
         # Only for sarsa(lambda) and Q(lambda)
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             # Print and save the E-matrix inside external file
-            print("E matrix")
-            print(E)
+            logging.debug("E matrix")
+            logging.debug(E)
             self.save_matrix(output_E_filename, states, E, 'E')
 
         # Write total time for learning algorithm
@@ -585,26 +607,26 @@ class ReinforcementLearningAlgorithm(object):
 
 
 def main(discovery_report=None):
-    print("Received discovery report:", discovery_report)
+    logging.debug("Received discovery report: " + discovery_report)
 
     if FrameworkConfiguration.DEBUG:
-        print(FrameworkConfiguration().as_dict())
+        logging.debug(FrameworkConfiguration().as_dict())
 
     if discovery_report is None:
-        print("No discovery report found.")
-        print("Please run this framework from the main script.")
+        logging.debug("No discovery report found.")
+        logging.debug("Please run this framework from the main script.")
         exit(-1)
     elif discovery_report['ip']:
-        print("Discovery report found at", discovery_report['ip'])
+        logging.debug("Discovery report found at", discovery_report['ip'])
 
-        print("Waiting 5 seconds before using RL algorithm")
+        logging.debug("Waiting 5 seconds before using RL algorithm")
         sleep(5)
 
-        print("\n############# Starting RL algorithm path", FrameworkConfiguration.path, "#############")
-        print("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM",
+        logging.info("\n############# Starting RL algorithm path", FrameworkConfiguration.path, "#############")
+        logging.info("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM",
               FrameworkConfiguration.epsilon, FrameworkConfiguration.alpha, FrameworkConfiguration.gamma)
         ReinforcementLearningAlgorithm(discovery_report=discovery_report, thread_id=threading.get_ident()).run()
-        print("############# Finish RL algorithm #############")
+        logging.info("############# Finish RL algorithm #############")
 
 
 if __name__ == '__main__':
