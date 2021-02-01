@@ -17,7 +17,7 @@ class BuilderYeelight(object):
 
     def __init__(self, method_chosen_index=-1, select_all_props=False):
         self.method_chosen_index = method_chosen_index
-        self.id = 1  # TODO do i need this?
+        self.id = 1  # TODO do i need this?  # Se fosse qui il problema?
         self.select_all_props = select_all_props
 
     def run(self):

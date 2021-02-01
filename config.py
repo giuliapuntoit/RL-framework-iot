@@ -14,11 +14,11 @@ class FrameworkConfiguration(object):
     directory = "../"
 
     # RL params
-    algorithm = 'sarsa'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
+    algorithm = 'qlearning'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
     epsilon = 0.6
     total_episodes = 5
     max_steps = 100
-    alpha = 0.005
+    alpha = 0.05
     gamma = 0.95
     lam = 0.9
     decay_episode = 20
@@ -36,10 +36,11 @@ class FrameworkConfiguration(object):
     seconds_to_wait = 4.0
     num_actions_to_use = 37
 
-    DEBUG = False
+    DEBUG = True
 
     def as_dict(self):
-        return {'current_command_id': self.current_command_id,
+        return {'max_threads': self.max_threads,
+                'current_command_id': self.current_command_id,
                 'timeout': self.timeout,
                 'path': self.path,
                 'directory': self.directory,

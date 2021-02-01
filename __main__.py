@@ -43,5 +43,6 @@ if __name__ == '__main__':
 
 # TODO qui dovrei poter scegliere tra runnare solo il run o anche il learning, se runnare il run mettere una data
 #  nel config dovrei scrivere la data se scelgo il run
+#  forse avrebbe più senso chiamare network analyzer dal run e runnarlo con quello (se non gli viene passato nessun discovery report)
 #  dovrei salvare i device found dei discovery report in un file chiamato devices
 # I do not need run script to be multithread write?

@@ -238,7 +238,7 @@ def operate_on_bulb(method, params, discovery_report):
     Input data 'params' must be a compiled into one string
                    E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
     """
-    bulb_ip = discovery_report['ip']
+    bulb_ip = discovery_report['ip']  # TODO provo a stampare l'ip e vedere che formato ha?
     port = discovery_report['port']
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -298,15 +298,20 @@ def operate_on_bulb_json(json_string, discovery_report):
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.settimeout(FrameworkConfiguration.timeout)
-        # print("connect ", bulb_ip, port, "...")
+        print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
+        print(3)
         msg = str(json_string) + "\r\n"
         tcp_socket.send(msg.encode())
+        print(4)
         data = tcp_socket.recv(2048)
+        print(5)
         reward_from_response = handle_response(data)
+        print(6)
         tcp_socket.close()
+        print(7)
         return reward_from_response
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
             print("\t\t\tUnexpected error:", e)
-        return -10
+        return -20

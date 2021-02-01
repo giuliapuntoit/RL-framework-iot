@@ -373,9 +373,9 @@ class ReinforcementLearningAlgorithm(object):
 
         # Initializing the Q-matrix
         # to 0 values
-        # Q = np.zeros((len(states), self.num_actions_to_use))
+        Q = np.zeros((len(states), self.num_actions_to_use))
         # or to random values from 0 to 1
-        Q = np.random.rand(len(states), self.num_actions_to_use)
+        # Q = np.random.rand(len(states), self.num_actions_to_use)
 
         if self.use_old_matrix:
             # Retrieve from output_Q_data.csv an old matrix for "transfer learning"
