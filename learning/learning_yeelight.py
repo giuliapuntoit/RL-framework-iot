@@ -26,17 +26,23 @@ from state_machine.state_machine_yeelight import compute_reward_from_states, com
 
 from config import FrameworkConfiguration
 
+
+# TODO check colored output works with basic config
 # Set colored output for console
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-LOG = logging.getLogger()
-LOG.setLevel(logging.DEBUG)
-for handler in LOG.handlers:
-    LOG.removeHandler(handler)
+if FrameworkConfiguration.use_colored_output:
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
+    LOG = logging.getLogger()
+    LOG.setLevel(logging.DEBUG)
+    for handler in LOG.handlers:
+        LOG.removeHandler(handler)
+    LOG.addHandler(ColorHandler())
+else:
+    # TODO i could remove level name!
+    logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
 
-LOG.addHandler(ColorHandler())
-
-# Global variables for bulb connection
-# idLamp = ""  # TODO non è che sono diversi??? Mi serve this?
 
 # Global variables for RL
 tot_reward = 0
@@ -450,12 +456,14 @@ class ReinforcementLearningAlgorithm(object):
 
                 reward_from_states, self.storage_reward = compute_reward_from_states(state1, state2, self.storage_reward)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
-                if tmp_reward >= 0:
-                    LOG.debug("\t\tREWARD: " + str(tmp_reward))
+                if FrameworkConfiguration.use_colored_output:
+                    if tmp_reward >= 0:
+                        LOG.debug("\t\tREWARD: " + str(tmp_reward))
+                    else:
+                        LOG.error("\t\tREWARD: " + str(tmp_reward))
+                    sleep(0.1)
                 else:
-                    LOG.error("\t\tREWARD: " + str(tmp_reward))
-                # print("[DEBUG] TMP REWARD:", tmp_reward)
-                sleep(0.1)
+                    print("\t\tREWARD:", tmp_reward)
 
                 if state2 == 5:
                     done = True
@@ -507,12 +515,14 @@ class ReinforcementLearningAlgorithm(object):
 
             self.write_episode_summary(log_filename, output_filename, episode, reward_per_episode, cumulative_reward, t)
 
-            if reward_per_episode >= 0:
-                LOG.debug("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
+            if FrameworkConfiguration.use_colored_output:
+                if reward_per_episode >= 0:
+                    LOG.debug("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
+                else:
+                    LOG.error("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
+                sleep(0.1)
             else:
-                LOG.error("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
-            sleep(0.1)
-            # print("\tREWARD OF THE EPISODE:", reward_per_episode)
+                print("\tREWARD OF THE EPISODE:", reward_per_episode)
 
             if self.follow_partial_policy:
                 if (episode + 1) % self.follow_policy_every_tot_episodes == 0:

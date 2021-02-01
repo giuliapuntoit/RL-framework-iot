@@ -298,7 +298,7 @@ def operate_on_bulb_json(json_string, discovery_report):
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp_socket.settimeout(FrameworkConfiguration.timeout)
-        print("connect ", bulb_ip, port, "...")
+        # print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
         msg = str(json_string) + "\r\n"
         tcp_socket.send(msg.encode())

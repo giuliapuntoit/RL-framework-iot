@@ -25,7 +25,7 @@ if __name__ == '__main__':
         if dev.protocol == "yeelight":
             FrameworkConfiguration.directory = "./"
             if cnt <= FrameworkConfiguration.max_threads:
-                tmp_th = Thread(target=learning_yeelight.main, args=(dev.as_dict(), ))
+                tmp_th = Thread(target=learning_yeelight.main, args=(dev.as_dict(), ), name='Thread-{}'.format(cnt+1))
                 cnt += 1
                 # tmp_th.start()
                 # tmp_th.join()  # Useless this thread for now

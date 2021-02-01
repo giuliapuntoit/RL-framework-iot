@@ -31,6 +31,7 @@ class FrameworkConfiguration(object):
     date_old_matrix = 'YY_mm_dd_HH_MM_SS'
     follow_partial_policy = False
     follow_policy_every_tot_episodes = 5
+    use_colored_output = False  # Using colored output may delay the write operation on console
 
     # General info
     seconds_to_wait = 4.0
@@ -59,6 +60,7 @@ class FrameworkConfiguration(object):
                 'date_old_matrix': self.date_old_matrix,
                 'follow_partial_policy': self.follow_partial_policy,
                 'follow_policy_every_tot_episodes': self.follow_policy_every_tot_episodes,
+                'use_colored_output': self.use_colored_output,
                 'seconds_to_wait': self.seconds_to_wait,
                 'num_actions_to_use': self.num_actions_to_use,
                 'DEBUG': self.DEBUG}
