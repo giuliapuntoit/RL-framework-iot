@@ -26,7 +26,8 @@ def analyze_lan():
     # print(scan_range['scan'])
 
     # I am assuming I already know protocol ports
-    yeelight_port = 1982
+    # yeelight_port = 1982
+    yeelight_port = 55443
     shelly_port = 80
 
     devices = []

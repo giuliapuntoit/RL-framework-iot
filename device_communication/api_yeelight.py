@@ -300,16 +300,11 @@ def operate_on_bulb_json(json_string, discovery_report):
         tcp_socket.settimeout(FrameworkConfiguration.timeout)
         print("connect ", bulb_ip, port, "...")
         tcp_socket.connect((bulb_ip, int(port)))
-        print(3)
         msg = str(json_string) + "\r\n"
         tcp_socket.send(msg.encode())
-        print(4)
         data = tcp_socket.recv(2048)
-        print(5)
         reward_from_response = handle_response(data)
-        print(6)
         tcp_socket.close()
-        print(7)
         return reward_from_response
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
