@@ -20,7 +20,7 @@ import sys
 from colorizer_for_output import ColorHandler
 from plotter.plot_output_data import PlotOutputData
 from learning.run_output_Q_parameters import RunOutputQParameters
-from request_builder.builder_yeelight import BuilderYeelight
+from request_builder.builder import build_command
 from device_communication.client import operate_on_bulb, operate_on_bulb_json
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props, get_states, \
     get_optimal_policy, get_optimal_path
@@ -335,7 +335,7 @@ class ReinforcementLearningAlgorithm(object):
         """
         header = [label]  # For correct output structure
         for i in range(0, self.num_actions_to_use):
-            json_string = BuilderYeelight(method_chosen_index=i).run()
+            json_string = build_command(method_chosen_index=i, select_all_props=False, protocol=self.discovery_report['protocol'])
             header.append(json.loads(json_string)['method'])
 
         with open(output_filename, "w") as output_matrix_file:
@@ -444,7 +444,7 @@ class ReinforcementLearningAlgorithm(object):
                     action1 = self.choose_action(state1, Q)
 
                 # Perform an action on the bulb sending a command
-                json_string = BuilderYeelight(method_chosen_index=action1).run()
+                json_string = build_command(method_chosen_index=action1, select_all_props=False, protocol=self.discovery_report['protocol'])
                 if FrameworkConfiguration.DEBUG:
                     logging.debug("\t\tREQUEST: " + str(json_string))
                 reward_from_response = operate_on_bulb_json(json_string, self.discovery_report, self.discovery_report['protocol'])

@@ -8,15 +8,15 @@ import api_yeelight
 
 # TODO does it work the return function?
 def operate_on_bulb(method, params, discovery_report, protocol):
-    if protocol == "Yeelight":
+    if protocol == "yeelight":
         return api_yeelight.operate_on_bulb(method, params, discovery_report)
 
 
 def operate_on_bulb_props(json_string, discovery_report, protocol):
-    if protocol == "Yeelight":
+    if protocol == "yeelight":
         return api_yeelight.operate_on_bulb_props(json_string, discovery_report)
 
 
 def operate_on_bulb_json(json_string, discovery_report, protocol):
-    if protocol == "Yeelight":
+    if protocol == "yeelight":
         return api_yeelight.operate_on_bulb_json(json_string, discovery_report)
