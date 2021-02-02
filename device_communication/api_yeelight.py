@@ -117,9 +117,6 @@ from config import FrameworkConfiguration
 #     # print(supported_methods)
 #     # Use two dictionaries to store index->ip and ip->bulb map
 #
-#     # TODO I NEED TO CHANGE THESE STRUCTURES:
-#     #  1) detected_bulbs con solo bulb_id ( o neanche )
-#     #  2) bulb_idx2ip ( o neanche, mi serve solo l'info sul current id e current ip e basta! )
 #     FrameworkConfiguration.detected_bulbs[host_ip] = [bulb_id, model, power, bright, rgb, host_port, supported_methods]
 #     FrameworkConfiguration.bulb_idx2ip[bulb_id] = host_ip
 
@@ -238,7 +235,7 @@ def operate_on_bulb(method, params, discovery_report):
     Input data 'params' must be a compiled into one string
                    E.g. params="1"; params="\"smooth\"", params="1,\"smooth\",80"
     """
-    bulb_ip = discovery_report['ip']  # TODO provo a stampare l'ip e vedere che formato ha?
+    bulb_ip = discovery_report['ip']
     port = discovery_report['port']
     try:
         tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

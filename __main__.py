@@ -30,6 +30,9 @@ if __name__ == '__main__':
                 # tmp_th.start()
                 # tmp_th.join()  # Useless this thread for now
                 th.append(tmp_th)
+        elif dev.protocol == "shelly":
+            # TODO pass for now
+            pass
 
     print("STARTING THREADS")
     for t in th:

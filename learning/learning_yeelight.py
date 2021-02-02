@@ -21,30 +21,30 @@ from colorizer_for_output import ColorHandler
 from plotter.plot_output_data import PlotOutputData
 from learning.run_output_Q_parameters import RunOutputQParameters
 from request_builder.builder_yeelight import BuilderYeelight
-from device_communication.api_yeelight import operate_on_bulb, operate_on_bulb_json
+from device_communication.client import operate_on_bulb, operate_on_bulb_json
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props, get_states, \
     get_optimal_policy, get_optimal_path
 
 from config import FrameworkConfiguration
 
-# TODO la formattazione del logger potrebbe andare in una ad hoc function
-# TODO check colored output works with basic config
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-# Set colored output for console
-if FrameworkConfiguration.use_colored_output:
-    LOG = logging.getLogger()
-    LOG.setLevel(logging.DEBUG)
-    for handler in LOG.handlers:
-        LOG.removeHandler(handler)
-    LOG.addHandler(ColorHandler())
-# TODO i could remove level name!
 
-
-# Global variables for RL
-tot_reward = 0
+def format_console_output():
+    """
+    Format console with a common format and if selected with a colored output
+    """
+    # TODO check colored output works with basic config
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s] (%(threadName)s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format='[%(levelname)s] (%(threadName)s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] (%(threadName)s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format='[%(levelname)s] (%(threadName)s) %(message)s', )
+    # Set colored output for console
+    if FrameworkConfiguration.use_colored_output:
+        LOG = logging.getLogger()
+        LOG.setLevel(logging.DEBUG)
+        for handler in LOG.handlers:
+            LOG.removeHandler(handler)
+        LOG.addHandler(ColorHandler())
+    # TODO i could remove level name!
 
 
 class ReinforcementLearningAlgorithm(object):
@@ -292,17 +292,17 @@ class ReinforcementLearningAlgorithm(object):
         if FrameworkConfiguration.path == 3:
             # Special initial configuration for visual checks on the bulb
             # ONLY FOR PATH 3
-            operate_on_bulb("set_power", str("\"on\", \"sudden\", 0"), self.discovery_report)
+            operate_on_bulb("set_power", str("\"on\", \"sudden\", 0"), self.discovery_report, self.discovery_report['protocol'])
             num_actions += 1
             sleep(self.seconds_to_wait)
-            operate_on_bulb("set_rgb", str("255" + ", \"sudden\", 500"), self.discovery_report)
+            operate_on_bulb("set_rgb", str("255" + ", \"sudden\", 500"), self.discovery_report, self.discovery_report['protocol'])
             num_actions += 1
             sleep(self.seconds_to_wait)
 
         # Turn off the lamp
         if FrameworkConfiguration.DEBUG:
             logging.debug("\t\tREQUEST: Setting power off")
-        operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), self.discovery_report)
+        operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), self.discovery_report, self.discovery_report['protocol'])
         num_actions += 1
         return num_actions
 
@@ -357,9 +357,9 @@ class ReinforcementLearningAlgorithm(object):
         np.set_printoptions(formatter={'float': lambda output: "{0:0.4f}".format(output)})
 
         # Obtain data about states, path and policy
-        states = get_states()
-        optimal_policy = get_optimal_policy()
-        optimal_path = get_optimal_path()
+        states = get_states(FrameworkConfiguration.path)
+        optimal_policy = get_optimal_policy(FrameworkConfiguration.path)
+        optimal_path = get_optimal_path(FrameworkConfiguration.path)
 
         # Initialize filenames to be generated
         output_dir = 'output'
@@ -378,9 +378,9 @@ class ReinforcementLearningAlgorithm(object):
 
         # Initializing the Q-matrix
         # to 0 values
-        Q = np.zeros((len(states), self.num_actions_to_use))
+        # Q = np.zeros((len(states), self.num_actions_to_use))
         # or to random values from 0 to 1
-        # Q = np.random.rand(len(states), self.num_actions_to_use)
+        Q = np.random.rand(len(states), self.num_actions_to_use)
 
         if self.use_old_matrix:
             # Retrieve from output_Q_data.csv an old matrix for "transfer learning"
@@ -421,7 +421,7 @@ class ReinforcementLearningAlgorithm(object):
             t = 0
             count_actions += self.set_initial_state()
             sleep(self.seconds_to_wait)
-            state1, old_props_values = compute_next_state_from_props(0, [], self.discovery_report)
+            state1, old_props_values = compute_next_state_from_props(FrameworkConfiguration.path, 0, [], self.discovery_report)
             if FrameworkConfiguration.DEBUG:
                 logging.debug("\tSTARTING FROM STATE " + str(states[state1]))
             action1 = self.choose_action(state1, Q)
@@ -447,19 +447,20 @@ class ReinforcementLearningAlgorithm(object):
                 json_string = BuilderYeelight(method_chosen_index=action1).run()
                 if FrameworkConfiguration.DEBUG:
                     logging.debug("\t\tREQUEST: " + str(json_string))
-                reward_from_response = operate_on_bulb_json(json_string, self.discovery_report)
+                reward_from_response = operate_on_bulb_json(json_string, self.discovery_report, self.discovery_report['protocol'])
                 count_actions += 1
                 sleep(self.seconds_to_wait)
 
-                state2, new_props_values = compute_next_state_from_props(state1, old_props_values,
+                state2, new_props_values = compute_next_state_from_props(FrameworkConfiguration.path, state1, old_props_values,
                                                                          self.discovery_report)
                 if FrameworkConfiguration.DEBUG:
                     logging.debug("\tFROM STATE " + states[state1] + " TO STATE " + states[state2])
 
-                reward_from_states, self.storage_reward = compute_reward_from_states(state1, state2,
+                reward_from_states, self.storage_reward = compute_reward_from_states(FrameworkConfiguration.path, state1, state2,
                                                                                      self.storage_reward)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
                 if FrameworkConfiguration.use_colored_output:
+                    LOG = logging.getLogger()  # TODO does it work?
                     if tmp_reward >= 0:
                         LOG.debug("\t\tREWARD: " + str(tmp_reward))
                     else:
@@ -519,6 +520,7 @@ class ReinforcementLearningAlgorithm(object):
             self.write_episode_summary(log_filename, output_filename, episode, reward_per_episode, cumulative_reward, t)
 
             if FrameworkConfiguration.use_colored_output:
+                LOG = logging.getLogger()
                 if reward_per_episode >= 0:
                     LOG.debug("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
                 else:
@@ -592,6 +594,7 @@ class ReinforcementLearningAlgorithm(object):
 
 
 def main(discovery_report=None):
+    format_console_output()
     pp = pprint.PrettyPrinter(indent=4)
     logging.info("Received discovery report:")
     logging.info(pp.pprint(discovery_report.__dict__))
@@ -605,7 +608,6 @@ def main(discovery_report=None):
         exit(-1)
     elif discovery_report['ip']:
         logging.info("Discovery report found at " + discovery_report['ip'])
-
         logging.info("Waiting...")
         sleep(5)
 
@@ -622,9 +624,7 @@ def main(discovery_report=None):
 if __name__ == '__main__':
     main()
 
-# TODO aggiorna read me tolto discovery yeelight + supporto multithread + output id con date e thread id +
-#  discovery della porta della yeelight che non è piu 1982
-# TODO check all runs and see if all prints respect the format
+# TODO check all runs and see if all prints respect the format (print errors with file matrixes and so on)
 # TODO remove duplicated code if present
 # TODO poi fai un check di tutto
 # TODO poi fai un check di tutti i warnings

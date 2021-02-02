@@ -95,7 +95,7 @@ General structure of directories:
 * ``sample`` contains some toy scripts to communicate to individual devices (Yeelight and Hue devices).
 * ``images`` contains images for readme purposes.
 
-The project can be run from the ``__main__.py``, in order to have a discovery part for IoT devices in the local network.
+The project can be run from the ``__main__.py``, starting with a discovery phase for IoT devices in the local network.
 
 
 ### Output

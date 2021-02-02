@@ -14,7 +14,7 @@ from config import FrameworkConfiguration
 
 # Identify which RL algorithm was used and use it
 
-from device_communication.api_yeelight import operate_on_bulb, operate_on_bulb_json
+from device_communication.client import operate_on_bulb, operate_on_bulb_json
 from discovery import network_analyzer
 from plotter.support_plotter import read_parameters_from_output_file
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props
@@ -123,9 +123,9 @@ class RunOutputQParameters(object):
             print("------------------------------------------")
             print("FOLLOW POLICY")
         print("\t\tREQUEST: Setting power off")
-        operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), None)
+        operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), self.discovery_report, self.discovery_report['protocol'])
         sleep(seconds_to_wait)
-        state1, old_props_values = compute_next_state_from_props(0, [], None)
+        state1, old_props_values = compute_next_state_from_props(0, [], self.discovery_report, self.discovery_report['protocol'])
         print("\tSTARTING FROM STATE", states[state1])
 
         t = 0
@@ -141,7 +141,7 @@ class RunOutputQParameters(object):
 
             json_string = BuilderYeelight(method_chosen_index=max_action).run()
             print("\t\tREQUEST:", str(json_string))
-            reward_from_response = operate_on_bulb_json(json_string, self.discovery_report)
+            reward_from_response = operate_on_bulb_json(json_string, self.discovery_report, self.discovery_report['protocol'])
             sleep(seconds_to_wait)
 
             state2, new_props_values = compute_next_state_from_props(state1, old_props_values, None)
