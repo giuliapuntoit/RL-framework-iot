@@ -37,7 +37,7 @@ class FrameworkConfiguration(object):
     seconds_to_wait = 4.0
     num_actions_to_use = 37
 
-    DEBUG = True
+    DEBUG = False
 
     def as_dict(self):
         return {'max_threads': self.max_threads,

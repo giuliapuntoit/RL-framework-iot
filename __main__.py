@@ -17,15 +17,15 @@ if __name__ == '__main__':
 
     th = []
     print("\nSTART LEARNING PROCESS")
+    cnt = 0
     for dev in devices:
         # Learning: starting the learning process
         # Should launch a thread for each device, with a maximum number of threads available
         # Until now, this is done only for yeelight devices
-        cnt = 0
         if dev.protocol == "yeelight":
             FrameworkConfiguration.directory = "./"
             if cnt <= FrameworkConfiguration.max_threads:
-                tmp_th = Thread(target=learning_yeelight.main, args=(dev.as_dict(), ), name='Thread-{}'.format(cnt+1))
+                tmp_th = Thread(target=learning_yeelight.main, args=(dev.as_dict(), ))
                 cnt += 1
                 # tmp_th.start()
                 # tmp_th.join()  # Useless this thread for now

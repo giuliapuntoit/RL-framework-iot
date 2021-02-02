@@ -4,6 +4,7 @@
 
 # !/usr/bin/python
 import csv
+import pprint
 import threading
 import numpy as np
 import json
@@ -29,20 +30,18 @@ from config import FrameworkConfiguration
 
 # TODO la formattazione del logger potrebbe andare in una ad hoc function
 # TODO check colored output works with basic config
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s] (%(threadName)s) %(message)s', )
+logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format='[%(levelname)s] (%(threadName)s) %(message)s', )
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] (%(threadName)s) %(message)s', )
+logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format='[%(levelname)s] (%(threadName)s) %(message)s', )
 # Set colored output for console
 if FrameworkConfiguration.use_colored_output:
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
-    logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
-    logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
     LOG = logging.getLogger()
     LOG.setLevel(logging.DEBUG)
     for handler in LOG.handlers:
         LOG.removeHandler(handler)
     LOG.addHandler(ColorHandler())
-else:
-    # TODO i could remove level name!
-    logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] (%(threadName)-9s) %(message)s', )
+# TODO i could remove level name!
 
 
 # Global variables for RL
@@ -237,14 +236,14 @@ class ReinforcementLearningAlgorithm(object):
             Q = copy.deepcopy(Q_tmp)
 
         except Exception as e:
-            print("Wrong file format:", e)
-            print("Using an empty Q matrix instead of the old one.")
+            logging.warning("Wrong file format: " + str(e))
+            logging.warning("Using an empty Q matrix instead of the old one.")
             return empty_matrix
 
         # Check the format of the matrix is correct
         if len_states != len(Q) or len_actions != len(Q[0]) or np.isnan(np.sum(Q)):
-            print("Wrong file format: wrong Q dimensions or nan values present")
-            print("Using an empty Q matrix instead of the old one.")
+            logging.warning("Wrong file format: wrong Q dimensions or nan values present")
+            logging.warning("Using an empty Q matrix instead of the old one.")
             return empty_matrix
 
         return Q
@@ -261,14 +260,14 @@ class ReinforcementLearningAlgorithm(object):
             E = copy.deepcopy(E_tmp)
 
         except Exception as e:
-            print("Wrong file format:", e)
-            print("Using an empty E matrix instead of the old one")
+            logging.warning("Wrong file format: " + str(e))
+            logging.warning("Using an empty E matrix instead of the old one.")
             return empty_matrix
 
         # Check the format of the matrix is correct
         if len_states != len(E) or len_actions != len(E[0]) or np.isnan(np.sum(E)):
-            print("Wrong file format: wrong E dimensions or nan values present")
-            print("Using an empty E matrix instead of the old one")
+            logging.warning("Wrong file format: wrong E dimensions or nan values present")
+            logging.warning("Using an empty E matrix instead of the old one.")
             return empty_matrix
         return E
 
@@ -303,9 +302,7 @@ class ReinforcementLearningAlgorithm(object):
 
         # Turn off the lamp
         if FrameworkConfiguration.DEBUG:
-            print("\t\tREQUEST: Setting power off")
-            to_print = "\t\tREQUEST: Setting power off"
-            logging.debug(to_print)
+            logging.debug("\t\tREQUEST: Setting power off")
         operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), self.discovery_report)
         num_actions += 1
         return num_actions
@@ -377,12 +374,8 @@ class ReinforcementLearningAlgorithm(object):
         self.write_params_to_output_file(output_parameters_filename, optimal_policy, optimal_path)
 
         if self.show_graphs:
-            print("States are", len(states))
-            to_print = "States are" + str(len(states))
-            logging.debug(to_print)
-            print("Actions are", self.num_actions_to_use)
-            to_print = "Actions are" + str(self.num_actions_to_use)
-            logging.debug(to_print)
+            logging.debug("States are " + str(len(states)))
+            logging.debug("Actions are " + str(self.num_actions_to_use))
 
         # Initializing the Q-matrix
         # to 0 values
@@ -393,8 +386,8 @@ class ReinforcementLearningAlgorithm(object):
         if self.use_old_matrix:
             # Retrieve from output_Q_data.csv an old matrix for "transfer learning"
             Q = self.retrieve_old_q_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, Q)
-        print(Q)
-        logging.debug(Q)
+        if FrameworkConfiguration.DEBUG:
+            logging.debug(Q)
         E = []
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             # Initializing the E-matrix
@@ -405,8 +398,8 @@ class ReinforcementLearningAlgorithm(object):
                 # Check the format of the matrix is correct
                 # TODO or should I start always from an empty E matrix?
                 E = self.retrieve_old_e_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, E)
-            print(E)
-            logging.debug(E)
+            if FrameworkConfiguration.DEBUG:
+                logging.debug(E)
 
         start_time = time.time()
 
@@ -423,20 +416,15 @@ class ReinforcementLearningAlgorithm(object):
         # STARTING THE LEARNING PROCESS
         # LOOP OVER EPISODES
         for episode in range(self.total_episodes):
-            print("----------------------------------------------------------------")
-            logging.debug("----------------------------------------------------------------")
-            print("Episode", episode)
-            to_print = "Episode" + str(episode)
-            logging.debug(to_print)
+            logging.info("----------------------------------------------------")
+            logging.info("Episode " + str(episode))
             sleep(3)
             t = 0
             count_actions += self.set_initial_state()
             sleep(self.seconds_to_wait)
             state1, old_props_values = compute_next_state_from_props(0, [], self.discovery_report)
             if FrameworkConfiguration.DEBUG:
-                print("\tSTARTING FROM STATE", states[state1])
-                to_print = "\tSTARTING FROM STATE" + str(states[state1])
-                logging.debug(to_print)
+                logging.debug("\tSTARTING FROM STATE " + str(states[state1]))
             action1 = self.choose_action(state1, Q)
             done = False
             reward_per_episode = 0
@@ -459,18 +447,14 @@ class ReinforcementLearningAlgorithm(object):
                 # Perform an action on the bulb sending a command
                 json_string = BuilderYeelight(method_chosen_index=action1).run()
                 if FrameworkConfiguration.DEBUG:
-                    print("\t\tREQUEST:", str(json_string))
-                    to_print = "\t\tREQUEST:" + str(json_string)
-                    logging.debug(to_print)
+                    logging.debug("\t\tREQUEST: " + str(json_string))
                 reward_from_response = operate_on_bulb_json(json_string, self.discovery_report)
                 count_actions += 1
                 sleep(self.seconds_to_wait)
 
                 state2, new_props_values = compute_next_state_from_props(state1, old_props_values, self.discovery_report)
                 if FrameworkConfiguration.DEBUG:
-                    print("\tFROM STATE", states[state1], "TO STATE", states[state2])
-                    to_print = "\tFROM STATE" + str(states[state1]) + "TO STATE" + str(states[state2])
-                    logging.debug(to_print)
+                    logging.debug("\tFROM STATE " + states[state1] + " TO STATE " + states[state2])
 
                 reward_from_states, self.storage_reward = compute_reward_from_states(state1, state2, self.storage_reward)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
@@ -481,9 +465,7 @@ class ReinforcementLearningAlgorithm(object):
                         LOG.error("\t\tREWARD: " + str(tmp_reward))
                     sleep(0.1)
                 else:
-                    print("\t\tREWARD:", tmp_reward)
-                    to_print = "\t\tREWARD: " + str(tmp_reward)
-                    logging.debug(to_print)
+                    logging.info("\t\tREWARD: " + str(tmp_reward))
 
                 if state2 == 5:
                     done = True
@@ -542,16 +524,13 @@ class ReinforcementLearningAlgorithm(object):
                     LOG.error("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
                 sleep(0.1)
             else:
-                print("\tREWARD OF THE EPISODE:", reward_per_episode)
-                logging.debug("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
+                logging.info("\tREWARD OF THE EPISODE: " + str(reward_per_episode))
 
             if self.follow_partial_policy:
                 if (episode + 1) % self.follow_policy_every_tot_episodes == 0:
                     # Follow best policy found after some episodes
-                    print("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-                    logging.debug("- - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-                    print("\tFOLLOW PARTIAL POLICY AT EPISODE", episode)
-                    logging.debug("\tFOLLOW PARTIAL POLICY AT EPISODE" + str(episode))
+                    logging.info("- - - - - - - - - - - - - - - - - - - - - -")
+                    logging.info("\tFOLLOW PARTIAL POLICY AT EPISODE " + str(episode))
                     if count_actions > 35:  # To avoid crashing lamp
                         sleep(60)
                         count_actions = 0
@@ -581,15 +560,17 @@ class ReinforcementLearningAlgorithm(object):
 
         # SAVE DATA
         # Print and save the Q-matrix inside external file
-        logging.debug("Q MATRIX:")
-        logging.debug(Q)
+        if FrameworkConfiguration.DEBUG:
+            logging.debug("Q MATRIX:")
+            logging.debug(Q)
         self.save_matrix(output_Q_filename, states, Q, 'Q')
 
         # Only for sarsa(lambda) and Q(lambda)
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             # Print and save the E-matrix inside external file
-            logging.debug("E matrix")
-            logging.debug(E)
+            if FrameworkConfiguration.DEBUG:
+                logging.debug("E matrix")
+                logging.debug(E)
             self.save_matrix(output_E_filename, states, E, 'E')
 
         # Write total time for learning algorithm
@@ -608,26 +589,28 @@ class ReinforcementLearningAlgorithm(object):
 
 
 def main(discovery_report=None):
-    logging.debug("Received discovery report: " + discovery_report)
+    pp = pprint.PrettyPrinter(indent=4)
+    logging.info("Received discovery report:")
+    logging.info(pp.pprint(discovery_report.__dict__))
 
     if FrameworkConfiguration.DEBUG:
-        logging.debug(FrameworkConfiguration().as_dict())
+        logging.debug(str(FrameworkConfiguration().as_dict()))
 
     if discovery_report is None:
-        logging.debug("No discovery report found.")
-        logging.debug("Please run this framework from the main script.")
+        logging.error("No discovery report found.")
+        logging.error("Please run this framework from the main script.")
         exit(-1)
     elif discovery_report['ip']:
-        logging.debug("Discovery report found at", discovery_report['ip'])
+        logging.info("Discovery report found at " + discovery_report['ip'])
 
-        logging.debug("Waiting 5 seconds before using RL algorithm")
+        logging.info("Waiting...")
         sleep(5)
 
-        logging.info("\n############# Starting RL algorithm path", FrameworkConfiguration.path, "#############")
-        logging.info("ALGORITHM", FrameworkConfiguration.algorithm, "- PATH", FrameworkConfiguration.path, " - EPS ALP GAM",
-              FrameworkConfiguration.epsilon, FrameworkConfiguration.alpha, FrameworkConfiguration.gamma)
+        logging.info("\n####### Starting RL algorithm path " + str(FrameworkConfiguration.path) + " #######")
+        logging.info("ALGORITHM " + FrameworkConfiguration.algorithm + " - PATH " + str(FrameworkConfiguration.path) + " - EPS " +
+              str(FrameworkConfiguration.epsilon) + " - ALP " + str(FrameworkConfiguration.alpha) + " - GAM " + str(FrameworkConfiguration.gamma))
         ReinforcementLearningAlgorithm(discovery_report=discovery_report, thread_id=threading.get_ident()).run()
-        logging.info("############# Finish RL algorithm #############")
+        logging.info("####### Finish RL algorithm #######")
 
 
 if __name__ == '__main__':
@@ -637,3 +620,6 @@ if __name__ == '__main__':
 #  discovery della porta della yeelight che non è piu 1982
 # TODO check all runs and see if all prints respect the format
 #  when to use logging.error????
+# TODO remove duplicated code if present
+# TODO poi fai un check di tutto
+# TODO poi fai un check di tutti i warnings
