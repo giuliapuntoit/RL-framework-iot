@@ -27,7 +27,6 @@ from state_machine.state_machine_yeelight import compute_reward_from_states, com
 
 from config import FrameworkConfiguration
 
-
 # TODO la formattazione del logger potrebbe andare in una ad hoc function
 # TODO check colored output works with basic config
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s] (%(threadName)s) %(message)s', )
@@ -452,11 +451,13 @@ class ReinforcementLearningAlgorithm(object):
                 count_actions += 1
                 sleep(self.seconds_to_wait)
 
-                state2, new_props_values = compute_next_state_from_props(state1, old_props_values, self.discovery_report)
+                state2, new_props_values = compute_next_state_from_props(state1, old_props_values,
+                                                                         self.discovery_report)
                 if FrameworkConfiguration.DEBUG:
                     logging.debug("\tFROM STATE " + states[state1] + " TO STATE " + states[state2])
 
-                reward_from_states, self.storage_reward = compute_reward_from_states(state1, state2, self.storage_reward)
+                reward_from_states, self.storage_reward = compute_reward_from_states(state1, state2,
+                                                                                     self.storage_reward)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
                 if FrameworkConfiguration.use_colored_output:
                     if tmp_reward >= 0:
@@ -543,7 +544,9 @@ class ReinforcementLearningAlgorithm(object):
                     if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
                         self.save_matrix(output_E_filename, states, E, 'E')
 
-                    found_policy, dict_results = RunOutputQParameters(date_to_retrieve=self.current_date.strftime(self.id_for_output), show_retrieved_info=False, discovery_report=self.discovery_report).run()
+                    found_policy, dict_results = RunOutputQParameters(
+                        date_to_retrieve=self.current_date.strftime(self.id_for_output), show_retrieved_info=False,
+                        discovery_report=self.discovery_report).run()
                     count_actions += 20
 
                     with open(partial_output_filename, mode="a") as partial_output_file:
@@ -607,8 +610,11 @@ def main(discovery_report=None):
         sleep(5)
 
         logging.info("\n####### Starting RL algorithm path " + str(FrameworkConfiguration.path) + " #######")
-        logging.info("ALGORITHM " + FrameworkConfiguration.algorithm + " - PATH " + str(FrameworkConfiguration.path) + " - EPS " +
-              str(FrameworkConfiguration.epsilon) + " - ALP " + str(FrameworkConfiguration.alpha) + " - GAM " + str(FrameworkConfiguration.gamma))
+        logging.info("ALGORITHM " + FrameworkConfiguration.algorithm
+                     + " - PATH " + str(FrameworkConfiguration.path)
+                     + " - EPS " + str(FrameworkConfiguration.epsilon)
+                     + " - ALP " + str(FrameworkConfiguration.alpha)
+                     + " - GAM " + str(FrameworkConfiguration.gamma))
         ReinforcementLearningAlgorithm(discovery_report=discovery_report, thread_id=threading.get_ident()).run()
         logging.info("####### Finish RL algorithm #######")
 
@@ -619,7 +625,6 @@ if __name__ == '__main__':
 # TODO aggiorna read me tolto discovery yeelight + supporto multithread + output id con date e thread id +
 #  discovery della porta della yeelight che non è piu 1982
 # TODO check all runs and see if all prints respect the format
-#  when to use logging.error????
 # TODO remove duplicated code if present
 # TODO poi fai un check di tutto
 # TODO poi fai un check di tutti i warnings

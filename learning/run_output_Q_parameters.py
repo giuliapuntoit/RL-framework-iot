@@ -216,3 +216,6 @@ def main(discovery_report=None):
 
 if __name__ == '__main__':
     main()
+
+
+# TODO questo script è da vedere se worka e da sistemare le print? O forse no?

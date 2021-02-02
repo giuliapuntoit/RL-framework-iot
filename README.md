@@ -1,6 +1,6 @@
 # RL framework for IoT protocols
 
-The goal of this project is to automatically learn the protocol of a generic IoT device in the shortest possible time, using Reinforcement Learning (RL) techniques.
+Automatically learn the protocol of a generic IoT device in the shortest possible time, using Reinforcement Learning (RL) techniques.
 
 This RL framework implements 4 RL algorithms:
 
@@ -9,7 +9,7 @@ This RL framework implements 4 RL algorithms:
 * SARSA(λ) 
 * Q(λ) (Watkin's version)
 
-These are used to automatize the interaction with the IoT devices present in the local network.
+RL is used to automatize the interaction with the IoT devices present in the local network.
 For these algorithms we assume there exists a dataset with valid protocol messages of different IoT devices. However, we have no further knowledge on the semantics of such command messages, nor on whether particular devices would accept the commands. This dataset will be stored into a dictionary inside our framework.
 
 Here there is a first component based on the [Yeelight](https://www.yeelight.com/) protocol.
@@ -64,10 +64,10 @@ We start developing our framework:
 
 Main features include:
 
-* Support to 4 RL algorithms, that can selected inside the ``learning_yeelight.py`` script.
+* Support to 4 RL algorithms, that can be selected inside the ``config.py`` file.
 * Collect all necessary data to generate plots for comparing performance among different configurations.
 * Block the learning process and restart it from the Q matrix computed before, giving as id the date of the previous execution.
-* Possibility to configure all parameters inside a single file - ``config.py`` - about algorithms, the framework and about debug options.
+* Possibility to configure all parameters inside a single file - ``config.py`` - about parameters for algorithms, for the framework and about debug options.
 
 
 ## How to use?
@@ -79,7 +79,7 @@ To use it, you need to first install all necessary Python packages with command:
 pip install .
 ```
 
-After installing all needed dependencies, the project can be executed directly running the ``__main__.py`` script or the ``learning_yeelight`` script.
+After installing all needed dependencies, the project can be executed directly running the ``__main__.py`` script.
 
 ### Structure
 
@@ -95,16 +95,14 @@ General structure of directories:
 * ``sample`` contains some toy scripts to communicate to individual devices (Yeelight and Hue devices).
 * ``images`` contains images for readme purposes.
 
-The project can be run in 2 ways:
+The project can be run from the ``__main__.py``, in order to have a discovery part for IoT devices in the local network.
 
-* from the ``__main__.py``, to have also a discovery part of all IoT devices in local network.
-* from the ``learning_yeelight`` script to target only Yeelight devices inside the network.
 
 ### Output
 
 Throughout the entire learning process, the Learning module collects data into external files, inside the ``output`` directory.
 
-All files for 1 execution of the learning process are identified by the current date in the format ``%Y_%m_%d_%H_%M_%S``.
+All files for 1 execution of the learning process are identified by the current date and the id of the current thread, in the format ``%Y_%m_%d_%H_%M_%S_<thread_id>``
 
 The structure of the ``output`` directory is the following:
 
@@ -112,20 +110,20 @@ The structure of the ``output`` directory is the following:
 output
 |
 |__ log
-|   |__ log_<date1>.log
-|   |__ log_<date2>.log
+|   |__ log_<date1>_<thread_id>.log
+|   |__ log_<date2>_<thread_id>.log
 |
 |__ output_csv
-|   |__ output_<algorithm1>_<date1>.csv
-|   |__ output_<algorithm2>_<date2>.csv
-|   |__ partial_output_<algorithm1>_<date1>.csv
-|   |__ partial_output_<algorithm2>_<date2>.csv
+|   |__ output_<algorithm1>_<date1>_<thread_id>.csv
+|   |__ output_<algorithm2>_<date2>_<thread_id>.csv
+|   |__ partial_output_<algorithm1>_<date1>_<thread_id>.csv
+|   |__ partial_output_<algorithm2>_<date2>_<thread_id>.csv
 |
 |__ output_Q_parameters
-|   |__ output_parameters_<date1>.csv
-|   |__ output_parameters_<date2>.csv
-|   |__ output_Q_<date1>.csv
-|   |__ output_E_<date1>.csv
+|   |__ output_parameters_<date1>_<thread_id>.csv
+|   |__ output_parameters_<date2>_<thread_id>.csv
+|   |__ output_Q_<date1>_<thread_id>.csv
+|   |__ output_E_<date1>_<thread_id>.csv
 |
 |__ log_date.log
 
@@ -133,9 +131,9 @@ output
 
 More in details, inside ``output`` directory:
 
-* ``output_Q_parameters``: contains data collected before and after the learning process. Before the process starts, all values for the configurable parameters are saved into file ``output_parameters_<date>.csv``: information about the path to learn, the optimal policy, the chosen algorithm, the number of episodes, the values of α, γ, λ and ε. If one wants to reproduce an execution of the learning process, all the parameters saved inside this file allow for repeating the learning process using the exact same configuration. Then, at the end of each episode, the Q matrix is written and updated inside a file ``output_Q_<date>.csv``. The E matrix, if required by the chosen RL algorithm, is written into ``output_E_<date>.csv``.
-* ``output_csv``: contains ``output_<algorithm>_<date>.csv`` and ``partial_output_<algorithm>_<date>.csv`` files. The first file contains, for each episode, the obtained reward, the number of time steps and the cumulative reward. The latter contains the same values obtained while stopping the learning process at a certain episode and following the best policy found until that episode. ``partial_output_<algorithm>_<date>.csv`` files are present only if a proper flag is activated inside the ``learning_yeelight.py`` script, specifying the number of episodes at which the learning process should be stopped.
-* ``log``: contains log data for each execution. After the learning process has started, for each step t performed by the RL agent, ``log_<date>.log`` is updated with information about the current state s<sub>t</sub>, the performed action a<sub>t</sub>, the new state s<sub>t+1</sub> and the reward r<sub>t+1</sub>.
+* ``output_Q_parameters``: contains data collected before and after the learning process. Before the process starts, all values for the configurable parameters are saved into file ``output_parameters_<date>_<thread_id>.csv``: information about the path to learn, the optimal policy, the chosen algorithm, the number of episodes, the values of α, γ, λ and ε. If one wants to reproduce an execution of the learning process, all the parameters saved inside this file allow for repeating the learning process using the exact same configuration. Then, at the end of each episode, the Q matrix is written and updated inside a file ``output_Q_<date>_<thread_id>.csv``. The E matrix, if required by the chosen RL algorithm, is written into ``output_E_<date>_<thread_id>.csv``.
+* ``output_csv``: contains ``output_<algorithm>_<date>_<thread_id>.csv`` and ``partial_output_<algorithm>_<date>_<thread_id>.csv`` files. The first file contains, for each episode, the obtained reward, the number of time steps and the cumulative reward. The latter contains the same values obtained while stopping the learning process at a certain episode and following the best policy found until that episode. ``partial_output_<algorithm>_<date>_<thread_id>.csv`` files are present only if a proper flag is activated inside the ``learning_yeelight.py`` script, specifying the number of episodes at which the learning process should be stopped.
+* ``log``: contains log data for each execution. After the learning process has started, for each step t performed by the RL agent, ``log_<date>_<thread_id>.log`` is updated with information about the current state s<sub>t</sub>, the performed action a<sub>t</sub>, the new state s<sub>t+1</sub> and the reward r<sub>t+1</sub>.
 * ``log_dates.log``: file saving the id of each execution. It can be used to collect all ids for all executions and use them inside the Plotter module.
 
 ### Workflow
@@ -147,9 +145,9 @@ The complete workflow is modelled in the following way:
 
 Here there is an in-depth description of the previous figure:
 
-1.  Normally, the framework starts through the ``__main__.py`` script, that first activates the Discoverer. Before starting, the ``config.py`` file provides all necessary information to configure the framework: some general information about the root directory in which saving output files, the state-machine, the goal that the RL agent should learn, all values of parameters for the chosen RL algorithm. Possible paths arbitrarily defined for the Yeelight protocol are shown inside the ``images`` directory.
+1.  The framework starts through the ``__main__.py`` script, that first activates the Discoverer. Before starting, the ``config.py`` file provides all necessary information to configure the framework: some general information about the root directory in which saving output files, the state-machine, the goal that the RL agent should learn, all values of parameters for the chosen RL algorithm. Possible paths arbitrarily defined for the Yeelight protocol are shown inside the ``images`` directory.
 2. The Discoverer analyzes the local network and returns to the main script all Discovery Reports describing found IoT devices of 2 protocols: Yeelight and Shelly. *Support for multiple protocols needs to be done.*
-3. The main script receives these reports and generates a thread running the Learning module, passing to it the Discovery Report for 1 single Yeelight device found inside the LAN. *Support for concurrent threads is work in progress.*
+3. The main script receives these reports and generates multiple threads running the Learning module, passing to each of them the Discovery Report for 1 distinct Yeelight device found inside the LAN.
 4. The Learning module is the RL agent, iterating over episodes. 
 	1. It receives multiple parameters as input from the ``config.py`` file: the chosen RL algorithm, values of ε, α, γ and λ if needed, total number of episodes, etc. Also some flags are present to decide whether after the learning process the user wants to directly plot some results, or wants to run the RL agent following the best policy found, using respectively the Plotter module or the Run Policy Found script.
 	2. During each episode, the agent asks for commands to the Request Builder, which accesses data of the Yeelight Dictionary and returns a JSON string with the built command requested by the agent. This string can be sent to the Yeelight device.
@@ -162,8 +160,6 @@ Here there is an in-depth description of the previous figure:
 Generated output files can then be used by the **Run Policy Found** script, which retrieves data from these files and follows the best policy found, through the Q-matrix. While following the policy, the script retrieves complete commands from the Dictionary module and sends them to the Yeelight device passing through the API Yeelight script.
 Also, output files can be used by the **Plotter** module to present graphically the results obtained in the learning process.
 
-
-**Note**: for now the Learning process for Yeelight can also be executed directly, without using the main script. When this is the case, the Learning module performs a Yeelight specific discovery phase, accessing methods inside the API Yeelight script specific for this purpose. After information about Yeelight devices are retrieved, the Learning process works exactly as explained previously. *This feature will be removed soon.*
 
 ### Plots (screenshots)
 
@@ -188,7 +184,7 @@ Since a lot of different plots can be generated, here there is a quick explanati
 
 **Note**:
 
-- all scripts use arrays of dates in format ``%Y_%m_%d_%H_%M_%S`` to identify executions of RL algorithms. 
+- all scripts use arrays of dates in format ``%Y_%m_%d_%H_%M_%S_<thread_id>`` to identify executions of RL algorithms. 
 - most of the scripts save plots inside subdirectories of the Plot directory. The target directory can be manually chosen inside each script.
 
 
