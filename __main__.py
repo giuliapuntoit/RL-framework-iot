@@ -16,7 +16,7 @@ if __name__ == '__main__':
     # https://stackoverflow.com/questions/19369724/the-right-way-to-limit-maximum-number-of-threads-running-at-once
 
     th = []
-    print("\nSTART LEARNING PROCESS")
+    print("\nSTART FRAMEWORK EXECUTION")
     cnt = 0
     for dev in devices:
         # Learning: starting the learning process
@@ -34,14 +34,17 @@ if __name__ == '__main__':
             # TODO pass for now
             pass
 
-    print("STARTING THREADS")
-    for t in th:
-        t.start()
+    if len(th) > 0:
+        print("STARTING THREADS")
+        for t in th:
+            t.start()
 
-    for t in th:
-        t.join()
-    print("JOINED THREADS")
-    print("FINISH LEARNING PROCESS")
+        for t in th:
+            t.join()
+        print("JOINED THREADS")
+    else:
+        print("No suitable device found.")
+    print("FINISH FRAMEWORK EXECUTION")
 
 
 # TODO qui dovrei poter scegliere tra runnare solo il run o anche il learning, se runnare il run mettere una data

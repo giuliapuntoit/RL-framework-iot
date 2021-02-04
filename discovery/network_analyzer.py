@@ -18,10 +18,10 @@ def analyze_lan():
     # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
 
-    ip_to_scan = "192.168.43.0/24"  # you may want to change this last number if no devices are found
+    ip_to_scan = "192.168.207.0/24"  # you may want to change this last number if no devices are found
     print("START SCANNING LAN", ip_to_scan)
     print("This operation may take a while...")
-    scan_range = scanner.scan(hosts=ip_to_scan, arguments='-sL')
+    scan_range = scanner.scan(hosts=ip_to_scan, arguments='-Pn')
 
     # print(scan_range['scan'])
 
@@ -49,10 +49,12 @@ def analyze_lan():
     pp = pprint.PrettyPrinter(indent=4)
     if len(devices) == 0:
         print("No found devices.\nPlease be sure devices are connected to LAN with an IP address in", ip_to_scan)
-        print("If not you can change the range of IPs.")
-    print("FINISH SCANNING LAN\nALL IOT DEVICES:")
-    for dev in devices:
-        pp.pprint(dev.__dict__)
+        print("If not, you can change the range of IPs.")
+
+    else:
+        print("FINISH SCANNING LAN\nALL IOT DEVICES:")
+        for dev in devices:
+            pp.pprint(dev.__dict__)
     return devices
 
     # Scan ports:

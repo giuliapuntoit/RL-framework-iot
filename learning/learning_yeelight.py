@@ -595,10 +595,6 @@ class ReinforcementLearningAlgorithm(object):
 
 def main(discovery_report=None):
     format_console_output()
-    pp = pprint.PrettyPrinter(indent=4)
-    logging.info("Received discovery report:")
-    logging.info(pp.pprint(discovery_report.__dict__))
-
     if FrameworkConfiguration.DEBUG:
         logging.debug(str(FrameworkConfiguration().as_dict()))
 
@@ -607,6 +603,9 @@ def main(discovery_report=None):
         logging.error("Please run this framework from the main script.")
         exit(-1)
     elif discovery_report['ip']:
+        pp = pprint.PrettyPrinter(indent=4)
+        logging.info("Received discovery report:")
+        logging.info(pp.pprint(discovery_report.__dict__))
         logging.info("Discovery report found at " + discovery_report['ip'])
         logging.info("Waiting...")
         sleep(5)

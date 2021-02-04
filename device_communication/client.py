@@ -3,7 +3,7 @@
     Each method receives needed parameters and the target protocol
 """
 
-import api_yeelight
+from device_communication import api_yeelight
 
 
 # TODO does it work the return function?

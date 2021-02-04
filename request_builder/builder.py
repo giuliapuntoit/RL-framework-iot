@@ -3,7 +3,7 @@
     Each method receives needed parameters and the target protocol
 """
 
-import builder_yeelight
+from request_builder import builder_yeelight
 
 
 def get_all_properties(protocol):
