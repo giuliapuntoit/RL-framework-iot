@@ -192,7 +192,7 @@ Since a lot of different plots can be generated, here there is a quick explanati
 
 A short demo of the working of the Learning process, showed through the console and an animated plot can be seen in [demo](https://drive.google.com/file/d/1vNQbgy6AtDedNQ9U6nRPkNA36Z8X2tYQ/view?usp=sharing).
 
-Recall that this demo was done using the previously described ``plot_animation.py``script, in order to create an animated plot.
+Recall that this demo was done using the previously described ``plot_animation.py`` script, in order to create an animated plot.
 
 
 ## Tests

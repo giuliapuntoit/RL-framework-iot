@@ -21,7 +21,7 @@ def analyze_lan():
     ip_to_scan = "192.168.207.0/24"  # you may want to change this last number if no devices are found
     print("START SCANNING LAN", ip_to_scan)
     print("This operation may take a while...")
-    scan_range = scanner.scan(hosts=ip_to_scan, arguments='-Pn')
+    scan_range = scanner.scan(hosts=ip_to_scan, arguments='-sL')
 
     # print(scan_range['scan'])
 
