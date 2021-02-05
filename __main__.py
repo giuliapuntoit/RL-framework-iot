@@ -22,6 +22,7 @@ if __name__ == '__main__':
         # Learning: starting the learning process
         # Should launch a thread for each device, with a maximum number of threads available
         # Until now, this is done only for yeelight devices
+
         if dev.protocol == "yeelight":
             FrameworkConfiguration.directory = "./"
             if cnt <= FrameworkConfiguration.max_threads:

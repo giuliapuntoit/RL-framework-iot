@@ -2,11 +2,24 @@
     Script for analyzing LAN to find IoT devices
 """
 
+import pickle
 import pprint
 import nmap
 import ipaddress
 import time
 from discovery.discovery_report import DiscoveryReport
+
+
+def save_report_to_file(report, filename):
+    # TODO write or append???
+    with open(filename, 'wb') as report_file:
+        pickle.dump(report, report_file)
+
+
+def load_report_to_file(filename):
+    with open(filename, 'rb') as report_file:
+        report = pickle.load(report_file)
+        return report
 
 
 def analyze_lan():
@@ -18,7 +31,7 @@ def analyze_lan():
     # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
 
-    ip_to_scan = "192.168.207.0/24"  # you may want to change this last number if no devices are found
+    ip_to_scan = "192.168.1.0/24"  # you may want to change this last number if no devices are found
     print("START SCANNING LAN", ip_to_scan)
     print("This operation may take a while...")
     scan_range = scanner.scan(hosts=ip_to_scan, arguments='-sL')
@@ -40,6 +53,7 @@ def analyze_lan():
             print("\tDEVICE: Found yeelight at", target_yeelight)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_yeelight], protocol="yeelight",
                                            timestamp=time.time(), ip=target_yeelight, port=yeelight_port))
+
         elif "shelly" in hostname:
             target_shelly = str(ip)
             print("\tDEVICE: Found shelly at", target_shelly)
@@ -53,8 +67,11 @@ def analyze_lan():
 
     else:
         print("FINISH SCANNING LAN\nALL IOT DEVICES:")
+        cnt = 0
         for dev in devices:
             pp.pprint(dev.__dict__)
+            save_report_to_file(dev, "reports" + str(cnt) + ".dictionary")
+            cnt += 1
     return devices
 
     # Scan ports:

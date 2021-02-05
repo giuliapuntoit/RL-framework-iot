@@ -603,9 +603,9 @@ def main(discovery_report=None):
         logging.error("Please run this framework from the main script.")
         exit(-1)
     elif discovery_report['ip']:
-        pp = pprint.PrettyPrinter(indent=4)
         logging.info("Received discovery report:")
-        logging.info(pp.pprint(discovery_report.__dict__))
+        print(discovery_report.__dict__)
+        logging.info(str(discovery_report.as_dict()))
         logging.info("Discovery report found at " + discovery_report['ip'])
         logging.info("Waiting...")
         sleep(5)
