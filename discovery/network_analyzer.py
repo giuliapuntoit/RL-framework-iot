@@ -11,7 +11,7 @@ from discovery.discovery_report import DiscoveryReport
 
 
 def save_report_to_file(report, filename):
-    # TODO write or append???
+    # TODO write or append?
     with open(filename, 'wb') as report_file:
         pickle.dump(report, report_file)
 
@@ -27,6 +27,8 @@ def analyze_lan():
     Found IoT Shelly and Yeelight devices and creates 1 Discovery Report for each IoT device
     :return: list of Discovery Reports
     """
+
+    return []
 
     # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
@@ -48,7 +50,7 @@ def analyze_lan():
     # Look for Yeelight and Shelly devices
     for ip in ipaddress.IPv4Network(ip_to_scan):
         hostname = scan_range['scan'][str(ip)]['hostnames'][0]['name']
-        if "yeelink" in hostname or "yeelight" in hostname:
+        if "yeelink" in hostname or "yeelight" in hostname or "Host-" in hostname:
             target_yeelight = str(ip)
             print("\tDEVICE: Found yeelight at", target_yeelight)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_yeelight], protocol="yeelight",

@@ -32,6 +32,7 @@ class FrameworkConfiguration(object):
     follow_partial_policy = False
     follow_policy_every_tot_episodes = 5
     use_colored_output = False  # Using colored output may delay the write operation on console
+    # Put True to use_colored_output flag ONLY IF DEBUG=False
 
     # General info
     seconds_to_wait = 4.0

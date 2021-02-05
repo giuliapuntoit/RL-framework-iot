@@ -6,7 +6,7 @@ from threading import Thread
 from config import FrameworkConfiguration
 from discovery import network_analyzer
 from learning import learning_yeelight
-
+from discovery.network_analyzer import load_report_to_file
 
 if __name__ == '__main__':
     # Discovery: find devices in the local network
@@ -18,6 +18,14 @@ if __name__ == '__main__':
     th = []
     print("\nSTART FRAMEWORK EXECUTION")
     cnt = 0
+
+    if len(devices) == 0:
+        print("No device found. Try to use a previously detected device.")
+        discovery_report = load_report_to_file("reports1.dictionary").as_dict()
+        tmp_th = Thread(target=learning_yeelight.main, args=(discovery_report,))
+        cnt += 1
+        th.append(tmp_th)
+
     for dev in devices:
         # Learning: starting the learning process
         # Should launch a thread for each device, with a maximum number of threads available
@@ -28,8 +36,6 @@ if __name__ == '__main__':
             if cnt <= FrameworkConfiguration.max_threads:
                 tmp_th = Thread(target=learning_yeelight.main, args=(dev.as_dict(), ))
                 cnt += 1
-                # tmp_th.start()
-                # tmp_th.join()  # Useless this thread for now
                 th.append(tmp_th)
         elif dev.protocol == "shelly":
             # TODO pass for now

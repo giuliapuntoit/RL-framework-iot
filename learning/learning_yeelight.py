@@ -17,7 +17,7 @@ from time import sleep
 import logging
 import sys
 
-from colorizer_for_output import ColorHandler
+from formatter_for_output import format_console_output
 from plotter.plot_output_data import PlotOutputData
 from learning.run_output_Q_parameters import RunOutputQParameters
 from request_builder.builder import build_command
@@ -26,25 +26,6 @@ from state_machine.state_machine_yeelight import compute_reward_from_states, com
     get_optimal_policy, get_optimal_path
 
 from config import FrameworkConfiguration
-
-
-def format_console_output():
-    """
-    Format console with a common format and if selected with a colored output
-    """
-    # TODO check colored output works with basic config
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-    logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-    logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format='[%(levelname)s] (%(threadName)s) %(message)s', )
-    # Set colored output for console
-    if FrameworkConfiguration.use_colored_output:
-        LOG = logging.getLogger()
-        LOG.setLevel(logging.DEBUG)
-        for handler in LOG.handlers:
-            LOG.removeHandler(handler)
-        LOG.addHandler(ColorHandler())
-    # TODO i could remove level name!
 
 
 class ReinforcementLearningAlgorithm(object):
@@ -385,8 +366,8 @@ class ReinforcementLearningAlgorithm(object):
         if self.use_old_matrix:
             # Retrieve from output_Q_data.csv an old matrix for "transfer learning"
             Q = self.retrieve_old_q_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, Q)
-        if FrameworkConfiguration.DEBUG:
-            logging.debug(Q)
+        # if FrameworkConfiguration.DEBUG:
+        #     logging.debug(Q)
         E = []
         if self.algorithm == 'sarsa_lambda' or self.algorithm == 'qlearning_lambda':
             # Initializing the E-matrix
@@ -397,8 +378,8 @@ class ReinforcementLearningAlgorithm(object):
                 # Check the format of the matrix is correct
                 # TODO or should I start always from an empty E matrix?
                 E = self.retrieve_old_e_matrix(output_dir, q_params_dir, len(states), self.num_actions_to_use, E)
-            if FrameworkConfiguration.DEBUG:
-                logging.debug(E)
+            # if FrameworkConfiguration.DEBUG:
+            #     logging.debug(E)
 
         start_time = time.time()
 
@@ -595,22 +576,22 @@ class ReinforcementLearningAlgorithm(object):
 
 def main(discovery_report=None):
     format_console_output()
-    if FrameworkConfiguration.DEBUG:
-        logging.debug(str(FrameworkConfiguration().as_dict()))
+    # if FrameworkConfiguration.DEBUG:
+    #     logging.debug(str(FrameworkConfiguration().as_dict()))
 
     if discovery_report is None:
         logging.error("No discovery report found.")
         logging.error("Please run this framework from the main script.")
         exit(-1)
     elif discovery_report['ip']:
-        logging.info("Received discovery report:")
-        print(discovery_report.__dict__)
-        logging.info(str(discovery_report.as_dict()))
+        if FrameworkConfiguration.DEBUG:
+            logging.debug("Received discovery report:")
+            logging.debug(str(discovery_report))
         logging.info("Discovery report found at " + discovery_report['ip'])
         logging.info("Waiting...")
         sleep(5)
 
-        logging.info("\n####### Starting RL algorithm path " + str(FrameworkConfiguration.path) + " #######")
+        logging.info("####### Starting RL algorithm path " + str(FrameworkConfiguration.path) + " #######")
         logging.info("ALGORITHM " + FrameworkConfiguration.algorithm
                      + " - PATH " + str(FrameworkConfiguration.path)
                      + " - EPS " + str(FrameworkConfiguration.epsilon)

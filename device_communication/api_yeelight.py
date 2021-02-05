@@ -8,9 +8,12 @@ import sys
 from time import sleep
 import socket
 import re
+import logging
 
 from config import FrameworkConfiguration
+from formatter_for_output import format_console_output
 
+logger = logging.getLogger(__name__)
 
 # def send_search_broadcast():
 #     """
@@ -129,21 +132,21 @@ def handle_response(data):
     if 'id' in json_received and json_received['id'] == FrameworkConfiguration.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: result ->", json_received['result'])
+                logging.debug("\t\t\tRESPONSE: result -> " + str(json_received['result']))
             reward_from_response = 0
         elif 'error' in json_received and json_received['error'] is not None:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: error ->", json_received['error'])
+                logging.debug("\t\t\tRESPONSE: error -> " + str(json_received['error']))
             reward_from_response = -10
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
         else:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
+                logging.debug("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
             reward_from_response = -20
     else:
         if FrameworkConfiguration.DEBUG:
-            print("\t\t\tRESPONSE: Bad format response")
+            logging.debug("\t\t\tRESPONSE: Bad format response")
         reward_from_response = -20
     return reward_from_response
 
@@ -153,24 +156,23 @@ def handle_response_no_reward(data):
     Handle the response given by the bulb, when returning a reward is not required
     """
     json_received = json.loads(data.decode().replace("\r", "").replace("\n", ""))
-
     if 'id' in json_received and json_received['id'] == FrameworkConfiguration.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: result ->", json_received['result'])
+                logging.debug("\t\t\tRESPONSE: result -> " + str(json_received['result']))
             pass
         elif 'error' in json_received and json_received['error'] is not None:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: error ->", json_received['error'])
+                logging.debug("\t\t\tRESPONSE: error -> " + str(json_received['error']))
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
         else:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
+                logging.debug("\t\t\tRESPONSE: No \'result\' or \'error\' found in answer")
             pass
     else:
         if FrameworkConfiguration.DEBUG:
-            print("\t\t\tRESPONSE: Bad format response")
+            logging.debug("\t\t\tRESPONSE: Bad format response")
         pass
 
 
@@ -182,21 +184,21 @@ def handle_response_props(data):
     if 'id' in json_received and json_received['id'] == FrameworkConfiguration.current_command_id:
         if 'result' in json_received and json_received['result'] is not None:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: result ->", json_received['result'])
+                logging.debug("\t\t\tRESPONSE: result -> " + str(json_received['result']))
             return json_received['result']  # List of values for properties
         elif 'error' in json_received and json_received['error'] is not None:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: error ->", json_received['error'])
+                logging.debug("\t\t\tRESPONSE: error -> " + str(json_received['error']))
             if 'message' in json_received['error'] and json_received['error']['message'] == 'client quota exceeded':
                 sleep(60)
             return json_received['error']
         else:
             if FrameworkConfiguration.DEBUG:
-                print("\t\t\tRESPONSE: No result or error found in answer")
+                logging.debug("\t\t\tRESPONSE: No result or error found in answer")
             pass
     else:
         if FrameworkConfiguration.DEBUG:
-            print("\t\t\tRESPONSE: Bad format response")
+            logging.debug("\t\t\tRESPONSE: Bad format response")
         pass
     # If any error was found in the response or there is no response an empty array is returned
     return []
@@ -251,7 +253,7 @@ def operate_on_bulb(method, params, discovery_report):
         tcp_socket.close()
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
-            print("\t\t\tUnexpected error:", e)
+            logging.debug("\t\t\tUnexpected error:", e)
         pass
 
 
@@ -261,7 +263,7 @@ def operate_on_bulb_props(json_string, discovery_report):
     :return Return the property values of the current state of the bulb
     """
     if FrameworkConfiguration.DEBUG:
-        print("\t\tREQUEST FOR PROPS:", json_string)
+        logging.debug("\t\tREQUEST FOR PROPS: " + json_string)
 
     bulb_ip = discovery_report['ip']
     port = discovery_report['port']
@@ -278,7 +280,7 @@ def operate_on_bulb_props(json_string, discovery_report):
         return props
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
-            print("\t\t\tUnexpected error:", e)
+            logging.debug("\t\t\tUnexpected error:", e)
         return []
 
 
@@ -289,7 +291,6 @@ def operate_on_bulb_json(json_string, discovery_report):
     Input json_string: command already formatted inside a json
     :return: Return the reward returned by the response given to this sent command
     """
-
     bulb_ip = discovery_report['ip']
     port = discovery_report['port']
     try:
@@ -305,5 +306,5 @@ def operate_on_bulb_json(json_string, discovery_report):
         return reward_from_response
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
-            print("\t\t\tUnexpected error:", e)
+            logging.debug("\t\t\tUnexpected error:", e)
         return -20
