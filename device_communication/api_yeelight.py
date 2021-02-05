@@ -253,7 +253,7 @@ def operate_on_bulb(method, params, discovery_report):
         tcp_socket.close()
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
-            logging.debug("\t\t\tUnexpected error:", e)
+            logging.debug("\t\t\tUnexpected error:" + str(e))
         pass
 
 
@@ -280,7 +280,7 @@ def operate_on_bulb_props(json_string, discovery_report):
         return props
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
-            logging.debug("\t\t\tUnexpected error:", e)
+            logging.debug("\t\t\tUnexpected error:" + str(e))
         return []
 
 
@@ -306,5 +306,5 @@ def operate_on_bulb_json(json_string, discovery_report):
         return reward_from_response
     except Exception as e:
         if FrameworkConfiguration.DEBUG:
-            logging.debug("\t\t\tUnexpected error:", e)
+            logging.debug("\t\t\tUnexpected error:" + str(e))
         return -20

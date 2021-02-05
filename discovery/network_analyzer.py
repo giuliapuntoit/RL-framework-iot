@@ -28,8 +28,6 @@ def analyze_lan():
     :return: list of Discovery Reports
     """
 
-    return []
-
     # Instantiate a PortScanner object
     scanner = nmap.PortScanner()
 
@@ -50,7 +48,7 @@ def analyze_lan():
     # Look for Yeelight and Shelly devices
     for ip in ipaddress.IPv4Network(ip_to_scan):
         hostname = scan_range['scan'][str(ip)]['hostnames'][0]['name']
-        if "yeelink" in hostname or "yeelight" in hostname or "Host-" in hostname:
+        if "yeelink" in hostname or "yeelight" in hostname:  # or "Host-" in hostname:
             target_yeelight = str(ip)
             print("\tDEVICE: Found yeelight at", target_yeelight)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_yeelight], protocol="yeelight",

@@ -1,6 +1,7 @@
 """
     Script to define all information about state-machines, defined states, paths and reward definition
 """
+import logging
 
 from device_communication.client import operate_on_bulb_props
 from config import FrameworkConfiguration
@@ -96,7 +97,7 @@ def compute_next_state_from_props(path, current_state, old_props_values, discove
 
     if not props_values or len(props_values) < 7:
         if FrameworkConfiguration.DEBUG:
-            print("\t\tSomething went wrong from get_prop: keeping the current state")
+            logging.warning("\t\tSomething went wrong from get_prop: keeping the current state")
         return current_state, old_props_values
 
     sleep(0.5)
