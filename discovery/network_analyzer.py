@@ -11,7 +11,6 @@ from discovery.discovery_report import DiscoveryReport
 
 
 def save_report_to_file(report, filename):
-    # TODO write or append?
     with open(filename, 'wb') as report_file:
         pickle.dump(report, report_file)
 
