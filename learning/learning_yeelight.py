@@ -441,7 +441,7 @@ class ReinforcementLearningAlgorithm(object):
                                                                                      self.storage_reward)
                 tmp_reward = -1 + reward_from_response + reward_from_states  # -1 for using a command more
                 if FrameworkConfiguration.use_colored_output:
-                    LOG = logging.getLogger()  # TODO does it work?
+                    LOG = logging.getLogger()
                     if tmp_reward >= 0:
                         LOG.debug("\t\tREWARD: " + str(tmp_reward))
                     else:
@@ -603,8 +603,3 @@ def main(discovery_report=None):
 
 if __name__ == '__main__':
     main()
-
-# TODO check all runs and see if all prints respect the format (print errors with file matrixes and so on)
-# TODO remove duplicated code if present
-# TODO poi fai un check di tutto
-# TODO poi fai un check di tutti i warnings

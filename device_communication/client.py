@@ -6,7 +6,6 @@
 from device_communication import api_yeelight
 
 
-# TODO does it work the return function?
 def operate_on_bulb(method, params, discovery_report, protocol):
     if protocol == "yeelight":
         return api_yeelight.operate_on_bulb(method, params, discovery_report)
