@@ -4,7 +4,7 @@
 
 
 class FrameworkConfiguration(object):
-    # should be unique and unmodifiable for and by all threads
+    # This object should be unique and unmodifiable for and by all threads
 
     # General
     max_threads = 3
@@ -17,7 +17,7 @@ class FrameworkConfiguration(object):
     algorithm = 'qlearning'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
     epsilon = 0.6
     total_episodes = 5
-    max_steps = 10
+    max_steps = 100
     alpha = 0.05
     gamma = 0.95
     lam = 0.9
