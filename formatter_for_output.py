@@ -5,6 +5,25 @@
 import logging
 import sys
 
+from config import FrameworkConfiguration
+
+
+def format_console_output():
+    """
+    Format console with a common format and if selected with a colored output
+    """
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='[%(levelname)s]\t(%(threadName)s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format='[%(levelname)s]\t(%(threadName)s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(levelname)s]\t(%(threadName)s) %(message)s', )
+    logging.basicConfig(stream=sys.stdout, level=logging.WARNING, format='[%(levelname)s]\t(%(threadName)s) %(message)s', )
+    # Set colored output for console
+    if FrameworkConfiguration.use_colored_output and FrameworkConfiguration.DEBUG is False:
+        LOG = logging.getLogger()
+        LOG.setLevel(logging.DEBUG)
+        for handler in LOG.handlers:
+            LOG.removeHandler(handler)
+        LOG.addHandler(ColorHandler())
+
 
 class _AnsiColorizer(object):
     """

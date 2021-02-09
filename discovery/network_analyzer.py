@@ -2,11 +2,23 @@
     Script for analyzing LAN to find IoT devices
 """
 
+import pickle
 import pprint
 import nmap
 import ipaddress
 import time
 from discovery.discovery_report import DiscoveryReport
+
+
+def save_report_to_file(report, filename):
+    with open(filename, 'wb') as report_file:
+        pickle.dump(report, report_file)
+
+
+def load_report_to_file(filename):
+    with open(filename, 'rb') as report_file:
+        report = pickle.load(report_file)
+        return report
 
 
 def analyze_lan():
@@ -26,7 +38,8 @@ def analyze_lan():
     # print(scan_range['scan'])
 
     # I am assuming I already know protocol ports
-    yeelight_port = 1982
+    # yeelight_port = 1982
+    yeelight_port = 55443
     shelly_port = 80
 
     devices = []
@@ -39,6 +52,7 @@ def analyze_lan():
             print("\tDEVICE: Found yeelight at", target_yeelight)
             devices.append(DiscoveryReport(result=scan_range['scan'][target_yeelight], protocol="yeelight",
                                            timestamp=time.time(), ip=target_yeelight, port=yeelight_port))
+
         elif "shelly" in hostname:
             target_shelly = str(ip)
             print("\tDEVICE: Found shelly at", target_shelly)
@@ -48,10 +62,15 @@ def analyze_lan():
     pp = pprint.PrettyPrinter(indent=4)
     if len(devices) == 0:
         print("No found devices.\nPlease be sure devices are connected to LAN with an IP address in", ip_to_scan)
-        print("If not you can change the range of IPs.")
-    print("FINISH SCANNING LAN\nALL IOT DEVICES:")
-    for dev in devices:
-        pp.pprint(dev.__dict__)
+        print("If not, you can change the range of IPs.")
+
+    else:
+        print("FINISH SCANNING LAN\nALL IOT DEVICES:")
+        cnt = 0
+        for dev in devices:
+            pp.pprint(dev.__dict__)
+            save_report_to_file(dev, "reports" + str(cnt) + ".dictionary")
+            cnt += 1
     return devices
 
     # Scan ports:
