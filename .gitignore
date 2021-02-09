@@ -11,3 +11,4 @@ plot/
 plotter/date_for_graphs.py
 plotter/*.png
 *.dictionary
+*.zip
