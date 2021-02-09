@@ -1,6 +1,7 @@
 """
     Class to follow the best policy found by a learning process
 """
+import logging
 
 import numpy as np
 import csv
@@ -15,7 +16,8 @@ from config import FrameworkConfiguration
 # Identify which RL algorithm was used and use it
 
 from device_communication.client import operate_on_bulb, operate_on_bulb_json
-from discovery import network_analyzer
+from discovery import network_analyzer, yeelight_analyzer
+from formatter_for_output import format_console_output
 from plotter.support_plotter import read_parameters_from_output_file
 from state_machine.state_machine_yeelight import compute_reward_from_states, compute_next_state_from_props
 from request_builder.builder import build_command
@@ -28,7 +30,7 @@ class RunOutputQParameters(object):
         if date_to_retrieve != 'YY_mm_dd_HH_MM_SS':
             self.date_to_retrieve = date_to_retrieve  # Date must be in format %Y_%m_%d_%H_%M_%S
         else:
-            print("Invalid date")
+            logging.error("Invalid date")
             exit(1)
         self.storage_reward = 0
 
@@ -59,18 +61,18 @@ class RunOutputQParameters(object):
             Q = tmp_matrix[1:, 1:]
 
         except Exception as e:
-            print("Wrong file format:", e)
+            logging.error("Wrong file format:" + str(e))
             exit(1)
 
         np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
         if self.show_retrieved_info:
-            print("STATES:\n\t", states)
-            print("ACTIONS:\n\t", actions)
-            print("Q MATRIX:")
-            print(Q)
+            logging.info("STATES:\t" + str(states))
+            logging.info("ACTIONS:\t" + str(actions))
+            logging.info("Q MATRIX:")
+            logging.info(Q)
 
         if len(states) != len(Q) or len(actions) != len(Q[0]) or np.isnan(np.sum(Q)):
-            print("Wrong file format: wrong Q dimensions or nan values present")
+            logging.error("Wrong file format: wrong Q dimensions or nan values present")
             exit(2)
 
         with open(directory + '/' + file_parameters, 'r') as csv_file:
@@ -78,10 +80,10 @@ class RunOutputQParameters(object):
             parameters = {rows[0].strip(): rows[1].strip() for rows in reader}
 
         if self.show_retrieved_info:
-            print("USED PARAMETERS:\n\t", parameters)  # For now the are all strings
+            logging.info("USED PARAMETERS:\t" + str(parameters))  # For now the are all strings
 
         if parameters['num_actions_to_use'] is not None and len(actions) != int(parameters['num_actions_to_use']):
-            print("Different number of actions used")
+            logging.error("Different number of actions used")
             exit(3)
 
         if parameters['algorithm_used'] == 'sarsa_lambda' or parameters['algorithm_used'] == 'qlearning_lambda':
@@ -95,23 +97,23 @@ class RunOutputQParameters(object):
                 E = tmp_matrix[1:, 1:]
 
                 if len(states) != len(E) or len(actions) != len(E[0]) or np.isnan(np.sum(E)):
-                    print("Wrong file format: wrong E dimensions or nan values present")
+                    logging.error("Wrong file format: wrong E dimensions or nan values present")
                     exit(4)
 
             except Exception as e:
-                print("Wrong file format:", e)
+                logging.error("Wrong file format:" + str(e))
                 exit(5)
 
             if self.show_retrieved_info:
-                print("E MATRIX:")
-                print(E)
+                logging.info("E MATRIX:")
+                logging.info(E)
 
         optimal_policy = parameters['optimal_policy'].split('-')  # Split policy string and save it into a list
         seconds_to_wait = float(parameters['seconds_to_wait'])
 
         if self.show_retrieved_info:
-            print("RL ALGORITHM:\n\t", parameters['algorithm_used'])
-            print("POSSIBLE OPTIMAL POLICY:\n\t", optimal_policy)
+            logging.info("RL ALGORITHM:\t " + str(parameters['algorithm_used']))
+            logging.info("POSSIBLE OPTIMAL POLICY:\t " + str(optimal_policy))
 
         # time start
         start_time = time.time()
@@ -120,13 +122,15 @@ class RunOutputQParameters(object):
 
         # Follow the found best policy:
         if self.show_retrieved_info:
-            print("------------------------------------------")
-            print("FOLLOW POLICY")
-        print("\t\tREQUEST: Setting power off")
+            logging.info("------------------------------------------")
+            logging.info("FOLLOW POLICY")
+        if FrameworkConfiguration.DEBUG:
+            logging.debug("\t\tREQUEST: Setting power off")
         operate_on_bulb("set_power", str("\"off\", \"sudden\", 0"), self.discovery_report, self.discovery_report['protocol'])
         sleep(seconds_to_wait)
-        state1, old_props_values = compute_next_state_from_props(0, [], self.discovery_report, self.discovery_report['protocol'])
-        print("\tSTARTING FROM STATE", states[state1])
+        state1, old_props_values = compute_next_state_from_props(FrameworkConfiguration.path, 0, [], self.discovery_report)
+        if FrameworkConfiguration.DEBUG:
+            logging.debug("\tSTARTING FROM STATE " + str(states[state1]))
 
         t = 0
         final_policy = []
@@ -137,26 +141,28 @@ class RunOutputQParameters(object):
             final_states.append(states[state1])
             max_action = np.argmax(Q[state1, :])
             final_policy.append(max_action)
-            print("\tACTION TO PERFORM", max_action)
+            logging.info("\tACTION TO PERFORM " + str(max_action))
 
             json_string = build_command(method_chosen_index=max_action, select_all_props=False, protocol=self.discovery_report['protocol'])
-            print("\t\tREQUEST:", str(json_string))
+            if FrameworkConfiguration.DEBUG:
+                logging.debug("\t\tREQUEST: " + str(json_string))
             reward_from_response = operate_on_bulb_json(json_string, self.discovery_report, self.discovery_report['protocol'])
             sleep(seconds_to_wait)
 
-            state2, new_props_values = compute_next_state_from_props(state1, old_props_values, None)
+            state2, new_props_values = compute_next_state_from_props(FrameworkConfiguration.path, state1, old_props_values, self.discovery_report)
 
-            print("\tFROM STATE", states[state1], "TO STATE", states[state2])
+            if FrameworkConfiguration.DEBUG:
+                logging.debug("\tFROM STATE " + str(states[state1]) + " TO STATE " + str(states[state2]))
 
-            reward_from_props, self.storage_reward = compute_reward_from_states(state1, state2, self.storage_reward)
+            reward_from_props, self.storage_reward = compute_reward_from_states(FrameworkConfiguration.path, state1, state2, self.storage_reward)
 
             tmp_reward = -1 + reward_from_response + reward_from_props  # -1 for using a command more
-            print("\tTMP REWARD:", str(tmp_reward))
+            logging.info("\tTMP REWARD: " + str(tmp_reward))
             final_reward += tmp_reward
 
             if state2 == 5:
                 final_states.append(states[state2])
-                print("DONE AT TIMESTEP", t)
+                logging.info("DONE AT TIMESTEP" + str(t))
                 break
             state1 = state2
             old_props_values = new_props_values
@@ -171,51 +177,51 @@ class RunOutputQParameters(object):
                         'policy_from_run': final_policy,
                         'states_from_run': final_states, }
 
-        print("\tRESULTS:")
-        print("\t\tTotal time:", final_time)
-        print("\t\tLength final policy:", len(final_policy))
-        print("\t\tFinal policy:", final_policy)
+        logging.info("\tRESULTS:")
+        logging.info("\t\tTotal time: " + str(final_time))
+        logging.info("\t\tLength final policy: " + str(len(final_policy)))
+        logging.info("\t\tFinal policy: " + str(final_policy))
         if len(final_policy) <= len(optimal_policy) and final_reward >= 190:
-            print("\t\tOptimal policy found with reward:", final_reward)
+            logging.info("\t\tOptimal policy found with reward: " + str(final_reward))
             return True, dict_results
         else:
-            print("\t\tNot optimal policy found with reward:", final_reward)
+            logging.info("\t\tNot optimal policy found with reward: " + str(final_reward))
             return False, dict_results
 
 
 def main(discovery_report=None):
-    date_to_retrieve = "2020_10_30_02_10_16"
+    format_console_output()
+    date_to_retrieve = "2021_02_09_15_25_02_123145422917632"
     if discovery_report is None:
-        print("No discovery report found. Analyzing LAN...")
+        logging.info("No discovery report found. Analyzing LAN...")
 
         devices = network_analyzer.analyze_lan()
+        # devices = yeelight_analyzer.main()
 
         if len(devices) > 0:
-            print("Found devices")
+            logging.info("Found devices")
             for dev in devices:
                 parameters = read_parameters_from_output_file(date_to_retrieve)
                 if (parameters['protocol'] and dev.protocol == parameters['protocol']) \
                         or (not parameters['protocol'] and dev.protocol == "yeelight"):
                     # TODO Remove check after OR (just temporary, I just added the protocol inside parameters
-                    print("Waiting 5 seconds before verifying optimal policy")
+                    if FrameworkConfiguration.DEBUG:
+                        logging.debug("Waiting 5 seconds before verifying optimal policy")
                     sleep(5)
-                    RunOutputQParameters(date_to_retrieve=date_to_retrieve, discovery_report=discovery_report).run()
+                    RunOutputQParameters(date_to_retrieve=date_to_retrieve, discovery_report=dev.as_dict()).run()
 
         else:
-            print("No device found.")
+            logging.error("No device found.")
             exit(-1)
     elif discovery_report['ip']:
-        print("Discovery report found: IP", discovery_report['ip'])
+        logging.info("Discovery report found: IP" + str(discovery_report['ip']))
 
-        print("Waiting 5 seconds before verifying optimal policy")
+        logging.debug("Waiting 5 seconds before verifying optimal policy")
         sleep(5)
 
         flag, dict_res = RunOutputQParameters(date_to_retrieve=date_to_retrieve, discovery_report=discovery_report).run()
-        print(dict_res)
+        logging.info(str(dict_res))
 
 
 if __name__ == '__main__':
     main()
-
-
-# TODO questo script è da vedere se worka e da sistemare le print? O forse no?

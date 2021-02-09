@@ -17,7 +17,7 @@ class FrameworkConfiguration(object):
     algorithm = 'qlearning'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
     epsilon = 0.6
     total_episodes = 5
-    max_steps = 100
+    max_steps = 10
     alpha = 0.05
     gamma = 0.95
     lam = 0.9
@@ -38,7 +38,7 @@ class FrameworkConfiguration(object):
     seconds_to_wait = 4.0
     num_actions_to_use = 37
 
-    DEBUG = False
+    DEBUG = True
 
     def as_dict(self):
         return {'max_threads': self.max_threads,
