@@ -80,6 +80,9 @@ pip install .
 ```
 
 After installing all needed dependencies, the project can be executed directly running the ``__main__.py`` script.
+If some modules are missing, try to install them with ``pip install <module>`` command.
+
+**Note**: you need to have nmap installed in your computer to make the python-nmap package working.
 
 ### Structure
 

@@ -282,13 +282,12 @@ class ReinforcementLearningAlgorithm(object):
         elif FrameworkConfiguration.path == 4:
             # Special initial configuration for for path 4, starting to power on
             # ONLY FOR PATH 4
+            if FrameworkConfiguration.DEBUG:
+                logging.debug("\t\tREQUEST: Setting power on")
             operate_on_bulb("set_power", str("\"on\", \"sudden\", 0"), self.discovery_report,
                             self.discovery_report['protocol'])
             num_actions += 1
             sleep(self.seconds_to_wait)
-            # Turn off the lamp
-            if FrameworkConfiguration.DEBUG:
-                logging.debug("\t\tREQUEST: Setting power off")
             return num_actions
 
         # Turn off the lamp
