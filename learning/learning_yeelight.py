@@ -279,6 +279,17 @@ class ReinforcementLearningAlgorithm(object):
             operate_on_bulb("set_rgb", str("255" + ", \"sudden\", 500"), self.discovery_report, self.discovery_report['protocol'])
             num_actions += 1
             sleep(self.seconds_to_wait)
+        elif FrameworkConfiguration.path == 4:
+            # Special initial configuration for for path 4, starting to power on
+            # ONLY FOR PATH 4
+            operate_on_bulb("set_power", str("\"on\", \"sudden\", 0"), self.discovery_report,
+                            self.discovery_report['protocol'])
+            num_actions += 1
+            sleep(self.seconds_to_wait)
+            # Turn off the lamp
+            if FrameworkConfiguration.DEBUG:
+                logging.debug("\t\tREQUEST: Setting power off")
+            return num_actions
 
         # Turn off the lamp
         if FrameworkConfiguration.DEBUG:
@@ -450,7 +461,7 @@ class ReinforcementLearningAlgorithm(object):
                 else:
                     logging.info("\t\tREWARD: " + str(tmp_reward))
 
-                if state2 == 5:
+                if state2 == 5 or (state2 == 4 and FrameworkConfiguration.path == 4):
                     done = True
 
                 if self.algorithm == 'sarsa_lambda':

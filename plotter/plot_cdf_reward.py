@@ -255,6 +255,17 @@ def main():
 
     plot_cdf_path_from_dates(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
 
+    target_path = 4
+    print("PATH ", target_path)
+
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_lambda_dates
+
+    plot_cdf_path_from_dates(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+
+
 
 if __name__ == '__main__':
     main()

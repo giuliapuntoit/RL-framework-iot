@@ -188,6 +188,32 @@ def main():
 
     plot_cum_reward_per_command_multiple_algos_for_specified_path(all_cum_rewards, all_avg_commands, algos, target_path)
 
+    target_path = 4
+    print("PATH ", target_path)
+
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_lambda_dates
+
+    all_cum_rewards = []
+    all_avg_commands = []
+
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(sarsa_dates, algos[0])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(sarsa_lambda_dates, algos[1])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(qlearning_dates, algos[2])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(qlearning_lambda_dates, algos[3])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+
+    plot_cum_reward_per_command_multiple_algos_for_specified_path(all_cum_rewards, all_avg_commands, algos, target_path)
+
 
 if __name__ == '__main__':
     main()

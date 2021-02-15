@@ -411,5 +411,33 @@ def main():
     plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
 
 
+    all_avg_rew = []
+    all_avg_timesteps = []
+
+    target_path = 4
+    print("PATH ", target_path)
+
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_lambda_dates
+
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_dates, all_algo[0])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_lambda_dates, all_algo[1])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_dates, all_algo[2])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_lambda_dates, all_algo[3])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+
+    all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+    plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+
+
 if __name__ == '__main__':
     main()

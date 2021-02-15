@@ -84,6 +84,7 @@ def main():
     plot_training_time_traffic(path=1)
     plot_training_time_traffic(path=2)
     plot_training_time_traffic(path=3)
+    plot_training_time_traffic(path=4)
 
 
 if __name__ == '__main__':

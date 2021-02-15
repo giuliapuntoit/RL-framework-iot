@@ -10,16 +10,16 @@ class FrameworkConfiguration(object):
     max_threads = 3
     current_command_id = 1
     timeout = 5
-    path = 2
+    path = 4
     directory = "../"
 
     # RL params
     algorithm = 'qlearning'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
-    epsilon = 0.6
-    total_episodes = 5
+    epsilon = 0.2
+    total_episodes = 200
     max_steps = 100
-    alpha = 0.05
-    gamma = 0.95
+    alpha = 0.1
+    gamma = 0.55
     lam = 0.9
     decay_episode = 20
     decay_value = 0.001

@@ -44,7 +44,7 @@ def return_greek_letter(par):
 
 def build_output_dir_from_path(output_dir, path):
     target_output_dir = output_dir
-    if path in [1, 2, 3]:
+    if path in [1, 2, 3, 4]:
         target_output_dir = "../plot/path" + str(path) + "/"
         pathlib.Path(target_output_dir).mkdir(parents=True, exist_ok=True)  # for Python > 3.5
     return target_output_dir
