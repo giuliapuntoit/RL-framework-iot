@@ -600,15 +600,17 @@ def main(discovery_report=None):
         logging.info("Discovery report found at " + discovery_report['ip'])
         logging.info("Waiting...")
         sleep(5)
-
-        logging.info("####### Starting RL algorithm path " + str(FrameworkConfiguration.path) + " #######")
-        logging.info("ALGORITHM " + FrameworkConfiguration.algorithm
-                     + " - PATH " + str(FrameworkConfiguration.path)
-                     + " - EPS " + str(FrameworkConfiguration.epsilon)
-                     + " - ALP " + str(FrameworkConfiguration.alpha)
-                     + " - GAM " + str(FrameworkConfiguration.gamma))
-        ReinforcementLearningAlgorithm(discovery_report=discovery_report, thread_id=threading.get_ident()).run()
-        logging.info("####### Finish RL algorithm #######")
+        for i in range(10):
+            logging.info("INDEX " + str(i))
+            logging.info("####### Starting RL algorithm path " + str(FrameworkConfiguration.path) + " #######")
+            logging.info("ALGORITHM " + FrameworkConfiguration.algorithm
+                         + " - PATH " + str(FrameworkConfiguration.path)
+                         + " - EPS " + str(FrameworkConfiguration.epsilon)
+                         + " - ALP " + str(FrameworkConfiguration.alpha)
+                         + " - GAM " + str(FrameworkConfiguration.gamma))
+            ReinforcementLearningAlgorithm(discovery_report=discovery_report, thread_id=threading.get_ident()).run()
+            logging.info("####### Finish RL algorithm #######")
+            sleep(50)
 
 
 if __name__ == '__main__':

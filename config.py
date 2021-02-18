@@ -14,13 +14,13 @@ class FrameworkConfiguration(object):
     directory = "../"
 
     # RL params
-    algorithm = 'qlearning'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
+    algorithm = 'sarsa'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
     epsilon = 0.2
     total_episodes = 200
     max_steps = 100
     alpha = 0.1
-    gamma = 0.55
-    lam = 0.9
+    gamma = 0.75
+    lam = 0.5
     decay_episode = 20
     decay_value = 0.001
 

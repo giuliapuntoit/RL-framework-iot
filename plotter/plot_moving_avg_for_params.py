@@ -302,6 +302,8 @@ def main():
 
     target_dir = "../plot/robustness"  # only for robustness
     plot_graphs_for_changing_param("qlearning", "gamma", for_robustness=True)
+    plot_graphs_for_changing_param("qlearning", "alpha", for_robustness=True)
+    plot_graphs_for_changing_param("qlearning", "epsilon", for_robustness=True)
 
 
 if __name__ == '__main__':

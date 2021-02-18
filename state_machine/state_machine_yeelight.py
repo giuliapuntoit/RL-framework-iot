@@ -39,7 +39,7 @@ def get_states(path):
                   ]
     elif path == 4:
         # PATH 4 (simplest path, starts from on and finish at rgb_bright in the optimal policy)
-        states = ["1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
                   "6_invalid"]
     return states
 
@@ -255,6 +255,9 @@ def compute_next_state_from_props(path, current_state, old_props_values, discove
 
     elif path == 4:
         # PATH 4
+        if current_state == 0:  # Starting state for path 4 is state 1 instead of 0
+            next_state = 1
+            current_state = 1
         if props_values[power_index] == 'off':
             next_state = 5  # end state
         elif props_values[power_index] == 'on':
