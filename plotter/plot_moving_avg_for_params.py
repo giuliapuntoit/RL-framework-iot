@@ -8,10 +8,12 @@ import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.support_plotter import read_reward_timesteps_from_output_file, compute_avg_over_multiple_runs, \
-    return_greek_letter, read_parameters_from_output_file, build_output_dir_for_params
+    return_greek_letter, read_parameters_from_output_file, build_output_dir_for_params, get_font_family_and_size
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams['font.size'] = 20
+font_family, font_size = get_font_family_and_size()
+
+plt.rcParams["font.family"] = font_family
+plt.rcParams['font.size'] = font_size
 
 fontP = FontProperties()
 fontP.set_size('x-small')

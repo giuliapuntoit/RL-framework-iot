@@ -9,10 +9,12 @@ import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.plot_moving_avg import print_cute_algo_name
 from plotter.support_plotter import fix_hist_step_vertical_line_at_end, read_avg_reward_from_output_file, \
-    build_output_dir_from_path
+    build_output_dir_from_path, get_font_family_and_size
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams['font.size'] = 20
+font_family, font_size = get_font_family_and_size()
+
+plt.rcParams["font.family"] = font_family
+plt.rcParams['font.size'] = font_size
 
 fontP = FontProperties()
 fontP.set_size('x-small')

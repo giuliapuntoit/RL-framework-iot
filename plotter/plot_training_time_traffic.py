@@ -9,10 +9,12 @@ import matplotlib
 import matplotlib.pyplot
 import matplotlib.font_manager
 
-from plotter.support_plotter import print_cute_algo_name, build_output_dir_from_path
+from plotter.support_plotter import print_cute_algo_name, build_output_dir_from_path, get_font_family_and_size
 
-matplotlib.pyplot.rcParams["font.family"] = "Times New Roman"
-matplotlib.pyplot.rcParams['font.size'] = 20
+font_family, font_size = get_font_family_and_size()
+
+matplotlib.pyplot.rcParams["font.family"] = font_family
+matplotlib.pyplot.rcParams['font.size'] = font_size
 
 input_dir = "./tmp/"
 output_dir = "./"
@@ -53,6 +55,7 @@ def plot_training_time_traffic(path=None):
     col = ax.boxplot(times)
     ax.set_xticklabels([print_cute_algo_name(algos[0]), print_cute_algo_name(algos[1]), print_cute_algo_name(algos[2]), print_cute_algo_name(algos[3])])
     ax.set_ylabel('Time (s)')
+    matplotlib.pyplot.xticks(rotation=45)
     # ax.set_title('Training time per algorithm')
     matplotlib.pyplot.grid(True, color='gray', linestyle='dashed')
     fig.tight_layout()
@@ -62,6 +65,7 @@ def plot_training_time_traffic(path=None):
     fig, ax = matplotlib.pyplot.subplots()
     col = ax.boxplot(traffic)  # , ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
     ax.set_xticklabels(["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
+    matplotlib.pyplot.xticks(rotation=45)
     ax.set_ylabel('Number of commands sent')
     # ax.set_title('Traffic generated per algorithm')
     matplotlib.pyplot.grid(True, color='gray', linestyle='dashed')

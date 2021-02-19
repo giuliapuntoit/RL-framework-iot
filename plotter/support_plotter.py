@@ -10,6 +10,15 @@ from matplotlib import patches
 from config import FrameworkConfiguration
 
 
+def get_font_family_and_size():
+    """
+    Function to globally set and get font family and font size for plots
+    """
+    font_family = "Times New Roman"
+    font_size = 22
+    return font_family, font_size
+
+
 def print_cute_algo_name(a):
     """
     Function to return algorithm with greek letters
@@ -172,7 +181,10 @@ def read_avg_reward_from_output_file(algorithm, date_to_retrieve):
             x.append(int(row[0]))
             # TO COMPUTE OVER NUMBER OF COMMANDS
             # OTHERWISE REMOVE DIVISION BY ROW 3
-            y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
+            if float(row[3]) == 0.0:
+                y_avg_reward_for_one_episode.append(float(row[1]) / 1.0)
+            else:
+                y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
 
     return x, y_avg_reward_for_one_episode
 

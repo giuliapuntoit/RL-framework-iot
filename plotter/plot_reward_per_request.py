@@ -6,10 +6,13 @@ import matplotlib.pyplot as plt
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.plot_moving_avg import print_cute_algo_name
-from plotter.support_plotter import read_all_info_from_log, build_output_dir_from_path
+from plotter.support_plotter import read_all_info_from_log, build_output_dir_from_path, get_font_family_and_size
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams['font.size'] = 20
+font_family, font_size = get_font_family_and_size()
+
+plt.rcParams["font.family"] = font_family
+plt.rcParams['font.size'] = font_size
+
 fontP = FontProperties()
 fontP.set_size('x-small')
 n_cols = 1
