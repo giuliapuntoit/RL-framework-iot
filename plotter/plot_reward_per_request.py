@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.plot_moving_avg import print_cute_algo_name
-from plotter.support_plotter import read_all_info_from_log, build_output_dir_from_path, get_font_family_and_size
+from plotter.support_plotter import read_all_info_from_log, build_output_dir_from_path, get_font_family_and_size, \
+    get_extension
 
 font_family, font_size = get_font_family_and_size()
 
@@ -38,7 +39,7 @@ def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_g
         pl.legend(loc='upper right')
         # pl.title('Cumulative reward over commands for ' + algorithm)
         pl.grid(True)
-        plt.savefig('commands_plot_' + algorithm + '.png')
+        plt.savefig('commands_plot_' + algorithm + get_extension())
         pl.tight_layout()
         plt.show()
 
@@ -85,7 +86,7 @@ def compute_avg_reward_per_request_multiple_runs(dates, algo, show_intermediate_
         # pl.title('Cumulative reward over commands for ' + algo)
         pl.grid(True)
         pl.tight_layout()
-        plt.savefig('all_commands_' + algo + '.png')
+        plt.savefig('all_commands_' + algo + get_extension())
         plt.show()
 
     return avg_cum_reward, avg_commands
@@ -107,7 +108,7 @@ def plot_cum_reward_per_command_multiple_algos_for_specified_path(rewards, comma
     # pl.title('Cumulative reward over commands for algos')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig(target_output_dir + 'all_commands_all_algos.png')
+    plt.savefig(target_output_dir + 'all_commands_all_algos' + get_extension())
     plt.show()
 
 

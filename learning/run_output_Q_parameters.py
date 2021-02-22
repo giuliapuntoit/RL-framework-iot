@@ -162,7 +162,7 @@ class RunOutputQParameters(object):
 
             if state2 == 5:
                 final_states.append(states[state2])
-                logging.info("DONE AT TIMESTEP" + str(t))
+                logging.info("DONE AT TIMESTEP " + str(t))
                 break
             state1 = state2
             old_props_values = new_props_values

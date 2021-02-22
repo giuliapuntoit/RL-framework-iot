@@ -8,7 +8,8 @@ import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.support_plotter import read_reward_timesteps_from_output_file, compute_avg_over_multiple_runs, \
-    return_greek_letter, read_parameters_from_output_file, build_output_dir_for_params, get_font_family_and_size
+    return_greek_letter, read_parameters_from_output_file, build_output_dir_for_params, get_font_family_and_size, \
+    get_extension
 
 font_family, font_size = get_font_family_and_size()
 
@@ -104,7 +105,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     # pl.title('Moving average of reward over episodes for ' + algorithm)
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig(complete_target_dir + 'mavg_reward_params.png')
+    plt.savefig(complete_target_dir + 'mavg_reward_params' + get_extension())
     plt.show()
 
     for i in range(0, len(param_values_target)):
@@ -125,7 +126,7 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
     # pl.title('Moving average of number of steps over episodes for ' + algorithm)
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig(complete_target_dir + 'mavg_timesteps_params.png')
+    plt.savefig(complete_target_dir + 'mavg_timesteps_params' + get_extension())
     plt.show()
 
 
@@ -154,7 +155,7 @@ def plot_multiple_configuration_avg_rewards_timesteps_bars(algo, param, param_va
     # ax.set_title('Avg reward for different configurations of ' + param)
     plt.axhline(0, color='black', lw=.3)
     fig.tight_layout()
-    plt.savefig(complete_target_dir + 'avg_rewards_for_' + param + '.png')
+    plt.savefig(complete_target_dir + 'avg_rewards_for_' + param + get_extension())
     plt.show()
 
     fig, ax = plt.subplots()
@@ -172,7 +173,7 @@ def plot_multiple_configuration_avg_rewards_timesteps_bars(algo, param, param_va
     ax.set_ylabel('Avg time steps for episode')
     # ax.set_title('Avg steps for different configurations of ' + param)
     fig.tight_layout()
-    plt.savefig(complete_target_dir + 'avg_steps_for_' + param + '.png')
+    plt.savefig(complete_target_dir + 'avg_steps_for_' + param + get_extension())
     plt.show()
 
 
@@ -196,7 +197,7 @@ def boxplot_multiple_configurations_rewards_timesteps_last_episodes(algor, param
     ax.set_ylabel('Avg reward')
     ax.set_title('Avg reward in 5 runs of last 20 episodes per config of ' + param + ' for algo ' + algor)
     fig.tight_layout()
-    plt.savefig('boxplot_param_reward_last_20.png')
+    plt.savefig('boxplot_param_reward_last_20' + get_extension())
 
     fig, ax = plt.subplots()
     col = ax.boxplot(last_20_timesteps)  # , ["SARSA", "SARSA(λ)", "Q-learning", "Q(λ)"])
@@ -204,7 +205,7 @@ def boxplot_multiple_configurations_rewards_timesteps_last_episodes(algor, param
     ax.set_ylabel('Avg time steps')
     ax.set_title('Avg time steps in 5 runs of last 20 episodes per config of ' + param + ' for algo ' + algor)
     fig.tight_layout()
-    plt.savefig('boxplot_param_timestep_last_20.png')
+    plt.savefig('boxplot_param_timestep_last_20' + get_extension())
 
 
 def plot_graphs_for_changing_param(algo, changing_param, for_robustness=False):

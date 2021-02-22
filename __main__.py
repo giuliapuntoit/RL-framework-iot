@@ -12,11 +12,11 @@ if __name__ == '__main__':
     # Discovery: find devices in the local network
 
     # 2 possible ways:
-    print("Analyzing LAN using nmap")
-    devices = network_analyzer.analyze_lan()
+    # print("Analyzing LAN using nmap")
+    # devices = network_analyzer.analyze_lan()
 
-    # print("Analyzing LAN using Yeelight discovery")
-    # devices = yeelight_analyzer.main()
+    print("Analyzing LAN using Yeelight discovery")
+    devices = yeelight_analyzer.main()
 
     th = []
     print("\nSTART FRAMEWORK EXECUTION")

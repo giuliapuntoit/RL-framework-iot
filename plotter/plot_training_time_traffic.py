@@ -9,7 +9,8 @@ import matplotlib
 import matplotlib.pyplot
 import matplotlib.font_manager
 
-from plotter.support_plotter import print_cute_algo_name, build_output_dir_from_path, get_font_family_and_size
+from plotter.support_plotter import print_cute_algo_name, build_output_dir_from_path, get_font_family_and_size, \
+    get_extension
 
 font_family, font_size = get_font_family_and_size()
 
@@ -28,6 +29,8 @@ def plot_training_time_traffic(path=None):
     traffic = [[], [], [], []]
 
     starter = "0"
+    if path is not None:
+        starter = "path" + str(path)
 
     # target_output_dir is current directory if path is not defined (I used it for data before tuning)
     target_output_dir = build_output_dir_from_path(output_dir, path)
@@ -59,7 +62,7 @@ def plot_training_time_traffic(path=None):
     # ax.set_title('Training time per algorithm')
     matplotlib.pyplot.grid(True, color='gray', linestyle='dashed')
     fig.tight_layout()
-    matplotlib.pyplot.savefig(target_output_dir + 'training_times.png')
+    matplotlib.pyplot.savefig(target_output_dir + 'training_times' + get_extension())
     matplotlib.pyplot.show()
 
     fig, ax = matplotlib.pyplot.subplots()
@@ -70,7 +73,7 @@ def plot_training_time_traffic(path=None):
     # ax.set_title('Traffic generated per algorithm')
     matplotlib.pyplot.grid(True, color='gray', linestyle='dashed')
     fig.tight_layout()
-    matplotlib.pyplot.savefig(target_output_dir + 'training_traffic.png')
+    matplotlib.pyplot.savefig(target_output_dir + 'training_traffic' + get_extension())
     matplotlib.pyplot.show()
 
 
