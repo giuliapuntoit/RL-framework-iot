@@ -34,8 +34,8 @@ def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_g
 
         pl.plot(commands, cum_rewards, label=algorithm, color=colors[color_index])
 
-        pl.xlabel('Number of sent commands')
-        pl.ylabel('Cumulative reward')
+        pl.xlabel("Number of sent commands $\mathregular{n_a}$")
+        pl.ylabel("Cumulative reward $\mathregular{C(n_a)}$")
         pl.legend(loc='upper right')
         # pl.title('Cumulative reward over commands for ' + algorithm)
         pl.grid(True)
@@ -80,8 +80,8 @@ def compute_avg_reward_per_request_multiple_runs(dates, algo, show_intermediate_
         avg_commands.append(i)
 
     if show_intermediate_graphs:
-        pl.xlabel('Number of sent commands')
-        pl.ylabel('Cumulative reward')
+        pl.xlabel("Number of sent commands $\mathregular{n_a}$")
+        pl.ylabel("Cumulative reward $\mathregular{C(n_a)}$")
         pl.legend(loc='upper right')
         # pl.title('Cumulative reward over commands for ' + algo)
         pl.grid(True)
@@ -102,8 +102,8 @@ def plot_cum_reward_per_command_multiple_algos_for_specified_path(rewards, comma
     for index, al in enumerate(algorithms):
         pl.plot(commands[index], rewards[index], label=print_cute_algo_name(al))  # single line
 
-    pl.xlabel('Number of sent commands')
-    pl.ylabel('Cumulative reward')
+    pl.xlabel('Number of sent commands $\mathregular{n_a}$')
+    pl.ylabel('Cumulative reward $\mathregular{C(n_a)}$')
     pl.legend(loc='upper left', prop=fontP, ncol=n_cols)
     # pl.title('Cumulative reward over commands for algos')
     pl.grid(True, color='gray', linestyle='dashed')

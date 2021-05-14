@@ -99,8 +99,8 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
                     moving_average_rewards_target[i],
                     label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )  # remove 0 from legend, keep only decimals
 
-    pl.xlabel('Episode')
-    pl.ylabel('Final reward')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Total reward $\mathregular{R(E)}$")
     pl.legend(loc='lower right', prop=fontP, ncol=n_cols)
     # pl.title('Moving average of reward over episodes for ' + algorithm)
     pl.grid(True, color='gray', linestyle='dashed')
@@ -120,8 +120,8 @@ def plot_multiple_configuration_moving_avg(algorithm, param, param_values_target
                     moving_average_timesteps_target[i],
                     label=return_greek_letter(param) + r'$=$' + param_values_target[i].lstrip('0'), )
 
-    pl.xlabel('Episode')
-    pl.ylabel('Number of time steps')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Number of time steps $\mathregular{T(E)}$")
     pl.legend(loc='upper right', prop=fontP, ncol=n_cols)
     # pl.title('Moving average of number of steps over episodes for ' + algorithm)
     pl.grid(True, color='gray', linestyle='dashed')

@@ -108,8 +108,8 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None, partia
     pl.plot(df_final_avg_over_n_runs['x'][np.array(df_final_avg_over_n_runs['x']).shape[0] - yMA.shape[0]:], yMA, 'r',
             label=str(len(date_array)) + ' runs moving avg')  # moving avg line
 
-    pl.xlabel('Episode')
-    pl.ylabel('Final reward')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Total reward $\mathregular{R(E)}$")
     pl.legend(loc='lower right', prop=fontP, ncol=n_cols)
     # pl.title('Final reward for ' + algorithm + ' algorithm over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
@@ -127,8 +127,8 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None, partia
             yMA_timesteps, 'r',
             label=str(len(date_array)) + ' runs moving avg')  # moving avg line
 
-    pl.xlabel('Episode')
-    pl.ylabel('Number of time steps')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Number of time steps $\mathregular{T(E)}$")
     pl.legend(loc='upper right', prop=fontP, ncol=n_cols)
     # pl.title('Time steps for ' + algorithm + ' algorithm over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
@@ -153,7 +153,6 @@ def compute_single_algo_multiple_runs_global_values_for_avg_bars(date_array, alg
     # retrieve data for all dates
     for dat in date_array:
         x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(algorithm, dat)
-
         x_all.append(x)
         y_all_reward.append(y_reward)
         y_all_cum_reward.append(y_cum_reward)
@@ -182,8 +181,8 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
                 moving_average_rewards_target[i],
                 label=print_cute_algo_name(algorithms_target[i]))
 
-    pl.xlabel('Episode')
-    pl.ylabel('Final reward')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Total reward $\mathregular{R(E)}$")
     pl.legend(loc='lower right', prop=fontP, ncol=n_cols)
     # pl.title('Moving average of final reward over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
@@ -197,8 +196,8 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
                 moving_average_timesteps_target[i],
                 label=print_cute_algo_name(algorithms_target[i]))
 
-    pl.xlabel('Episode')
-    pl.ylabel('Number of time steps')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Number of time steps $\mathregular{T(E)}$")
     pl.legend(loc='upper right', prop=fontP, ncol=n_cols)
     # pl.title('Moving average of number of time steps over episodes')
     pl.grid(True, color='gray', linestyle='dashed')

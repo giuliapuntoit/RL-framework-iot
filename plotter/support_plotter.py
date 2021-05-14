@@ -232,6 +232,8 @@ def read_reward_timesteps_from_output_file(algorithm, date_to_retrieve, partial=
         next(reader, None)
         for row in reader:
             if partial is None:
+                #if int(row[0]) >= 100:
+                #    break
                 x.append(int(row[0]))
                 y_reward.append(int(row[1]))
                 y_cum_reward.append(int(row[2]))
