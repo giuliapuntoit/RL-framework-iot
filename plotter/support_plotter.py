@@ -10,6 +10,23 @@ from matplotlib import patches
 from config import FrameworkConfiguration
 
 
+def get_font_family_and_size():
+    """
+    Function to globally set and get font family and font size for plots
+    """
+    font_family = "Times New Roman"
+    font_size = 22
+    return font_family, font_size
+
+
+def get_extension():
+    """
+    Function to globally set and get the extension for plots
+    """
+    extension = '.pdf'
+    return extension
+
+
 def print_cute_algo_name(a):
     """
     Function to return algorithm with greek letters
@@ -42,10 +59,13 @@ def return_greek_letter(par):
         return "invalid"
 
 
-def build_output_dir_from_path(output_dir, path):
+def build_output_dir_from_path(output_dir, path, partial=None):
     target_output_dir = output_dir
-    if path in [1, 2, 3]:
-        target_output_dir = "../plot/path" + str(path) + "/"
+    if path in [1, 2, 3, 4]:
+        if partial is None:
+            target_output_dir = "../plot/path" + str(path) + "/"
+        else:
+            target_output_dir = "../plot/partial/path" + str(path) + "/"
         pathlib.Path(target_output_dir).mkdir(parents=True, exist_ok=True)  # for Python > 3.5
     return target_output_dir
 
@@ -65,7 +85,7 @@ def fix_hist_step_vertical_line_at_end(ax):
         poly.set_xy(poly.get_xy()[:-1])
 
 
-def build_directory_and_filename(algorithm, date):
+def build_directory_and_filename(algorithm, date, partial=None):
     """
     Find directory and the filename to retrieve data
     """
@@ -83,6 +103,8 @@ def build_directory_and_filename(algorithm, date):
 
     directory = FrameworkConfiguration.directory + 'output/output_csv'
     filename = 'output_' + algorithm + '_' + date + '.csv'
+    if partial is not None:
+        filename = 'partial_output_' + algorithm + '_' + date + '.csv'
 
     return directory, filename
 
@@ -172,7 +194,10 @@ def read_avg_reward_from_output_file(algorithm, date_to_retrieve):
             x.append(int(row[0]))
             # TO COMPUTE OVER NUMBER OF COMMANDS
             # OTHERWISE REMOVE DIVISION BY ROW 3
-            y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
+            if float(row[3]) == 0.0:
+                y_avg_reward_for_one_episode.append(float(row[1]) / 1.0)
+            else:
+                y_avg_reward_for_one_episode.append(float(row[1]) / float(row[3]))
 
     return x, y_avg_reward_for_one_episode
 
@@ -191,11 +216,11 @@ def read_parameters_from_output_file(date_to_retrieve):
     return parameters
 
 
-def read_reward_timesteps_from_output_file(algorithm, date_to_retrieve):
+def read_reward_timesteps_from_output_file(algorithm, date_to_retrieve, partial=None):
     """
     Read reward, cumulative reward and timesteps data from output file
     """
-    directory, filename = build_directory_and_filename(algorithm, date_to_retrieve)
+    directory, filename = build_directory_and_filename(algorithm, date_to_retrieve, partial)
 
     x = []
     y_reward = []
@@ -206,10 +231,18 @@ def read_reward_timesteps_from_output_file(algorithm, date_to_retrieve):
         reader = csv.reader(csv_file, delimiter=',')
         next(reader, None)
         for row in reader:
-            x.append(int(row[0]))
-            y_reward.append(int(row[1]))
-            y_cum_reward.append(int(row[2]))
-            y_timesteps.append(int(row[3]))
+            if partial is None:
+                #if int(row[0]) >= 100:
+                #    break
+                x.append(int(row[0]))
+                y_reward.append(int(row[1]))
+                y_cum_reward.append(int(row[2]))
+                y_timesteps.append(int(row[3]))
+            else:
+                x.append(int(row[0]))
+                y_timesteps.append(int(row[1]))
+                y_reward.append(int(row[2]))
+                y_cum_reward.append(0)  # don't care about cumulative reward if I want to analyze partial results
 
     return x, y_reward, y_cum_reward, y_timesteps
 

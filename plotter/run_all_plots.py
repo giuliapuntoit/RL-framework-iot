@@ -7,8 +7,9 @@ from plotter import get_training_time_traffic, plot_training_time_traffic, plot_
     plot_moving_avg, plot_moving_avg_for_params
 from plotter.support_plotter import clear_tmp_files
 
+
 # Set this flag to delete tmp files once all plots are generated
-clean_tmp_files = False
+clean_tmp_files = True
 
 get_training_time_traffic.main()
 plot_training_time_traffic.main()

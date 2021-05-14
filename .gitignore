@@ -8,7 +8,7 @@ output/
 plot/
 *.json
 *.csv
-plotter/date_for_graphs.py
 plotter/*.png
+plotter/*.pdf
 *.dictionary
 *.zip

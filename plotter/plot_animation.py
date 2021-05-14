@@ -24,8 +24,8 @@ def animate(k):
     x, y = get_reward_for_episode()
     plt.cla()
     plt.plot(x, y, 'k')  # single line
-    plt.xlabel('Episode')
-    plt.ylabel('Final reward')
+    plt.xlabel("Episode $\mathregular{E}$")
+    plt.ylabel("Total reward $\mathregular{R(E)}$")
     plt.grid(True, color='gray', linestyle='dashed')
     plt.tight_layout()
 

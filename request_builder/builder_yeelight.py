@@ -127,6 +127,6 @@ def build_command_yeelight(method_chosen_index=-1, select_all_props=False):
 
 
 if __name__ == '__main__':
-    json_command = build_command_yeelight(method_chosen_index=6)
+    json_command = build_command_yeelight(method_chosen_index=31)
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(json_command)

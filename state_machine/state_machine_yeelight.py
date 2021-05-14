@@ -37,12 +37,17 @@ def get_states(path):
                   "19_rgb_middle", "20_bright_middle", "21_ct_rgb_middle", "22_ct_bright_middle",
                   "23_rgb_bright_middle", "24_ct_rgb_bright_middle",
                   ]
+    elif path == 4:
+        # PATH 4 (simplest path, starts from on and finish at rgb_bright in the optimal policy)
+        states = ["0_off_start", "1_on", "2_rgb", "3_bright", "4_rgb_bright", "5_off_end",
+                  "6_invalid"]
     return states
 
 
 def get_optimal_policy(path):
     """
     Method to return an array containing an optimal policy for a specified path
+    Multiple optimal policies could exist
     """
     optimal_policy = []
     if path == 1:
@@ -56,6 +61,10 @@ def get_optimal_policy(path):
     elif path == 3:
         # PATH 3
         optimal_policy = [5, 1, 4, 6, 5, 1, 6]
+
+    elif path == 4:
+        # PATH 4
+        optimal_policy = [2, 4]
 
     return optimal_policy
 
@@ -76,6 +85,10 @@ def get_optimal_path(path):
     elif path == 3:
         # PATH 3
         optimal_path = [0, 1, 12, 13, 16, 17, 18, 5]
+
+    elif path == 4:
+        # PATH 4
+        optimal_path = [1, 2, 4]  # Also 1 3 4 is an optimal path
 
     return optimal_path
 
@@ -240,6 +253,27 @@ def compute_next_state_from_props(path, current_state, old_props_values, discove
                     elif current_state == 17 and ct_modified:
                         next_state = 18
 
+    elif path == 4:
+        # PATH 4
+        if current_state == 0:  # Starting state for path 4 is state 1 instead of 0
+            next_state = 1
+            current_state = 1
+        if props_values[power_index] == 'off':
+            next_state = 5  # end state
+        elif props_values[power_index] == 'on':
+            if old_props_values:
+                if current_state == 1 and props_values[bright_index] != old_props_values[bright_index] and \
+                        props_values[rgb_index] != old_props_values[rgb_index]:
+                    next_state = 4
+                elif current_state == 1 and props_values[rgb_index] != old_props_values[rgb_index]:
+                    next_state = 2
+                elif current_state == 3 and props_values[rgb_index] != old_props_values[rgb_index]:
+                    next_state = 4
+                elif current_state == 1 and props_values[bright_index] != old_props_values[bright_index]:
+                    next_state = 3
+                elif current_state == 2 and props_values[bright_index] != old_props_values[bright_index]:
+                    next_state = 4
+
     return next_state, props_values
 
 
@@ -326,6 +360,22 @@ def compute_reward_from_states(path, current_state, next_state, storage_for_rewa
             return tmp, storage_for_reward
         storage_for_reward += reward_from_props
         return 0, storage_for_reward
+
+    elif path == 4:
+        # PATH 4
+        if current_state == 1 and next_state == 3 or current_state == 1 and next_state == 2:
+            reward_from_props = 5  # per bright or per rgb
+        elif current_state == 3 and next_state == 4 or current_state == 2 and next_state == 4:
+            reward_from_props = 200  # per rgb bright or per rgb bright
+            storage_for_reward += reward_from_props
+            tmp = storage_for_reward
+            storage_for_reward = 0
+            return tmp, storage_for_reward
+        elif next_state == 5:  # Last step
+            reward_from_props = 0
+        storage_for_reward += reward_from_props
+        return 0, storage_for_reward
+
     return reward_from_props, storage_for_reward
 
 # TODO compute_next_state_from_props and compute_reward_from_states should be randomly generated

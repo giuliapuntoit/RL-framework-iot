@@ -7,10 +7,12 @@ import pandas as pd
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.support_plotter import print_cute_algo_name, read_reward_timesteps_from_output_file, \
-    compute_avg_over_multiple_runs, build_output_dir_from_path
+    compute_avg_over_multiple_runs, build_output_dir_from_path, get_font_family_and_size, get_extension
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams['font.size'] = 20
+font_family, font_size = get_font_family_and_size()
+
+plt.rcParams["font.family"] = font_family
+plt.rcParams['font.size'] = font_size
 
 fontP = FontProperties()
 fontP.set_size('x-small')
@@ -60,12 +62,12 @@ def plot_single_algo_single_run(date_to_retrieve):
     pl.show()
 
 
-def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
+def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None, partial=None):
     """
     Generate plots with reward of a single execution over episodes, average reward and moving average
     reward computed over multiple executions of the same RL algorithm (same values for timesteps)
     """
-    target_output_dir = build_output_dir_from_path(output_dir, path)
+    target_output_dir = build_output_dir_from_path(output_dir, path, partial)
 
     window_size = 10
 
@@ -81,7 +83,7 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
 
     # retrieve data for all dates
     for dat in date_array:
-        x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(algorithm, dat)
+        x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(algorithm, dat, partial)
 
         x_all.append(x)
         y_all_reward.append(y_reward)
@@ -106,13 +108,13 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
     pl.plot(df_final_avg_over_n_runs['x'][np.array(df_final_avg_over_n_runs['x']).shape[0] - yMA.shape[0]:], yMA, 'r',
             label=str(len(date_array)) + ' runs moving avg')  # moving avg line
 
-    pl.xlabel('Episode')
-    pl.ylabel('Final reward')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Total reward $\mathregular{R(E)}$")
     pl.legend(loc='lower right', prop=fontP, ncol=n_cols)
     # pl.title('Final reward for ' + algorithm + ' algorithm over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig(target_output_dir + 'all_reward_plot_' + algorithm + '.png')
+    plt.savefig(target_output_dir + 'all_reward_plot_' + algorithm + get_extension())
     plt.show()
 
     yMA_timesteps = np.convolve(df_final_avg_over_n_runs['y2'], weights, 'valid')
@@ -125,14 +127,14 @@ def plot_single_algo_multiple_runs(date_array, algorithm=None, path=None):
             yMA_timesteps, 'r',
             label=str(len(date_array)) + ' runs moving avg')  # moving avg line
 
-    pl.xlabel('Episode')
-    pl.ylabel('Number of time steps')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Number of time steps $\mathregular{T(E)}$")
     pl.legend(loc='upper right', prop=fontP, ncol=n_cols)
     # pl.title('Time steps for ' + algorithm + ' algorithm over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
 
-    plt.savefig(target_output_dir + 'all_timesteps_plot_' + algorithm + '.png')
+    plt.savefig(target_output_dir + 'all_timesteps_plot_' + algorithm + get_extension())
     plt.show()
 
     return algorithm, x, yMA, yMA_timesteps
@@ -151,7 +153,6 @@ def compute_single_algo_multiple_runs_global_values_for_avg_bars(date_array, alg
     # retrieve data for all dates
     for dat in date_array:
         x, y_reward, y_cum_reward, y_timesteps = read_reward_timesteps_from_output_file(algorithm, dat)
-
         x_all.append(x)
         y_all_reward.append(y_reward)
         y_all_cum_reward.append(y_cum_reward)
@@ -180,13 +181,13 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
                 moving_average_rewards_target[i],
                 label=print_cute_algo_name(algorithms_target[i]))
 
-    pl.xlabel('Episode')
-    pl.ylabel('Final reward')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Total reward $\mathregular{R(E)}$")
     pl.legend(loc='lower right', prop=fontP, ncol=n_cols)
     # pl.title('Moving average of final reward over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig(target_output_dir + 'mavg_reward_plot.png')
+    plt.savefig(target_output_dir + 'mavg_reward_plot' + get_extension())
     plt.show()
 
     for i in range(0, len(algorithms_target)):
@@ -195,13 +196,13 @@ def plot_multiple_algo_moving_avg(algorithms_target, episodes_target, moving_ave
                 moving_average_timesteps_target[i],
                 label=print_cute_algo_name(algorithms_target[i]))
 
-    pl.xlabel('Episode')
-    pl.ylabel('Number of time steps')
+    pl.xlabel("Episode $\mathregular{E}$")
+    pl.ylabel("Number of time steps $\mathregular{T(E)}$")
     pl.legend(loc='upper right', prop=fontP, ncol=n_cols)
     # pl.title('Moving average of number of time steps over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig(target_output_dir + 'mavg_timesteps_plot.png')
+    plt.savefig(target_output_dir + 'mavg_timesteps_plot' + get_extension())
     plt.show()
 
 
@@ -313,19 +314,21 @@ def plot_multiple_algos_avg_rewards_timesteps_bars(algos, avg_rew, avg_steps, pa
     # ax.set_title('Avg reward for algos')
     plt.axhline(0, color='black', lw=.3)
     fig.tight_layout()
-    plt.savefig(target_output_dir + 'avg_rewards_for_algos.png')
+    plt.savefig(target_output_dir + 'avg_rewards_for_algos' + get_extension())
     plt.show()
 
     fig, ax = plt.subplots()
     col = ax.bar(cols_labels, avg_steps, align='center', )
     ax.set_ylabel('Avg time steps for episode')
     fig.tight_layout()
-    plt.savefig(target_output_dir + 'avg_steps_for_algos.png')
+    plt.savefig(target_output_dir + 'avg_steps_for_algos' + get_extension())
     plt.show()
 
 
 def main():
     all_algo = ["sarsa", "sarsa_lambda", "qlearning", "qlearning_lambda"]
+
+    # all_graphs_before_tuning()
 
     all_avg_rew = []
     all_avg_timesteps = []
@@ -409,6 +412,39 @@ def main():
 
     all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
     plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+
+
+    all_avg_rew = []
+    all_avg_timesteps = []
+
+    target_path = 4
+    print("PATH ", target_path)
+
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_lambda_dates
+
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_dates, all_algo[0])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(sarsa_lambda_dates, all_algo[1])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_dates, all_algo[2])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+    gar, gat = compute_single_algo_multiple_runs_global_values_for_avg_bars(qlearning_lambda_dates, all_algo[3])
+    all_avg_rew.append(gar)
+    all_avg_timesteps.append(gat)
+
+    all_graphs_for_specified_path(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+    plot_multiple_algos_avg_rewards_timesteps_bars(all_algo, all_avg_rew, all_avg_timesteps, target_path)
+
+    # Plot results for partial policy found
+    from dates_for_graphs.date_for_partial import qlearning_partial
+
+    plot_single_algo_multiple_runs(qlearning_partial, algorithm="qlearning", path=2, partial=True)
 
 
 if __name__ == '__main__':

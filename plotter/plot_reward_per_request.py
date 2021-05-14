@@ -6,10 +6,14 @@ import matplotlib.pyplot as plt
 import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.plot_moving_avg import print_cute_algo_name
-from plotter.support_plotter import read_all_info_from_log, build_output_dir_from_path
+from plotter.support_plotter import read_all_info_from_log, build_output_dir_from_path, get_font_family_and_size, \
+    get_extension
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams['font.size'] = 20
+font_family, font_size = get_font_family_and_size()
+
+plt.rcParams["font.family"] = font_family
+plt.rcParams['font.size'] = font_size
+
 fontP = FontProperties()
 fontP.set_size('x-small')
 n_cols = 1
@@ -30,12 +34,12 @@ def retrieve_reward_per_request_single_run(date_to_retrieve, show_intermediate_g
 
         pl.plot(commands, cum_rewards, label=algorithm, color=colors[color_index])
 
-        pl.xlabel('Number of sent commands')
-        pl.ylabel('Cumulative reward')
+        pl.xlabel("Number of sent commands $\mathregular{n_a}$")
+        pl.ylabel("Cumulative reward $\mathregular{C(n_a)}$")
         pl.legend(loc='upper right')
         # pl.title('Cumulative reward over commands for ' + algorithm)
         pl.grid(True)
-        plt.savefig('commands_plot_' + algorithm + '.png')
+        plt.savefig('commands_plot_' + algorithm + get_extension())
         pl.tight_layout()
         plt.show()
 
@@ -76,13 +80,13 @@ def compute_avg_reward_per_request_multiple_runs(dates, algo, show_intermediate_
         avg_commands.append(i)
 
     if show_intermediate_graphs:
-        pl.xlabel('Number of sent commands')
-        pl.ylabel('Cumulative reward')
+        pl.xlabel("Number of sent commands $\mathregular{n_a}$")
+        pl.ylabel("Cumulative reward $\mathregular{C(n_a)}$")
         pl.legend(loc='upper right')
         # pl.title('Cumulative reward over commands for ' + algo)
         pl.grid(True)
         pl.tight_layout()
-        plt.savefig('all_commands_' + algo + '.png')
+        plt.savefig('all_commands_' + algo + get_extension())
         plt.show()
 
     return avg_cum_reward, avg_commands
@@ -98,13 +102,13 @@ def plot_cum_reward_per_command_multiple_algos_for_specified_path(rewards, comma
     for index, al in enumerate(algorithms):
         pl.plot(commands[index], rewards[index], label=print_cute_algo_name(al))  # single line
 
-    pl.xlabel('Number of sent commands')
-    pl.ylabel('Cumulative reward')
+    pl.xlabel('Number of sent commands $\mathregular{n_a}$')
+    pl.ylabel('Cumulative reward $\mathregular{C(n_a)}$')
     pl.legend(loc='upper left', prop=fontP, ncol=n_cols)
     # pl.title('Cumulative reward over commands for algos')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig(target_output_dir + 'all_commands_all_algos.png')
+    plt.savefig(target_output_dir + 'all_commands_all_algos' + get_extension())
     plt.show()
 
 
@@ -169,6 +173,32 @@ def main():
     from dates_for_graphs.date_for_graphs_path3 import sarsa_lambda_dates
     from dates_for_graphs.date_for_graphs_path3 import qlearning_dates
     from dates_for_graphs.date_for_graphs_path3 import qlearning_lambda_dates
+
+    all_cum_rewards = []
+    all_avg_commands = []
+
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(sarsa_dates, algos[0])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(sarsa_lambda_dates, algos[1])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(qlearning_dates, algos[2])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+    avg_cum_rew, avg_com = compute_avg_reward_per_request_multiple_runs(qlearning_lambda_dates, algos[3])
+    all_cum_rewards.append(avg_cum_rew)
+    all_avg_commands.append(avg_com)
+
+    plot_cum_reward_per_command_multiple_algos_for_specified_path(all_cum_rewards, all_avg_commands, algos, target_path)
+
+    target_path = 4
+    print("PATH ", target_path)
+
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_lambda_dates
 
     all_cum_rewards = []
     all_avg_commands = []

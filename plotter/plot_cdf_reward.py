@@ -9,10 +9,12 @@ import pylab as pl
 from matplotlib.font_manager import FontProperties
 from plotter.plot_moving_avg import print_cute_algo_name
 from plotter.support_plotter import fix_hist_step_vertical_line_at_end, read_avg_reward_from_output_file, \
-    build_output_dir_from_path
+    build_output_dir_from_path, get_font_family_and_size, get_extension
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams['font.size'] = 20
+font_family, font_size = get_font_family_and_size()
+
+plt.rcParams["font.family"] = font_family
+plt.rcParams['font.size'] = font_size
 
 fontP = FontProperties()
 fontP.set_size('x-small')
@@ -48,7 +50,7 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     plt.ylim(0, 1.0)
     plt.grid(True, color='gray', linestyle='dashed')
     plt.tight_layout()
-    plt.savefig('cdf_rewards_multiple_run_' + algorithm + '.png')
+    # plt.savefig('cdf_rewards_multiple_run_' + algorithm + get_extension())
     plt.show()
 
     # compute average over multiple runs
@@ -76,7 +78,7 @@ def compute_avg_reward_single_algo_multiple_runs(date_array, algorithm=None):
     # pl.title('Reward for ' + algorithm + ' algorithm over episodes')
     pl.grid(True, color='gray', linestyle='dashed')
     pl.tight_layout()
-    plt.savefig('avg_reward_plot_multiple_runs.png')
+    plt.savefig('avg_reward_plot_multiple_runs' + get_extension())
     # plt.show()
     plt.close()
 
@@ -105,7 +107,7 @@ def plot_cdf_reward_multiple_algo(algorithms_target, episodes_target, avg_rew, p
     plt.grid(True, color='gray', linestyle='dashed')
     plt.tight_layout()
     plt.ylim(0, 1.0)
-    plt.savefig(target_output_dir + 'cdf_rewards_multiple_algo.png')
+    plt.savefig(target_output_dir + 'cdf_rewards_multiple_algo' + get_extension())
     plt.show()
 
 
@@ -254,6 +256,17 @@ def main():
     from dates_for_graphs.date_for_graphs_path3 import qlearning_lambda_dates
 
     plot_cdf_path_from_dates(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+
+    target_path = 4
+    print("PATH ", target_path)
+
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_dates
+    from dates_for_graphs.date_for_graphs_path4 import sarsa_lambda_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_dates
+    from dates_for_graphs.date_for_graphs_path4 import qlearning_lambda_dates
+
+    plot_cdf_path_from_dates(sarsa_dates, sarsa_lambda_dates, qlearning_dates, qlearning_lambda_dates, path=target_path)
+
 
 
 if __name__ == '__main__':

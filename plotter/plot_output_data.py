@@ -5,9 +5,13 @@
 import matplotlib.pyplot as plt
 import csv
 from config import FrameworkConfiguration
-from plotter.support_plotter import read_parameters_from_output_file, read_reward_timesteps_from_output_file
+from plotter.support_plotter import read_parameters_from_output_file, read_reward_timesteps_from_output_file, \
+    get_font_family_and_size
 
-plt.rcParams["font.family"] = "Times New Roman"
+font_family, font_size = get_font_family_and_size()
+
+plt.rcParams["font.family"] = font_family
+plt.rcParams['font.size'] = font_size
 
 
 class PlotOutputData(object):

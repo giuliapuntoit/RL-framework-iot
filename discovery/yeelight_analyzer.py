@@ -52,6 +52,7 @@ def yeelight_discovery():
     if len(bulb_idx2ip) == 0:
         print("Bulb list is empty.")
     else:
+        sleep(15)
         global devices
         devices = display_bulbs()
 

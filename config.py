@@ -15,11 +15,11 @@ class FrameworkConfiguration(object):
 
     # RL params
     algorithm = 'qlearning'  # 'sarsa' 'sarsa_lambda' 'qlearning' 'qlearning_lambda'
-    epsilon = 0.6
-    total_episodes = 5
+    epsilon = 0.2
+    total_episodes = 100
     max_steps = 100
-    alpha = 0.05
-    gamma = 0.95
+    alpha = 0.1
+    gamma = 0.55
     lam = 0.9
     decay_episode = 20
     decay_value = 0.001
@@ -29,8 +29,8 @@ class FrameworkConfiguration(object):
     follow_policy = False
     use_old_matrix = False
     date_old_matrix = 'YY_mm_dd_HH_MM_SS'
-    follow_partial_policy = False
-    follow_policy_every_tot_episodes = 5
+    follow_partial_policy = True
+    follow_policy_every_tot_episodes = 1
     use_colored_output = False  # Using colored output may delay the write operation on console
     # Put True to use_colored_output flag ONLY IF DEBUG=False
 
@@ -38,7 +38,7 @@ class FrameworkConfiguration(object):
     seconds_to_wait = 4.0
     num_actions_to_use = 37
 
-    DEBUG = True
+    DEBUG = False
 
     def as_dict(self):
         return {'max_threads': self.max_threads,
