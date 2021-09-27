@@ -19,5 +19,7 @@ plot_moving_avg.main()
 plot_moving_avg_for_params.main()
 plot_reward_per_request.main()
 
+# Note that the heatmap is not plotted with this script, since it is referred to a single run
+
 if clean_tmp_files:
     clear_tmp_files()

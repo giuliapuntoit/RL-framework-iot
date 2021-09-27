@@ -178,8 +178,10 @@ Since a lot of different plots can be generated, here there is a quick explanati
   <p align="center"><img src="./images/cdf_rewards_multiple_algo.png" height="170"></p>
 * ``plot_reward_per_request.py`` shows the cumulative reward over the number of commands sent:
   <p align="center"><img src="./images/all_commands_all_algos.png" height="170">
-* ``plot_output_data.py`` shows reward and time step results for 1 single execution (It can be used for check the correct working:
+* ``plot_output_data.py`` shows reward and time step results for 1 single execution (It can be used for check the correct working):
   <p align="center"><img src="./images/single_output.png" height="270">
+* ``plot_heatmap.py`` generates the heatmap reflecting the Q matrix of one run of the algorithm.
+  <p align="center"><img src="./images/heatmap_with_labels.png" height="270">
 * ``plot_animation.py`` generates an animated plot in real time while the algorithm is working. Once the algorithm has started, the current date can be retrieved from the ``log_date.log`` file and copied into the ``plot_animation.py`` script. Once this script has started, it will generate a real time plot as the one showed in <a href="#demo">Demo</a> section.
 * ``support_plotter.py`` contains methods for supporting the operation of the other scripts inside the Plotter module.
 * ``run_all_plots.py`` generates all plots and saves them into a Plot directory created outside the Plotter module.
@@ -193,7 +195,7 @@ Since a lot of different plots can be generated, here there is a quick explanati
 
 ## Demo
 
-A short demo of the working of the Learning process, showed through the console and an animated plot can be seen in [demo](https://drive.google.com/file/d/1vNQbgy6AtDedNQ9U6nRPkNA36Z8X2tYQ/view?usp=sharing).
+A short demo of the working of the Learning process, showed through the console, and an animated plot can be seen in [demo](https://drive.google.com/file/d/1vNQbgy6AtDedNQ9U6nRPkNA36Z8X2tYQ/view?usp=sharing).
 
 Recall that this demo was done using the previously described ``plot_animation.py`` script, in order to create an animated plot.
 

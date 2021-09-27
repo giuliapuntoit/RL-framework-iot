@@ -12,3 +12,4 @@ plotter/*.png
 plotter/*.pdf
 *.dictionary
 *.zip
+plotter/csv_for_heatmap/
