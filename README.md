@@ -1,6 +1,8 @@
 # RL framework for IoT protocols
 
-Automatically learn the protocol of a generic IoT device in the shortest possible time, using Reinforcement Learning (RL) techniques.
+**BASED ON PAPER**: [RL-IoT: Reinforcement Learning to Interact with IoT Devices](https://ieeexplore.ieee.org/document/9524260)
+
+Automatically learn the semantics of a protocol of a generic IoT device in the shortest possible time, using Reinforcement Learning (RL) techniques.
 
 This RL framework implements 4 RL algorithms:
 
@@ -228,9 +230,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 * Previous implementation of RL algorithms in TCP toycase scenario: [RL-for-TCP](https://github.com/giuliapuntoit/RL-tcp-toycase)
-
 * SARSA implementation example: [SARSA-example](https://www.geeksforgeeks.org/sarsa-reinforcement-learning/?ref=rp)
-
 * How to evaluate RL algorithms: [RL-examples](https://towardsdatascience.com/reinforcement-learning-temporal-difference-sarsa-q-learning-expected-sarsa-on-python-9fecfda7467e)
 
 
